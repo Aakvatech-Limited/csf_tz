@@ -252,16 +252,18 @@ def get_checkin_details(conditions, filters):
             emp.default_shift AS default_shift,
             sha.shift_type AS shift_type,
             DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            DATE_FORMAT(chec.time, '%%T') AS checkin_time
+            MIN(DATE_FORMAT(chec.time, '%%T')) AS checkin_time
         FROM `tabEmployee Checkin` chec
             INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
             LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
-            AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND  DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
+            AND sha.start_date BETWEEN %(from_date)s AND %(to_date)s
+            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
         WHERE chec.log_type = "IN" {conditions}
-        ORDER BY chec.time ASC
+        GROUP BY chec.employee, DATE(chec.time)
+        ORDER BY chec.employee, chec.time ASC
     """.format(conditions=conditions), filters, as_dict=1)
     return data
+
 
 def get_checkout_details(conditions, filters):
     data = frappe.db.sql("""
@@ -272,13 +274,14 @@ def get_checkout_details(conditions, filters):
             emp.default_shift AS default_shift,
             sha.shift_type AS shift_type,
             DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            DATE_FORMAT(chec.time, '%%T') AS checkout_time
+            MAX(DATE_FORMAT(chec.time, '%%T')) AS checkout_time
         FROM `tabEmployee Checkin` chec
             INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
             LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
-            AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND  DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
+            AND sha.start_date BETWEEN %(from_date)s AND %(to_date)s
+            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
         WHERE chec.log_type = "OUT" {conditions}
-        ORDER BY chec.time ASC
+        GROUP BY chec.employee, DATE(chec.time)
+        ORDER BY chec.employee, chec.time DESC
     """.format(conditions=conditions), filters, as_dict=1)
     return data
