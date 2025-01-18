@@ -10,7 +10,8 @@ from csf_tz.trade_in.utils import (
     add_trade_in_module,
     add_trade_in_item,
     add_trade_in_control_account,
-    delete_trade_in_item_and_account
+    delete_trade_in_item_and_account,
+    set_negative_rates_for_items
 )
 
 
@@ -37,6 +38,7 @@ class CSFTZSettings(Document):
                 add_trade_in_module()  # Add Trade In module
                 add_trade_in_item()    # Create Trade In item
                 add_trade_in_control_account()  # Create Control Account
+                set_negative_rates_for_items()  # Create Control Account
                 frappe.msgprint("Trade In feature has been successfully enabled.")
             except Exception as e:
                 # Log the error and notify the user

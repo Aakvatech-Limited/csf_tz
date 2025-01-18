@@ -160,3 +160,20 @@ def delete_trade_in_item_and_account():
         print(f"{trade_in_item} does not exist.")
 
 
+def set_negative_rates_for_items():
+    #Set the 'allow_negative_rates_for_items' field in the Selling Settings
+    try:
+        # Get Selling Settings single doctype
+        selling_settings = frappe.get_single('Selling Settings')
+
+        # Set 'allow_negative_rates_for_items' to 1
+        selling_settings.allow_negative_rates_for_items = 1
+        selling_settings.save()
+
+        print("Allow Negative Rates for Items set to 1 successfully.")
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error Setting Allow Negative Rates for Items")
+        print(f"An error occurred: {e}")
+
+
