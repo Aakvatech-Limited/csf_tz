@@ -1,6 +1,7 @@
 {
  "creation": "2020-08-25 13:11:30.921286",
  "doctype": "DocType",
+ "istable": 1,
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
