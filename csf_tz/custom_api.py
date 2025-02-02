@@ -2882,6 +2882,23 @@ def get_item_prices_po(item_code, currency, customer=None, company=None):
     # frappe.throw(str(prices_list))
     return prices_list
 
+def trade_in_flag_check(func):
+    def wrapper(doc, method=None, *args, **kwargs):
+        if not getattr(doc, "custom_is_trade_in", False):
+            frappe.log_error(
+                title=f"Trade-In Validation Skipped for Function: {func.__name__}",
+                message=f"Skipped validation for DocType: {doc.doctype}, DocName: {doc.name} as 'custom_is_trade_in' is not set."
+            )
+            return  # Skip validation if trade-in is not applicable
+        
+        frappe.log_error(
+            title=f"Trade-In Validation Triggered for Function: {func.__name__}",
+            message=f"Triggered validation for DocType: {doc.doctype}, DocName: {doc.name} as 'custom_is_trade_in' is set."
+        )
+        return func(doc, method, *args, **kwargs)  # Call the original function if validation is needed
+    return wrapper
+
+@trade_in_flag_check
 def validate_trade_in_serial_no_and_batch(doc, method):
     error_messages = []
     for row in doc.items:
@@ -2907,12 +2924,8 @@ def validate_trade_in_serial_no_and_batch(doc, method):
             msg="<br>".join(error_messages),
         )
 
-
+@trade_in_flag_check
 def validate_trade_in_sales_percentage(doc, method):
-    # Check if "custom_is_trade_in" is checked
-    if not doc.custom_is_trade_in:
-        return  # Skip validation if trade-in is not applicable
-
     # Calculate the total trade-in value from the child table where item_code = "Trade In"
     total_trade_in_value = sum(
         row.custom_total_trade_in_value for row in doc.items if row.item_code == "Trade In"
@@ -2967,26 +2980,30 @@ def validate_trade_in_sales_percentage(doc, method):
     """
 )
 
-
+@trade_in_flag_check
 def create_trade_in_stock_entry(doc, method):
     # Initialize an empty list to store items
     items_list = []
 
     # Fetch Company's Trade_in_control_account and abbreviation
     company_details = frappe.db.get_value(
-        'Company',
+        "Company",
         doc.company,
-        ['custom_trade_in_control_account', 'abbr'],
-        as_dict=True
+        ["custom_trade_in_control_account", "abbr"],
+        as_dict=True,
     )
     if not company_details:
         frappe.throw(f"Company details not found for {doc.company}. Please check the Company configuration.")
+        return
 
-    trade_in_control_account = company_details.get('custom_trade_in_control_account')
-    company_abbr = company_details.get('abbr')
+    trade_in_control_account = company_details.get("custom_trade_in_control_account")
 
     if not trade_in_control_account:
-        frappe.throw(f"Trade-In Control Account not configured for {doc.company}. Please set it in the Company settings.")
+        frappe.throw(
+            f"Trade-In Control Account not configured for {doc.company}. "
+            f"Please set it in the <a href='/app/company/{doc.company}'>Company settings</a>."
+        )
+        return
 
     # Iterate through the items in the document
     for item in doc.items:
@@ -3008,26 +3025,31 @@ def create_trade_in_stock_entry(doc, method):
                         frappe.throw(f"Error creating Batch: {str(e)}")
 
             # Append each item's details to the items_list
-            items_list.append({
-                "item_code": item.get("custom_trade_in_item"),
-                "qty": item.get("custom_trade_in_qty"),
-                "uom": item.get("uom") or "Nos",  # Default to "Nos" if UOM is not provided
-                "basic_rate": item.get("custom_trade_in_incoming_rate"),
-                "batch_no": custom_batch_no,  # Use the custom batch number here
-                "serial_no": item.get("custom_trade_in_serial_no"),  # Get custom serial number value
-                "expense_account": trade_in_control_account,
-                "t_warehouse": item.get("warehouse"),  # Use the warehouse from the Sales Invoice child table
-            })
+            items_list.append(
+                {
+                    "item_code": item.get("custom_trade_in_item"),
+                    "qty": item.get("custom_trade_in_qty"),
+                    "uom": item.get("uom") or "Nos",  # Default to "Nos" if UOM is not provided
+                    "basic_rate": item.get("custom_trade_in_incoming_rate"),
+                    "batch_no": custom_batch_no,  # Use the custom batch number here
+                    "serial_no": item.get("custom_trade_in_serial_no"),  # Get custom serial number value
+                    "expense_account": trade_in_control_account,
+                    "t_warehouse": item.get("warehouse"),  # Use the warehouse from the Sales Invoice child table
+                    "use_serial_batch_fields": 1,
+                }
+            )
 
     # Create a single stock entry if there are items to add
     if items_list:
         try:
-            stock_entry = frappe.get_doc({
-                "doctype": "Stock Entry",
-                "stock_entry_type": "Material Receipt",
-                "items": items_list,  # Use the populated list here
-                "custom_sales_invoice": doc.name,  # Link to the parent Sales Invoice
-            })
+            stock_entry = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "items": items_list,  # Use the populated list here
+                    "custom_sales_invoice": doc.name,  # Link to the parent Sales Invoice
+                }
+            )
 
             # Insert and submit the Stock Entry
             stock_entry.insert()
@@ -3035,7 +3057,9 @@ def create_trade_in_stock_entry(doc, method):
             frappe.db.commit()
 
             # Notify the user
-            frappe.msgprint(f"Stock Entry {stock_entry.name} created successfully!")
+            frappe.msgprint(
+                f"Stock Entry <a href='/app/stock-entry/{stock_entry.name}' target='_blank'>{stock_entry.name}</a> created successfully!"
+            )
         except Exception as e:
             frappe.db.rollback()
             frappe.throw(f"Error during Stock Entry creation: {str(e)}")
