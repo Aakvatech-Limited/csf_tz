@@ -151,6 +151,12 @@ def get_fine(number_plate=None, reference=None):
             if response2 and response2.status_code == 200:
                 if response2.json:
                     data = response2.json().get("dataFromTms")
+                    if not data or not data.items:
+                        frappe.log_error(
+                            title=f"{number_plate or reference}",
+                            message=f"No data about {number_plate or reference}!",
+                        )
+                        return
                     for key, value in data.items():
                         if value.get("reference"):
                             fine_list.append(value["reference"])
