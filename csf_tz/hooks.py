@@ -10,6 +10,7 @@ app_icon = "octicon octicon-bookmark"
 app_color = "green"
 app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
+required_apps = ["frappe/erpnext", "frappe/hrms"]
 
 
 # Override Document Class
