@@ -83,6 +83,7 @@ class CSFTZBankCharges(Document):
         try:
             pe.save(ignore_permissions=True)
             pe.submit()
+            pe.reload()
             frappe.msgprint(f"PE {pe.name} created successfully")
             return {
                 "reference_type": pe.doctype,
