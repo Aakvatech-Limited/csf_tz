@@ -59,6 +59,7 @@ class CSFTZBankCharges(Document):
                     "exchange_rate": self.exchange_rate,
                 }
             ]
+            frappe.db.commit()
             self.payment_reconcile()
         except Exception as e:
             frappe.throw(_("Error while creating Purchase Invoice: {0}").format(str(e)))
