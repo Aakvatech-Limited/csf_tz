@@ -209,8 +209,7 @@ def print_out(message, alert=False, add_traceback=False, to_error_log=False):
         out(msg)
 
     check_msg(message)
-
-
+        
 def get_stock_ledger_entries(item_code):
     if get_version() == 12:
         conditions = " and sle.item_code = '%s'" % item_code
@@ -218,22 +217,21 @@ def get_stock_ledger_entries(item_code):
         conditions = " and sle.is_cancelled = 0 and sle.item_code = '%s'" % item_code
     return frappe.db.sql(
         """
-        select sle.batch_no, sle.item_code, sle.warehouse, sle.qty_after_transaction as actual_qty
+         select sle.batch_no, sle.item_code, sle.warehouse, sle.qty_after_transaction as actual_qty
             from `tabStock Ledger Entry` sle
             inner join (
-            SELECT IF(batch_no IS NULL, '', batch_no) as batch_no, item_code, warehouse, max(TIMESTAMP(posting_date, posting_time)) as timestamp
-                from `tabStock Ledger Entry`
-                group by IF(batch_no IS NULL, '', batch_no), item_code, warehouse) as sle_max
-            on sle.batch_no = sle_max.batch_no
-                and sle.item_code = sle_max.item_code
-                and sle.warehouse = sle_max.warehouse
-                and TIMESTAMP(sle.posting_date, sle.posting_time) = sle_max.timestamp
-        where sle.docstatus = 1 %s
-        order by sle.warehouse, sle.item_code, sle.batch_no"""
-        % conditions,
+                SELECT batch_no, item_code, warehouse, max(posting_datetime) as posting_datetime
+                    from `tabStock Ledger Entry`
+                    group by batch_no, item_code, warehouse) as sle_max
+                on sle.batch_no = sle_max.batch_no
+                    and sle.item_code = sle_max.item_code
+                    and sle.warehouse = sle_max.warehouse
+                    and sle.posting_datetime = sle_max.posting_datetime
+         where sle.docstatus = 1 %s
+         order by sle.warehouse, sle.item_code, sle.batch_no"""
+         % conditions,
         as_dict=1,
     )
-
 
 def get_version():
     branch_name = get_app_branch("erpnext")
