@@ -69,7 +69,7 @@ doctype_js = {
     "BOM": "csf_tz/bom_addittional_costs.js",
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
-    "Employee": "csf_tz/employee_contact_qr.js"
+    "Employee": "csf_tz/employee_contact_qr.js",
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
@@ -252,6 +252,12 @@ doc_events = {
     },
     "Employee Advance": {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
+    },
+    "Payment Entry": {
+        "before_submit": [
+            "csf_tz.csftz_hooks.payment_entry_bank_charges.validate_bank_charges_account",
+            "csf_tz.csftz_hooks.payment_entry_bank_charges.create_bank_charges_journal"
+        ]
     },
 }
 
