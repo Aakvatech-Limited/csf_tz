@@ -70,6 +70,7 @@ doctype_js = {
     "BOM": "csf_tz/bom_addittional_costs.js",
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
+    "Employee": "csf_tz/employee_contact_qr.js"
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
