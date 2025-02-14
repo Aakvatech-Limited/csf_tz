@@ -38,6 +38,8 @@ frappe.listview_settings['Custom Field'] = {
                     fetch_from: doc.fetch_from,
                     collapsible: doc.collapsible,
                     non_negative: doc.non_negative,
+                    mandatory_depends_on: doc.mandatory_depends_on,
+                    depends_on: doc.depends_on,
                     reqd: doc.reqd,
                     unique: doc.unique,
                     is_virtual: doc.is_virtual,
