@@ -252,6 +252,12 @@ doc_events = {
     "Employee Advance": {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
     },
+    "Payment Entry": {
+        "before_submit": [
+            "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
+            "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
+        ]
+    }
 }
 
 # Scheduled Tasks
