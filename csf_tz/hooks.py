@@ -259,6 +259,9 @@ doc_events = {
     "Employee Advance": {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
     },
+    "Payment Entry": {
+        "validate": "csf_tz.csftz_hooks.payment_entry.validate"
+    }
 }
 
 # Scheduled Tasks

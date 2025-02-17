@@ -150,3 +150,23 @@ def get_outstanding_reference_documents(args):
         )
 
     return data
+
+def validate(self, method):
+    restrict_unallocated_amount_for_supplier()
+
+# Check Feature Flag in Company Settings
+def restrict_unallocated_amount_for_supplier():
+    company = frappe.get_doc("Company", frappe.defaults.get_user_default("company"))
+
+    if company.restrict_unallocated_amount_for_supplier:
+        check_payment_entries()
+
+def check_payment_entries():
+    payment_entries = frappe.get_all("Payment Entry", filters={"docstatus": 0})
+
+    for entry in payment_entries:
+        payment_entry = frappe.get_doc("Payment Entry", entry.name)
+        
+        if not payment_entry.allow_unallocated_amount_for_supplier:
+            if payment_entry.unallocated_amount > 0:
+                frappe.throw(_("Cannot submit Payment Entry {0} with unallocated amount.").format(entry.name))
