@@ -152,27 +152,26 @@ frappe.ui.form.on("Sales Invoice", {
 
   custom_is_trade_in: function (frm) {
     if (frm.doc.custom_is_trade_in) {
-      // Fetch the company's abbreviation
       frappe.db.get_value("Company", frm.doc.company, "abbr", function (res) {
-        const abbr = res ? res.abbr : "";
+        if (!res || !res.abbr) return; // Exit if abbreviation is missing
+        let abbr = res.abbr;
 
         // Check if "Trade In" item is already added
-        const exists = frm.doc.items.some(
-          (item) => item.item_code === "Trade In"
-        );
-        if (!exists) {
-          // Add a new row with "Trade In"
-          let row = frm.add_child("items", {
-            item_code: "Trade In",
-            item_name: "Trade In",
-            income_account: `Trade In Control - ${abbr}`, // Set income account dynamically
-            warehouse: `Stores - ${abbr}`,
-            uom: "Nos", // Set unit of measure
-            qty: 1, // Set quantity to 1
-            description: "Trade-In", // Set description
+        if (!frm.doc.items.some((item) => item.item_code === "Trade In")) {
+          // Fetch Default UOM from Item Master
+          frappe.db.get_value("Item", "Trade In", "stock_uom", function (data) {
+            let row = frm.add_child("items", {
+              item_code: "Trade In",
+              item_name: "Trade In",
+              income_account: `Trade In Control - ${abbr}`, // Set income account dynamically
+              warehouse: `Stores - ${abbr}`, // Set warehouse dynamically
+              uom: data.stock_uom, // Directly use UOM from Item Master
+              qty: 1, // Default quantity
+              description: "Trade-In",
+            });
+
+            frm.refresh_field("items"); // Refresh item table
           });
-          frm.refresh_field("items");
-          // frm.set_value("set_warehouse", `Stores - ${abbr}`);
         }
       });
     } else {
