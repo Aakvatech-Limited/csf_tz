@@ -161,7 +161,7 @@ frappe.ui.form.on("Sales Invoice", {
             company_res?.message?.custom_trade_in_control_account;
           if (!trade_in_account)
             frappe.throw(
-              __("Trade-In Control Account is not set in Company settings.")
+              "Trade-In Control Account is not set in Company settings."
             );
 
           if (!frm.doc.items.some((item) => item.item_code === "Trade In")) {
