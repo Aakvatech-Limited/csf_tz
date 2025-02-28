@@ -152,39 +152,43 @@ frappe.ui.form.on("Sales Invoice", {
 
   custom_is_trade_in: function (frm) {
     if (frm.doc.custom_is_trade_in) {
-      frappe.db
-        .get_value("Company", frm.doc.company, [
-          "custom_trade_in_control_account",
-        ])
-        .then((company_res) => {
-          const trade_in_account =
-            company_res?.message?.custom_trade_in_control_account;
-          if (!trade_in_account)
-            frappe.throw(
-              __("Trade-In Control Account is not set in Company settings.")
-            );
+      frappe.db.get_value("Company", frm.doc.company, "abbr", function (res) {
+        if (!res || !res.abbr) return; // Exit if abbreviation is missing
+        let abbr = res.abbr;
 
-          if (!frm.doc.items.some((item) => item.item_code === "Trade In")) {
-            frm.add_child("items", {
+        // Check if "Trade In" item is already added
+        if (!frm.doc.items.some((item) => item.item_code === "Trade In")) {
+          // Fetch Default UOM from Item Master
+          frappe.db.get_value("Item", "Trade In", "stock_uom", function (data) {
+            let row = frm.add_child("items", {
               item_code: "Trade In",
               item_name: "Trade In",
-              income_account: trade_in_account,
-              qty: 1,
+              income_account: `Trade In Control - ${abbr}`, // Set income account dynamically
+              warehouse: `Stores - ${abbr}`, // Set warehouse dynamically
+              uom: data.stock_uom, // Directly use UOM from Item Master
+              qty: 1, // Default quantity
               description: "Trade-In",
             });
-            frm.refresh_field("items");
-          }
-        });
+
+            frm.refresh_field("items"); // Refresh item table
+          });
+        }
+      });
     } else {
+      // Confirm before removing "Trade In"
       frappe.confirm(
         'Are you sure you want to remove the "Trade In" item?',
-        () => {
+        function () {
+          // Remove the "Trade In" item if exists
           frm.doc.items = frm.doc.items.filter(
             (item) => item.item_code !== "Trade In"
           );
           frm.refresh_field("items");
         },
-        () => frm.set_value("custom_is_trade_in", 1)
+        function () {
+          // Re-check the checkbox if user cancels
+          frm.set_value("custom_is_trade_in", 1);
+        }
       );
     }
   },
