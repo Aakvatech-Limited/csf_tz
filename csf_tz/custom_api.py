@@ -2885,16 +2885,7 @@ def get_item_prices_po(item_code, currency, customer=None, company=None):
 def trade_in_flag_check(func):
     def wrapper(doc, method=None, *args, **kwargs):
         if not getattr(doc, "custom_is_trade_in", False):
-            frappe.log_error(
-                title=f"Trade-In Validation Skipped for Function: {func.__name__}",
-                message=f"Skipped validation for DocType: {doc.doctype}, DocName: {doc.name} as 'custom_is_trade_in' is not set."
-            )
             return  # Skip validation if trade-in is not applicable
-        
-        frappe.log_error(
-            title=f"Trade-In Validation Triggered for Function: {func.__name__}",
-            message=f"Triggered validation for DocType: {doc.doctype}, DocName: {doc.name} as 'custom_is_trade_in' is set."
-        )
         return func(doc, method, *args, **kwargs)  # Call the original function if validation is needed
     return wrapper
 
