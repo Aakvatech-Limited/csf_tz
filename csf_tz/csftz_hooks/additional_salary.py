@@ -32,9 +32,6 @@ def create_additional_salary_journal(doc, method):
         if method == "on_submit":
             dr_account = component_account
             cr_account = cash_account
-        elif method == "on_cancel":
-            dr_account = cash_account
-            cr_account = component_account
         else:
             frappe.msgprint("Unknown method on create_additional_salary_journal")
             return
