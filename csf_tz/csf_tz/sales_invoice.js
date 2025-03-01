@@ -242,11 +242,19 @@ frappe.ui.form.on("Sales Invoice Item", {
     let row = locals[cdt][cdn];
 
     // Debugging: Log the row and frm
-    // console.log("Row data:", row);
+    //console.log("Row data:", row);
     // console.log("Form data:", frm);
 
     // Ensure row is defined before calling the function
     if (row) {
+      // Check if the item_code is "Trade In"
+      if (row.item_code === "Trade In") {
+        // Use toggle_reqd to make the UOM field non-mandatory
+        cur_frm.fields_dict.items.grid.toggle_reqd("uom", false);
+      } else {
+        // For non "Trade In" items, make the UOM field mandatory
+        cur_frm.fields_dict.items.grid.toggle_reqd("uom", true);
+      }
       set_trade_in_fields_readonly(frm, row);
     } else {
       // console.error("Row is undefined.");

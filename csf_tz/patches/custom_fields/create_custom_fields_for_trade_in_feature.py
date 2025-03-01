@@ -72,7 +72,17 @@ def execute():
                 "insert_after": "custom_trade_in_batch_no",
                 "label": "Trade In Serial No",
                 "no_copy": 1
-            }
+            },
+   {
+                "fieldname": "custom_uom",
+                "fieldtype": "Link",
+                "insert_after": "item_code",
+                "label": "UOM",
+                "options": "UOM",
+                "no_copy": 1,
+                "fetch_from": "item_code.stock_uom",
+                "depends_on": "eval:doc.item_code == \"Trade In\"",
+            },
         ],
         "Sales Invoice": [
             {

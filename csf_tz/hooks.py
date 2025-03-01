@@ -104,7 +104,6 @@ doctype_list_js = {
 
 # before_install = "csf_tz.install.before_install"
 after_install = [
-   "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
     "csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
     "csf_tz.patches.remove_stock_entry_qty_field.execute",
     "csf_tz.patches.remove_core_doctype_custom_docperm.execute",
@@ -120,7 +119,8 @@ after_install = [
 after_migrate = [
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
-    "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute"
+    "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
+    "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
 ]
 
 # Desk Notifications
