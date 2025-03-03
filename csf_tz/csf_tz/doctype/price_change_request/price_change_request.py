@@ -19,15 +19,16 @@ class PriceChangeRequest(Document):
             validate_item(row.item_code, "validate")
             validate_price_list(row.price_list, "validate")
 
-            row.old_price = set_old_price(row)
+            old_price = set_old_price(row)
+            row.old_price = old_price if old_price else 0.0  
+            
+            frappe.db.set_value("Price Change Request Detail", row.name, "old_price", row.old_price)
 
             item_details = get_last_purchase_details(row.item_code)
-            if not item_details:
-                row.cost = flt(
-                    frappe.get_cached_value("Item", row.item_code, "last_purchase_rate")
-                )
-
-            row.cost = flt((flt(item_details.get("base_net_rate")) * 1.0) / 1.0)
+            if item_details:
+                row.cost = flt((flt(item_details.get("base_net_rate")) * 1.0) / 1.0)
+            else:
+                row.cost = flt(frappe.get_cached_value("Item", row.item_code, "last_purchase_rate"))
 
     def before_submit(self):
         for row in self.items:
@@ -55,14 +56,15 @@ def validate_price_list(price_list, method):
 
 
 def set_old_price(item):
-    """set old price of an item from item price"""
-
+    """Fetch the old price of an item from Item Price"""
+    
     filters = {"item_code": item.item_code, "price_list": item.price_list}
+    
     if item.valid_from:
         filters["valid_from"] = [">=", item.valid_from]
     else:
         filters["valid_from"] = ["<=", nowdate()]
-
+    
     if item.valid_to:
         filters["valid_upto"] = ["<=", item.valid_to]
 
@@ -72,19 +74,14 @@ def set_old_price(item):
         ["name", "item_code", "price_list_rate"],
         order_by="valid_from desc",
     )
+    
     if len(items) > 1:
-        msg = f"""Multiple Item Prices found for Item: <b>{item.item_code}</b> Price List: <b>{item.price_list}</b>"""
-        if item.valid_from:
-            msg += f" Valid From: <b>{item.valid_from}</b>"
-        if item.valid_to:
-            msg += f" Valid To: <b>{item.valid_to}</b>"
-
-        frappe.throw(
-            f"{msg}<br> Please delete one of them or set valid from and valid to date correctly"
-        )
+        frappe.throw(f"Multiple Item Prices found for Item: {item.item_code} in Price List: {item.price_list}. Adjust valid from/to dates.")
 
     elif len(items) == 1:
         return items[0].price_list_rate
+
+    return 0.0  
 
 
 def validate_zero_prices(row):
