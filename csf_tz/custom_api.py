@@ -2976,11 +2976,11 @@ def create_trade_in_stock_entry(doc, method):
     # Initialize an empty list to store items
     items_list = []
 
-    # Fetch Company's Trade_in_control_account and abbreviation
+    # Fetch Company's Trade_in_control_account
     company_details = frappe.db.get_value(
         "Company",
         doc.company,
-        ["custom_trade_in_control_account", "abbr"],
+        ["custom_trade_in_control_account"],
         as_dict=True,
     )
     if not company_details:
@@ -3045,14 +3045,12 @@ def create_trade_in_stock_entry(doc, method):
             # Insert and submit the Stock Entry
             stock_entry.insert()
             stock_entry.submit()
-            frappe.db.commit()
 
             # Notify the user
             frappe.msgprint(
                 f"Stock Entry <a href='/app/stock-entry/{stock_entry.name}' target='_blank'>{stock_entry.name}</a> created successfully!"
             )
         except Exception as e:
-            frappe.db.rollback()
             frappe.throw(f"Error during Stock Entry creation: {str(e)}")
     else:
         frappe.msgprint("No valid items found for stock entry.")
