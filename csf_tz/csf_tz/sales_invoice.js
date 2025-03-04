@@ -152,44 +152,39 @@ frappe.ui.form.on("Sales Invoice", {
 
   custom_is_trade_in: function (frm) {
     if (frm.doc.custom_is_trade_in) {
-      // Fetch the company's abbreviation
-      frappe.db.get_value("Company", frm.doc.company, "abbr", function (res) {
-        const abbr = res ? res.abbr : "";
+      frappe.db
+        .get_value("Company", frm.doc.company, [
+          "custom_trade_in_control_account",
+        ])
+        .then((company_res) => {
+          const trade_in_account =
+            company_res?.message?.custom_trade_in_control_account;
+          if (!trade_in_account)
+            frappe.throw(
+              "Trade-In Control Account is not set in Company settings."
+            );
 
-        // Check if "Trade In" item is already added
-        const exists = frm.doc.items.some(
-          (item) => item.item_code === "Trade In"
-        );
-        if (!exists) {
-          // Add a new row with "Trade In"
-          let row = frm.add_child("items", {
-            item_code: "Trade In",
-            item_name: "Trade In",
-            income_account: `Trade In Control - ${abbr}`, // Set income account dynamically
-            warehouse: `Stores - ${abbr}`,
-            uom: "Nos", // Set unit of measure
-            qty: 1, // Set quantity to 1
-            description: "Trade-In", // Set description
-          });
-          frm.refresh_field("items");
-          // frm.set_value("set_warehouse", `Stores - ${abbr}`);
-        }
-      });
+          if (!frm.doc.items.some((item) => item.item_code === "Trade In")) {
+            frm.add_child("items", {
+              item_code: "Trade In",
+              item_name: "Trade In",
+              income_account: trade_in_account,
+              qty: 1,
+              description: "Trade-In",
+            });
+            frm.refresh_field("items");
+          }
+        });
     } else {
-      // Confirm before removing "Trade In"
       frappe.confirm(
         'Are you sure you want to remove the "Trade In" item?',
-        function () {
-          // Remove the "Trade In" item if exists
+        () => {
           frm.doc.items = frm.doc.items.filter(
             (item) => item.item_code !== "Trade In"
           );
           frm.refresh_field("items");
         },
-        function () {
-          // Re-check the checkbox if user cancels
-          frm.set_value("custom_is_trade_in", 1);
-        }
+        () => frm.set_value("custom_is_trade_in", 1)
       );
     }
   },
@@ -247,11 +242,19 @@ frappe.ui.form.on("Sales Invoice Item", {
     let row = locals[cdt][cdn];
 
     // Debugging: Log the row and frm
-    // console.log("Row data:", row);
+    //console.log("Row data:", row);
     // console.log("Form data:", frm);
 
     // Ensure row is defined before calling the function
     if (row) {
+      // Check if the item_code is "Trade In"
+      if (row.item_code === "Trade In") {
+        // Use toggle_reqd to make the UOM field non-mandatory
+        cur_frm.fields_dict.items.grid.toggle_reqd("uom", false);
+      } else {
+        // For non "Trade In" items, make the UOM field mandatory
+        cur_frm.fields_dict.items.grid.toggle_reqd("uom", true);
+      }
       set_trade_in_fields_readonly(frm, row);
     } else {
       // console.error("Row is undefined.");
