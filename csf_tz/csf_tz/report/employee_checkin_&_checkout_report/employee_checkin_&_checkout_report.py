@@ -78,10 +78,10 @@ def execute(filters=None):
 
 def get_columns(filters):
     columns = [
-        {"fieldname": "employee", "label": _("Employee No"), "fieldtype": "Data"},
+        {"fieldname": "employee", "label": _("Employee No"), "fieldtype": "Link", "options": "Employee", "width": 155},
         {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
-        {"fieldname": "department", "label": _("Department"), "fieldtype": "Data"},
-        {"fieldname": "shift", "label": _("Shift"), "fieldtype": "Data"},
+        {"fieldname": "department", "label": _("Department"), "fieldtype": "Link", "options": "Department"},
+        {"fieldname": "shift", "label": _("Shift"), "fieldtype": "Link", "options": "Shift Type"},
         {"fieldname": "date", "label": _("Date"), "fieldtype": "Date"},
         {"fieldname": "week_day", "label": _("Week Day "), "fieldtype": "Data"},
 
