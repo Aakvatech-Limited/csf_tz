@@ -19,6 +19,7 @@
   "items_child",
   "section_break_byxrx",
   "material_receipt",
+  "inter_company_material_request",
   "column_break_kcxib",
   "material_issue",
   "section_break_fntqt",
@@ -110,6 +111,12 @@
    "options": "Inter Company Stock Transfer",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "inter_company_material_request",
+   "fieldtype": "Data",
+   "label": "Inter Company Material Request",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -118,9 +125,13 @@
   {
    "link_doctype": "Stock Entry",
    "link_fieldname": "stock_entry_type"
+  },
+  {
+   "link_doctype": "Inter Company Material Request",
+   "link_fieldname": "inter_company_stock_transfer"
   }
  ],
- "modified": "2024-01-16 17:14:24.381045",
+ "modified": "2025-03-06 10:41:02.675189",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Inter Company Stock Transfer",

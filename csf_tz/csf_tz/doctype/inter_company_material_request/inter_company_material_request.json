@@ -122,11 +122,11 @@
  "is_submittable": 1,
  "links": [
   {
-   "link_doctype": "Stock Entry",
-   "link_fieldname": "stock_entry_type"
+   "link_doctype": "Inter Company Stock Transfer",
+   "link_fieldname": "inter_company_material_request"
   }
  ],
- "modified": "2025-03-04 17:26:11.993777",
+ "modified": "2025-03-06 10:29:10.235330",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Inter Company Material Request",

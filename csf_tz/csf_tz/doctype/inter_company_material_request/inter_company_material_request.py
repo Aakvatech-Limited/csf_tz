@@ -33,16 +33,17 @@ class InterCompanyMaterialRequest(Document):
             
             # Create Inter Company Stock Transfer
 
-            request = frappe.get_doc({
+            inter_company_stock_transfer = frappe.get_doc({
                 "doctype": "Inter Company Stock Transfer",
                 "from_company": self.from_company,
                 "to_company": self.to_company,
                 "default_from_warehouse": self.default_from_warehouse,
                 "default_to_warehouse": self.default_to_warehouse,
+                "inter_company_material_request": self.name,
                 "items_child": item_list,
                 "transfer_goods_between_company": self.name
             })
-            request.insert(ignore_permissions=True)
-            request.save()
+            inter_company_stock_transfer.insert(ignore_permissions=True)
+            inter_company_stock_transfer.save()
             
-            self.inter_company_stock_transfer = request.name
+            self.inter_company_stock_transfer = inter_company_stock_transfer.name
