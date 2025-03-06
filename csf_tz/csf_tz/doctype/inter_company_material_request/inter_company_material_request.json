@@ -48,6 +48,7 @@
    "fetch_if_empty": 1,
    "fieldname": "default_from_warehouse",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Default From Warehouse",
    "options": "Warehouse",
@@ -70,6 +71,7 @@
    "fetch_if_empty": 1,
    "fieldname": "default_to_warehouse",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Default To Warehouse",
    "options": "Warehouse",
@@ -126,7 +128,7 @@
    "link_fieldname": "inter_company_material_request"
   }
  ],
- "modified": "2025-03-06 10:29:10.235330",
+ "modified": "2025-03-06 17:19:22.221283",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Inter Company Material Request",

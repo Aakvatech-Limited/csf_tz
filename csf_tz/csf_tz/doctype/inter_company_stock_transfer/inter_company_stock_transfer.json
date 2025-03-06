@@ -49,6 +49,7 @@
    "fetch_if_empty": 1,
    "fieldname": "default_from_warehouse",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Default From Warehouse",
    "options": "Warehouse"
   },
@@ -67,6 +68,7 @@
    "fetch_if_empty": 1,
    "fieldname": "default_to_warehouse",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Default To Warehouse",
    "options": "Warehouse"
   },
@@ -131,7 +133,7 @@
    "link_fieldname": "inter_company_stock_transfer"
   }
  ],
- "modified": "2025-03-06 10:41:02.675189",
+ "modified": "2025-03-06 17:21:40.333581",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Inter Company Stock Transfer",
