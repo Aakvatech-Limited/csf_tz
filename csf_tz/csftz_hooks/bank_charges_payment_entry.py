@@ -4,7 +4,8 @@ from frappe.utils import nowdate
 def validate_bank_charges_account(payment_entry, method):
     """Ensure the Default Bank Charges Account is set before submitting Payment Entry"""
 
-    if payment_entry.bank_charges > 0:
+    if payment_entry.bank_charges and payment_entry.bank_charges > 0:
+
         company = payment_entry.company
         bank_charges_account = frappe.db.get_value("Company", company, "default_bank_charges_account")
 
@@ -14,7 +15,8 @@ def validate_bank_charges_account(payment_entry, method):
 def create_bank_charges_journal(payment_entry, method):
     """Creates a journal entry if bank charges are greater than 0"""
 
-    if payment_entry.bank_charges > 0:
+    if payment_entry.bank_charges and payment_entry.bank_charges > 0:
+
         company = payment_entry.company
         bank_account = payment_entry.paid_from
         bank_charges_account = frappe.db.get_value("Company", company, "default_bank_charges_account")
