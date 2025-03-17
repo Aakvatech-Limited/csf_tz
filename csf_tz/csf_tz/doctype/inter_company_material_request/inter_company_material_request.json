@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2023-12-21 17:12:09.387324",
+ "creation": "2025-02-27 16:37:23.903411",
  "default_view": "List",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -18,11 +18,8 @@
   "items_section",
   "items_child",
   "section_break_byxrx",
-  "material_receipt",
-  "inter_company_material_request",
-  "column_break_kcxib",
-  "material_issue",
-  "section_break_fntqt",
+  "inter_company_stock_transfer",
+  "column_break_tsfq",
   "amended_from"
  ],
  "fields": [
@@ -30,7 +27,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Naming Series",
-   "options": "ICST-.YY.-",
+   "options": "ICMT-.YY.-",
    "print_hide": 1,
    "set_only_once": 1
   },
@@ -41,8 +38,10 @@
   {
    "fieldname": "from_company",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "From Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1
   },
   {
    "fetch_from": "from_company.default_warehouse_for_sales_return",
@@ -50,8 +49,10 @@
    "fieldname": "default_from_warehouse",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
+   "in_list_view": 1,
    "label": "Default From Warehouse",
-   "options": "Warehouse"
+   "options": "Warehouse",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_xks6g",
@@ -60,8 +61,10 @@
   {
    "fieldname": "to_company",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "To Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1
   },
   {
    "fetch_from": "to_company.default_warehouse_for_sales_return",
@@ -69,8 +72,10 @@
    "fieldname": "default_to_warehouse",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
+   "in_list_view": 1,
    "label": "Default To Warehouse",
-   "options": "Warehouse"
+   "options": "Warehouse",
+   "reqd": 1
   },
   {
    "fieldname": "items_section",
@@ -81,28 +86,10 @@
    "fieldname": "items_child",
    "fieldtype": "Table",
    "label": "Items",
-   "options": "Inter Company Stock Transfer Details"
+   "options": "Inter Company Material Request Details"
   },
   {
    "fieldname": "section_break_byxrx",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "material_receipt",
-   "fieldtype": "Data",
-   "label": "Material Receipt"
-  },
-  {
-   "fieldname": "column_break_kcxib",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "material_issue",
-   "fieldtype": "Data",
-   "label": "Material Issue"
-  },
-  {
-   "fieldname": "section_break_fntqt",
    "fieldtype": "Section Break"
   },
   {
@@ -115,28 +102,36 @@
    "read_only": 1
   },
   {
-   "fieldname": "inter_company_material_request",
-   "fieldtype": "Data",
-   "label": "Inter Company Material Request",
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Inter Company Stock Transfer",
+   "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "inter_company_stock_transfer",
+   "fieldtype": "Data",
+   "label": "Inter Company Stock Transfer"
+  },
+  {
+   "fieldname": "column_break_tsfq",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [
   {
-   "link_doctype": "Stock Entry",
-   "link_fieldname": "stock_entry_type"
-  },
-  {
-   "link_doctype": "Inter Company Material Request",
-   "link_fieldname": "inter_company_stock_transfer"
+   "link_doctype": "Inter Company Stock Transfer",
+   "link_fieldname": "inter_company_material_request"
   }
  ],
- "modified": "2025-03-06 17:21:40.333581",
+ "modified": "2025-03-06 17:19:22.221283",
  "modified_by": "Administrator",
  "module": "CSF TZ",
- "name": "Inter Company Stock Transfer",
+ "name": "Inter Company Material Request",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
