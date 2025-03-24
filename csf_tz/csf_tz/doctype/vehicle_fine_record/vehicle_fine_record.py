@@ -76,7 +76,7 @@ def check_fine_all_vehicles(batch_size=20):
             # Enqueue get_fine(reference=reference["name"])
             frappe.enqueue(
                 "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                reference=reference["name"],
+                reference=reference["vehicle"],
             )
             # sleep(2)  # Sleep to avoid hitting the server too frequently
 
@@ -102,88 +102,37 @@ def get_fine(number_plate=None, reference=None):
         return
 
     fine_list = []
-    token = ""
-    url = "https://tms.tpf.go.tz/"
+    url = "https://tms.tpf.go.tz/api/OffenceCheck"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
 
-    session = requests.Session()
+    payload = {"vehicle": number_plate or reference}
+
     try:
-        response = session.get(url=url, timeout=60)
-    except Timeout:
-        frappe.msgprint(_("Error"))
-        print("Timeout")
-        return
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        frappe.log_error("HTTP error", str(e))
+        frappe.throw(f"Error contacting traffic system: {str(e)}")
+
+    try:
+        result = response.json()
+    except Exception as e:
+        frappe.log_error("Invalid JSON", str(e))
+        frappe.throw("Invalid response format from traffic system")
+
+    data = result.get("pending_transactions", [])
+    
+    if data:
+        print(f"Vehicle: {number_plate or reference} has no pending transactions")
+        return fine_list
     else:
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            token_regex = re.compile(r"_token:\s*'([^']+)'")
-            match = token_regex.search(str(soup))
+        if frappe.db.exists("Vehicle Fine Record", payload):
+            doc = frappe.get_doc("Vehicle Fine Record", payload)
+            doc.status = "PAID"
+            doc.save()
 
-            if match:
-                token = match.group(1)
-            else:
-                print("CSRF token not found in the script.")
-            if not token:
-                print_out(
-                    "CSRF token not found in the script.",
-                    alert=True,
-                    add_traceback=True,
-                    to_error_log=True,
-                )
-                return
-
-            payload = {
-                "_token": token,
-            }
-            if number_plate:
-                payload["option"] = "VEHICLE"
-                payload["searchable"] = number_plate
-            elif reference:
-                payload["option"] = "REFERENCE"
-                payload["searchable"] = reference
-            try:
-                response2 = session.post(url=url + "results", data=payload, timeout=5)
-            except Timeout:
-                frappe.log_error(
-                    title="Timeout",
-                    message=f"""Timeout for {payload["option"]}: {payload["searchable"]}""",
-                )
-                response2 = None
-            if response2 and response2.status_code == 200:
-                if response2.json:
-                    data = response2.json().get("dataFromTms")
-                    for key, value in data.items():
-                        if value.get("reference"):
-                            fine_list.append(value["reference"])
-                            if frappe.db.exists(
-                                "Vehicle Fine Record", value["reference"]
-                            ):
-                                doc = frappe.get_doc(
-                                    "Vehicle Fine Record", value["reference"]
-                                )
-                                doc.update(value)
-                                doc.save()
-                            else:
-                                fine_doc = frappe.get_doc(
-                                    {"doctype": "Vehicle Fine Record", **value}
-                                )
-                                fine_doc.insert()
-                        elif (
-                            reference
-                            and value.get("1")
-                            and "HAIDAIWI" in value["1"].get("status")
-                        ):
-                            doc = frappe.get_doc("Vehicle Fine Record", reference)
-                            if doc:
-                                doc.update({"status": "PAID"})
-                                doc.save()
-                                frappe.db.commit()
-                            else:
-                                frappe.log_error(
-                                    title="Number plate response exception!",
-                                    message=response2,
-                                )
-
-                    frappe.db.commit()
-        else:
-            print_out(response)
+    frappe.db.commit()
     return fine_list
