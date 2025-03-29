@@ -35,7 +35,7 @@ frappe.ui.form.on("Payment Entry", {
 				to_posting_date: today,
 				allocate_payment_amount: 1
 			}
-			if (["Customer", "Supplier"].includes(frm.doc.party_type)) {
+			if (["Customer", "Supplier"].includes(frm.doc.party_type) && frm.doc.paid_from_account_currency && frm.doc.paid_to_account_currency) {
 				frm.events.get_outstanding_documents(frm, filters);
 			}
 		}
