@@ -62,7 +62,7 @@ def check_fine_all_vehicles(batch_size=20):
             # )
             if fine_list and len(fine_list) > 0:
                 all_fine_list.extend(fine_list)
-            # sleep(2)  # Sleep to avoid hitting the server too frequently
+            sleep(2)  # Sleep to avoid hitting the server too frequently
 
     # Get all the references that are not paid
     reference_list = frappe.get_all(
@@ -78,7 +78,7 @@ def check_fine_all_vehicles(batch_size=20):
                 "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
                 reference=reference["vehicle"],
             )
-            # sleep(2)  # Sleep to avoid hitting the server too frequently
+            sleep(2)  # Sleep to avoid hitting the server too frequently
 
 
 @frappe.whitelist()
@@ -103,14 +103,12 @@ def get_fine(number_plate=None, reference=None):
 
     fine_list = []
     url = "https://tms.tpf.go.tz/api/OffenceCheck"
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
     payload = {"vehicle": number_plate or reference}
 
     try:
+        sleep(2)  # Sleep to avoid hitting the server too frequently
         response = requests.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
@@ -124,7 +122,7 @@ def get_fine(number_plate=None, reference=None):
         frappe.throw("Invalid response format from traffic system")
 
     data = result.get("pending_transactions", [])
-    
+
     if data:
         print(f"Vehicle: {number_plate or reference} has no pending transactions")
         return fine_list
