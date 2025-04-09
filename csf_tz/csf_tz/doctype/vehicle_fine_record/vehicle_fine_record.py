@@ -39,7 +39,7 @@ class VehicleFineRecord(Document):
                 message=frappe.get_traceback(),
             )
 
-
+@frappe.whitelist()
 def check_fine_all_vehicles(batch_size=20):
     plate_list = frappe.get_all(
         "Vehicle", fields=["name", "number_plate"], limit_page_length=0
@@ -78,7 +78,9 @@ def check_fine_all_vehicles(batch_size=20):
                 "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
                 reference=reference["vehicle"],
             )
-            # sleep(2)  # Sleep to avoid hitting the server too frequently
+            
+            print(f"Sleeping after processing reference batch {i // batch_size + 1}")
+            sleep(2)  # Sleep to avoid hitting the server too frequently
 
 
 @frappe.whitelist()
