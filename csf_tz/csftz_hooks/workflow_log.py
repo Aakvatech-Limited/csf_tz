@@ -42,7 +42,7 @@ def ensure_workflow_log_field(doctype):
             "allow_on_submit": 1,
             "read_only": 1,
             "permlevel": 0,
-            "hidden": 0,
+            "hidden": 1,
         })
         custom_field.insert(ignore_permissions=True)
         frappe.db.commit()
@@ -232,7 +232,7 @@ def setup_workflow_log_on_workflow_state_creation(doc, method):
             "allow_on_submit": 1,
             "read_only": 1,
             "permlevel": 0,
-            "hidden": 0,
+            "hidden": 1,
         })
         custom_field.insert(ignore_permissions=True)
         frappe.db.commit()
