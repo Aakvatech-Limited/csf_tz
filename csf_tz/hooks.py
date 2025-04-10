@@ -263,6 +263,18 @@ doc_events = {
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
         ]
+    },
+    "*": {
+        "before_save": "csf_tz.csftz_hooks.workflow_log.capture_workflow_state",
+        "on_update": "csf_tz.csftz_hooks.workflow_log.log_workflow_transition",
+        "before_submit": "csf_tz.csftz_hooks.workflow_log.capture_workflow_state"
+    },
+    "Workflow": {
+        "on_update": "csf_tz.csftz_hooks.workflow_log.ensure_workflow_log_field_for_workflow"
+    },
+    "Custom Field": {
+        "after_insert": "csf_tz.csftz_hooks.workflow_log.setup_workflow_log_on_workflow_state_creation",
+        "on_update": "csf_tz.csftz_hooks.workflow_log.setup_workflow_log_on_workflow_state_creation"
     }
 }
 
