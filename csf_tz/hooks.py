@@ -26,9 +26,9 @@ override_doctype_class = {
 # app_include_css = "/assets/csf_tz/css/csf_tz.css"
 # app_include_js = "/assets/csf_tz/js/csf_tz.js"
 app_include_js = [
-    "/assets/js/select_dialog.min.js",
-    "/assets/js/to_console.min.js",
-    "/assets/js/jobcards.min.js",
+    "/assets/csf_tz/js/select_dialog.js",
+    "/assets/csf_tz/js/to_console.js",
+    "/assets/csf_tz/js/jobcards/jobcards.js",
     "/assets/csf_tz/node_modules/vuetify/dist/vuetify.js",
 ]
 
