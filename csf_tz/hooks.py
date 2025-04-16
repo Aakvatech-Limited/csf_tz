@@ -263,7 +263,12 @@ doc_events = {
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
         ]
-    }
+    },
+    "Landed Cost Voucher": {
+        "validate": [
+            "csf_tz.csftz_hooks.landed_cost_voucher.total_amount",
+        ]
+    },
 }
 
 # Scheduled Tasks
