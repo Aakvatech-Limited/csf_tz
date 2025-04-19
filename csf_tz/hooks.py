@@ -114,6 +114,7 @@ after_install = [
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
+    "csf_tz.patches.backup_standard_role_permissions.execute",
 ]
 
 after_migrate = [

@@ -14,6 +14,12 @@ def grant_dependant_access(doc, method):
     )
     if not enable_dependent_auto_permission:
         return
+    
+    # Check if the role is a custom role (skip ERPNext standard roles)
+    role_is_custom = frappe.db.get_value("Role", doc.role, "is_custom")
+    if not role_is_custom:
+        return  # Exit for non-custom roles
+    
     if doc.dependent:
         frappe.msgprint(
             _(

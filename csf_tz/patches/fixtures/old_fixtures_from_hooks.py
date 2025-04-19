@@ -2,6 +2,12 @@ fixtures = [
     {
         "doctype": "Custom Field",
         "filters": [
+            ["name", "not in", ("Role-permissions")]  # Exclude standard role fields
+        ]
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": [
             [
                 "name",
                 "in",
