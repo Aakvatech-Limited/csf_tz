@@ -44,8 +44,9 @@ def get_columns(prev_month_name, cur_month_name, prev_year, cur_year):
 		{
 			"fieldname": "employee",
 			"label": _("Employee"),
-			"fieldtype": "Data",
-			"width": 150
+			"fieldtype": "Link",
+			"width": 150,
+			"options": "Employee"
 		},
 		{
 			"fieldname": "employee_name",
@@ -57,7 +58,8 @@ def get_columns(prev_month_name, cur_month_name, prev_year, cur_year):
 			"fieldname": "department",
 			"label": _("Department"),
 			"fieldtype": "Data",
-			"width": 150
+			"width": 150,
+			"options": "Department"
 		},
 		{
 			"fieldname": "prev_gross_pay",
