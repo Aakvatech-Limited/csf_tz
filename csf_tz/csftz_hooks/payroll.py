@@ -5,10 +5,6 @@ import frappe
 import os
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.pdf import get_pdf, cleanup
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/version-14
 from io import BytesIO
 from PyPDF3 import PdfFileReader, PdfFileWriter
 from csf_tz import console
@@ -158,10 +154,6 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
             for doc_name in doctype[doctype_name]:
                 try:
                     console(doc_name)
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/version-14
                     pdf_data = frappe.get_print(
                         doctype_name,
                         doc_name,
@@ -185,10 +177,6 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
                     frappe.log_error(
                         f"Permission Error on doc {doc_name} of doctype {doctype_name}"
                     )
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/version-14
         frappe.local.response.filename = f"{name}.pdf"
     return read_multi_pdf(output)
 

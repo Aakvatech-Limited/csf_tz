@@ -15,13 +15,8 @@ def execute(doc, method):
     try:
         payment_entry = create_payment_entry(doc)
         doc.reload()
-
-<<<<<<< HEAD
         if payment_entry:
             create_expense_claim(doc)
-
-=======
->>>>>>> origin/version-14
     except Exception as e:
         frappe.throw(f"Error during Employee Advance submission: {str(e)}")
 
@@ -33,19 +28,13 @@ def create_payment_entry(doc):
         if payment_entry:
             payment_entry.reference_no = doc.name
             payment_entry.reference_date = frappe.utils.nowdate()
-
-<<<<<<< HEAD
             payment_entry.submit()
-=======
-            # payment_entry.submit()
->>>>>>> origin/version-14
             frappe.msgprint(f"Payment Entry {payment_entry.name} created successfully")
 
             return payment_entry
 
     except Exception as e:
         frappe.throw(f"Error creating Payment Entry: {str(e)}")
-<<<<<<< HEAD
 
 
 def create_expense_claim(doc):
@@ -110,5 +99,3 @@ def create_expense_claim(doc):
 
     except Exception as e:
         frappe.throw(f"Error creating Expense Claim: {str(e)}")
-=======
->>>>>>> origin/version-14

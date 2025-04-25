@@ -96,14 +96,10 @@ function checkMaxUnclaimedAndCreateEA(frm, unclaimed_count) {
         'frappe.client.get_value',
         {
             doctype: 'Company',
-<<<<<<< HEAD
-            fieldname: ['max_unclaimed_ea', 'abbr']
-=======
             fieldname: ['max_unclaimed_ea', 'abbr'],
             filters: {
                 name: frm.doc.company
             }
->>>>>>> origin/version-14
         },
         function (company_response) {
             let max_unclaimed_ea = company_response.max_unclaimed_ea;
@@ -119,7 +115,6 @@ function checkMaxUnclaimedAndCreateEA(frm, unclaimed_count) {
 }
 
 function createEmployeeAdvance(frm, company_abbr) {
-<<<<<<< HEAD
     let advance_account = "Employee Advances - " + company_abbr;
 
     makeFrappeCall(
@@ -145,7 +140,6 @@ function createEmployeeAdvance(frm, company_abbr) {
 
                 frappe.set_route('Form', 'Employee Advance', response.name);
             }
-=======
     makeFrappeCall(
         'frappe.client.get_value',
         {
@@ -188,11 +182,9 @@ function createEmployeeAdvance(frm, company_abbr) {
                     }
                 }
             );
->>>>>>> origin/version-14
         }
     );
 }
-
 function calculateTotalTravelCost(frm) {
     if (frm.doc.costings) {
         let total_travel_cost = frm.doc.costings.reduce((total, costing) => total + costing.total_amount, 0);

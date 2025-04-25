@@ -328,18 +328,11 @@
  ],
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-02-10 14:33:59.142718",
- "modified_by": "Administrator",
- "module": "Fleet Management",
- "name": "Transport Assignment",
-=======
  "modified": "2025-01-09 06:39:40.245482",
  "modified_by": "Administrator",
  "module": "Fleet Management",
  "name": "Transport Assignment",
  "naming_rule": "Expression (old style)",
->>>>>>> origin/version-14
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

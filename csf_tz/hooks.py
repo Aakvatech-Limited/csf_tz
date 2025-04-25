@@ -11,10 +11,6 @@ app_color = "green"
 app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext", "frappe/hrms"]
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/version-14
 
 # Override Document Class
 override_doctype_class = {
@@ -73,10 +69,7 @@ doctype_js = {
     "BOM": "csf_tz/bom_addittional_costs.js",
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
-<<<<<<< HEAD
     "Employee": "csf_tz/employee_contact_qr.js"
-=======
->>>>>>> origin/version-14
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
@@ -125,12 +118,8 @@ after_install = [
 after_migrate = [
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
-<<<<<<< HEAD
     "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
-=======
-    "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute"
->>>>>>> origin/version-14
 ]
 
 # Desk Notifications
@@ -269,14 +258,11 @@ doc_events = {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
     },
     "Payment Entry": {
-<<<<<<< HEAD
         "before_submit": [
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
-        ]
-=======
+        ],
         "before_validate": "csf_tz.csftz_hooks.payment_entry.validate_payment_entry",
->>>>>>> origin/version-14
     }
 }
 
@@ -345,12 +331,9 @@ override_whitelisted_methods = {
     "erpnext.buying.doctype.purchase_order.purchase_order.update_status": "csf_tz.csftz_hooks.purchase_order.update_po_status",
     "erpnext.buying.doctype.purchase_order.purchase_order.close_or_unclose_purchase_orders": "csf_tz.csftz_hooks.purchase_order.close_or_unclose_purchase_orders",
     "erpnext.stock.doctype.material_request.material_request.update_status": "csf_tz.csftz_hooks.material_request.update_mr_status",
-<<<<<<< HEAD
     "erpnext.stock.get_item_details.get_item_details": "csf_tz.csftz_hooks.custom_get_item_details.custom_get_item_details",
 
 
 
 
-=======
->>>>>>> origin/version-14
 }

@@ -1,12 +1,8 @@
 {
  "add_total_row": 1,
  "columns": [],
-<<<<<<< HEAD
- "creation": "2025-02-10 12:09:42.426233",
-=======
  "creation": "2024-12-10 16:54:14.096744",
  "disable_prepared_report": 0,
->>>>>>> origin/version-14
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
@@ -28,13 +24,9 @@
  ],
  "idx": 0,
  "is_standard": "Yes",
-<<<<<<< HEAD
  "letterhead": null,
- "modified": "2025-02-10 12:10:06.772415",
-=======
  "letter_head": "",
  "modified": "2024-12-30 12:52:41.522027",
->>>>>>> origin/version-14
  "modified_by": "Administrator",
  "module": "csf_tz",
  "name": "Stock Reconciliation troubleshoot",
@@ -46,7 +38,6 @@
  "report_type": "Query Report",
  "roles": [
   {
-<<<<<<< HEAD
    "role": "Stock Manager"
   },
   {
@@ -54,12 +45,4 @@
   }
  ],
  "timeout": 0
-=======
-   "role": "System Manager"
-  },
-  {
-   "role": "Stock Manager"
-  }
- ]
->>>>>>> origin/version-14
 }

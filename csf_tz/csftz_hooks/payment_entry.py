@@ -150,8 +150,6 @@ def get_outstanding_reference_documents(args):
         )
 
     return data
-<<<<<<< HEAD
-=======
 
 def validate_payment_entry(doc, method):
     if doc.payment_type == 'Pay' and doc.reference_no and doc.paid_from:
@@ -172,4 +170,3 @@ def validate_payment_entry(doc, method):
                 title='Duplicate Cheque Number for Same Bank',
                 msg=f"Cheque Number {doc.reference_no} has already been used for Account {doc.paid_from}. Please use a different Cheque Number."
             )
->>>>>>> origin/version-14
