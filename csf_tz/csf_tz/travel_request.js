@@ -96,7 +96,10 @@ function checkMaxUnclaimedAndCreateEA(frm, unclaimed_count) {
         'frappe.client.get_value',
         {
             doctype: 'Company',
-            fieldname: ['max_unclaimed_ea', 'abbr']
+            fieldname: ['max_unclaimed_ea', 'abbr'],
+            filters: {
+                name: frm.doc.company
+            }
         },
         function (company_response) {
             let max_unclaimed_ea = company_response.max_unclaimed_ea;
@@ -137,10 +140,51 @@ function createEmployeeAdvance(frm, company_abbr) {
 
                 frappe.set_route('Form', 'Employee Advance', response.name);
             }
+    makeFrappeCall(
+        'frappe.client.get_value',
+        {
+            doctype: 'Company',
+            fieldname: ['default_employee_advance_account'],
+            filters: {
+                name: frm.doc.company
+            }
+        },
+        function (company_response) {
+            let advance_account = company_response.default_employee_advance_account;
+
+            if (!advance_account) {
+                frappe.msgprint(__('The default Employee Advance Account is not set in the Company. Please configure it to proceed.'));
+                return;
+            }
+
+            makeFrappeCall(
+                'frappe.client.insert',
+                {
+                    doc: {
+                        doctype: 'Employee Advance',
+                        employee: frm.doc.employee,
+                        employee_name: frm.doc.employee_name,
+                        posting_date: frappe.datetime.nowdate(),
+                        purpose: frm.doc.purpose_of_travel,
+                        advance_amount: frm.doc.costings.reduce((total, costing) => total + costing.total_amount, 0),
+                        company: frm.doc.company,
+                        advance_account: advance_account,
+                        exchange_rate: 1,
+                        travel_request_ref: frm.doc.name,
+                    }
+                },
+                function (response) {
+                    if (response) {
+                        frm.set_value('employee_advance_ref', response.name);
+                        frm.save_or_update();
+
+                        frappe.set_route('Form', 'Employee Advance', response.name);
+                    }
+                }
+            );
         }
     );
 }
-
 function calculateTotalTravelCost(frm) {
     if (frm.doc.costings) {
         let total_travel_cost = frm.doc.costings.reduce((total, costing) => total + costing.total_amount, 0);

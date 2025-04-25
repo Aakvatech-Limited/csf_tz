@@ -86,6 +86,10 @@ class StanbicPaymentsInitiation(Document):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w") as file:
             file.write(self.encrypted_xml)
+        self.add_comment(
+            comment_type="File Created",  # Type of comment
+            text=f"""A file has been created with file name as {filename} and uploaded to stanbic/outbox folder.""",
+        )
 
     def on_update_after_submit(self):
         if self.stanbic_ack_change and self.stanbic_ack:

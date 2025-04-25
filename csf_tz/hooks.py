@@ -12,7 +12,6 @@ app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext", "frappe/hrms"]
 
-
 # Override Document Class
 override_doctype_class = {
     "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
@@ -262,7 +261,8 @@ doc_events = {
         "before_submit": [
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
-        ]
+        ],
+        "before_validate": "csf_tz.csftz_hooks.payment_entry.validate_payment_entry",
     }
 }
 

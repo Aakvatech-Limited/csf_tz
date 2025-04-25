@@ -35,7 +35,6 @@ class InterCompanyStockTransfer(Document):
                     "batch_no": item.batch_no,
                     "cost_center": ""
                 })
-
         entry_from = frappe.get_doc({
             "doctype": "Stock Entry",
             "company": self.from_company,

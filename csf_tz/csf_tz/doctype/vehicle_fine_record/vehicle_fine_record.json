@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "field:reference",
  "creation": "2020-07-12 16:43:35.877811",
  "doctype": "DocType",
@@ -111,7 +112,7 @@
   }
  ],
  "links": [],
- "modified": "2024-03-24 22:31:52.756513",
+ "modified": "2025-04-14 11:21:47.266059",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Vehicle Fine Record",
@@ -131,6 +132,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

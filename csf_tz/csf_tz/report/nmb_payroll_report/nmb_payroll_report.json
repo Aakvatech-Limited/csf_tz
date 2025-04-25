@@ -1,0 +1,64 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2024-10-15 10:16:17.301382",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Letterhead Official",
+ "modified": "2024-10-15 10:19:31.903306",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "NMB Payroll Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n    ep.employee AS \"Employee ID\",\n    ep.employee_name AS \"Employee Name:Data:200\",\n    ep.payroll_cost_center AS \"Payroll Cost Center\",\n    ep.bank_code AS \"Bank Code\",\n    ep.bank_ac_no AS \"Bank No\",\n    sp.net_pay AS \"Net Pay:Currency:150\",\n    ep.bank_name AS \"Bank Name\"\nFROM\n    `tabSalary Slip` sp\nINNER JOIN\n    `tabEmployee` ep ON sp.employee = ep.name\nWHERE\n    ep.bank_name = \"NMB\" AND\n    sp.start_date >= %(from_date)s AND sp.end_date <= %(to_date)s",
+ "ref_doctype": "Salary Slip",
+ "report_name": "NMB Payroll Report",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "HR Self Service"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Site Supervisor"
+  },
+  {
+   "role": "Payroll Reviewer"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Director"
+  },
+  {
+   "role": "Supervisor"
+  },
+  {
+   "role": "Employee Self Service"
+  }
+ ]
+}
