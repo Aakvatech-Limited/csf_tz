@@ -78,6 +78,7 @@ def update_bill(name, bills):
     for row in bills.data:
         row = frappe._dict(row)
         data = frappe._dict(row.bill)
+        frappe.throw(str(data))
 
         if frappe.db.exists("Parking Bill", data.billReference):
             doc = frappe.get_doc("Parking Bill", data.billReference)
