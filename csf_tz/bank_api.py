@@ -247,7 +247,7 @@ def make_payment_entry(method="callback", **kwargs):
 
         elif doc_info["doctype"] == "Student Applicant Fees":
             doc = frappe.get_doc("Student Applicant Fees", doc_info["name"])
-            if not doc.callback_token == nmb_doc.fees_token:
+            if not doc.bank_reference == nmb_doc.reference:
                 return
             # Below remarked after introducing VFD in AV solutions
             # jl_rows = []

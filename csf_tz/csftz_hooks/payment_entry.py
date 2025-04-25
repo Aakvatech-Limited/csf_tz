@@ -150,3 +150,26 @@ def get_outstanding_reference_documents(args):
         )
 
     return data
+<<<<<<< HEAD
+=======
+
+def validate_payment_entry(doc, method):
+    if doc.payment_type == 'Pay' and doc.reference_no and doc.paid_from:
+        duplicate_entries = frappe.get_list(
+            'Payment Entry',
+            filters={
+                'payment_type': 'Pay',
+                'paid_from': doc.paid_from,
+                'reference_no': doc.reference_no,
+                'docstatus': ['<', 2],
+                'name': ['!=', doc.name]
+            },
+            fields=['name']
+        )
+
+        if duplicate_entries:
+            frappe.throw(
+                title='Duplicate Cheque Number for Same Bank',
+                msg=f"Cheque Number {doc.reference_no} has already been used for Account {doc.paid_from}. Please use a different Cheque Number."
+            )
+>>>>>>> origin/version-14

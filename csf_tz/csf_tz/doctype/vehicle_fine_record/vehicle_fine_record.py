@@ -51,6 +51,7 @@ def check_fine_all_vehicles(batch_size=5):  # Reduced batch size further
                 queue="long"  # Use a dedicated queue
             )
 
+<<<<<<< HEAD
     except Exception as e:
         frappe.log_error(
             title="Error in check_fine_all_vehicles",
@@ -129,3 +130,85 @@ def get_fine(number_plate=None, reference=None):
             message=frappe.get_traceback()
         )
         return []
+=======
+            fine_list = []
+            # fine_list = get_fine(
+            #     number_plate=vehicle["number_plate"] or vehicle["name"]
+            # )
+            if fine_list and len(fine_list) > 0:
+                all_fine_list.extend(fine_list)
+            # sleep(2)  # Sleep to avoid hitting the server too frequently
+
+    # Get all the references that are not paid
+    reference_list = frappe.get_all(
+        "Vehicle Fine Record",
+        filters={"status": ["!=", "PAID"], "reference": ["not in", all_fine_list]},
+    )
+
+    for i in range(0, len(reference_list), batch_size):
+        batch_references = reference_list[i : i + batch_size]
+        for reference in batch_references:
+            # Enqueue get_fine(reference=reference["name"])
+            frappe.enqueue(
+                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
+                reference=reference["vehicle"],
+            )
+            # sleep(2)  # Sleep to avoid hitting the server too frequently
+
+
+@frappe.whitelist()
+def get_fine(number_plate=None, reference=None):
+    if not number_plate and not reference:
+        print_out(
+            _("Please provide either number plate or reference"),
+            alert=True,
+            add_traceback=True,
+            to_error_log=True,
+        )
+        return
+
+    if number_plate and len(number_plate) < 7:
+        print_out(
+            f"Please provide a valid number plate for {number_plate}",
+            alert=True,
+            add_traceback=True,
+            to_error_log=True,
+        )
+        return
+
+    fine_list = []
+    url = "https://tms.tpf.go.tz/api/OffenceCheck"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    payload = {"vehicle": number_plate or reference}
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        frappe.log_error("HTTP error", str(e))
+        frappe.throw(f"Error contacting traffic system: {str(e)}")
+
+    try:
+        result = response.json()
+    except Exception as e:
+        frappe.log_error("Invalid JSON", str(e))
+        frappe.throw("Invalid response format from traffic system")
+
+    data = result.get("pending_transactions", [])
+    
+    if data:
+        print(f"Vehicle: {number_plate or reference} has no pending transactions")
+        return fine_list
+    else:
+        if frappe.db.exists("Vehicle Fine Record", payload):
+            doc = frappe.get_doc("Vehicle Fine Record", payload)
+            doc.status = "PAID"
+            doc.save()
+
+    frappe.db.commit()
+    return fine_list
+>>>>>>> origin/version-14

@@ -25,4 +25,7 @@ csf_tz.patches.custom_fields.delete_employee_custom_fields
 csf_tz.patches.delete_default_value_fields
 csf_tz.patches.disable_signup_in_website_settings
 csf_tz.patches.update_payware_settings_values_to_csf_tz_settings
+<<<<<<< HEAD
 csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature
+=======
+>>>>>>> origin/version-14

@@ -6,5 +6,9 @@ PGPy
 paramiko
 xmltodict
 PyPDF2
+<<<<<<< HEAD
 PyPDF3
 qrcode
+=======
+PyPDF3
+>>>>>>> origin/version-14

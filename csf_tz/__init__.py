@@ -5,7 +5,11 @@ import importlib
 
 import frappe
 
+<<<<<<< HEAD
 __version__ = "15.2.0"
+=======
+__version__ = "15.1.3"
+>>>>>>> origin/version-14
 
 patches_loaded = False
 app_name = "csf_tz"

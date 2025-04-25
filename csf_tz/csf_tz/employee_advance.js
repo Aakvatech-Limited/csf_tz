@@ -42,7 +42,14 @@ function checkUnclaimedEAAndMaxLimit(frm) {
                     method: 'frappe.client.get_value',
                     args: {
                         doctype: 'Company',
+<<<<<<< HEAD
                         fieldname: ['max_unclaimed_ea']
+=======
+                        fieldname: ['max_unclaimed_ea'],
+                        filters: {
+                            name: frm.doc.company
+                        }
+>>>>>>> origin/version-14
                     },
                     callback: function (company_response) {
                         if (company_response && company_response.message) {
