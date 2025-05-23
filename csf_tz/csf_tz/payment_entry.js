@@ -150,4 +150,131 @@ frappe.ui.form.on("Payment Entry", {
 			}
 		});
 	},
+	get_outstanding_so: function (frm) {
+		const today = frappe.datetime.get_today();
+		let fields = [
+			{ fieldtype: "Section Break", label: __("Posting Date") },
+			{
+				fieldtype: "Date",
+				label: __("From Date"),
+				fieldname: "from_posting_date",
+				default: frappe.datetime.add_days(today, -30),
+			},
+			{ fieldtype: "Column Break" },
+			{ fieldtype: "Date", label: __("To Date"), fieldname: "to_posting_date", default: today },
+			{ fieldtype: "Section Break", label: __("Due Date") },
+			{ fieldtype: "Date", label: __("From Date"), fieldname: "from_due_date" },
+			{ fieldtype: "Column Break" },
+			{ fieldtype: "Date", label: __("To Date"), fieldname: "to_due_date" },
+			{ fieldtype: "Section Break", label: __("Outstanding Amount") },
+			{
+				fieldtype: "Float",
+				label: __("Greater Than Amount"),
+				fieldname: "outstanding_amt_greater_than",
+				default: 0,
+			},
+			{ fieldtype: "Column Break" },
+			{ fieldtype: "Float", label: __("Less Than Amount"), fieldname: "outstanding_amt_less_than" },
+			{ 
+				fieldtype: "Check",
+				label: __("Allocate Payment Amount"),
+				fieldname: "allocate_payment_amount",
+				default: 1
+			}
+		];
+
+		frappe.prompt(
+			fields,
+			function (filters) {
+				frm.clear_table("references");
+				
+				if (!frm.doc.party) {
+					frappe.throw(__("Please select a Party first"));
+					return;
+				}
+
+				frm.events.check_mandatory_to_fetch(frm);
+
+				// Ensure party account is set based on payment type
+				var party_account = frm.doc.payment_type == "Receive" ? frm.doc.paid_from : frm.doc.paid_to;
+				if (!party_account) {
+					frappe.msgprint(__("Please set the appropriate account for the selected payment type."));
+					return;
+				}
+
+				frappe.flags.allocate_payment_amount = filters.allocate_payment_amount;
+				
+				var args = {
+					"posting_date": frm.doc.posting_date,
+					"company": frm.doc.company,
+					"party_type": frm.doc.party_type,
+					"payment_type": frm.doc.payment_type,
+					"party": frm.doc.party,
+					"party_account": party_account,
+					"cost_center": frm.doc.cost_center,
+					"from_posting_date": filters.from_posting_date,
+					"to_posting_date": filters.to_posting_date,
+					"from_due_date": filters.from_due_date,
+					"to_due_date": filters.to_due_date,
+					"outstanding_amt_greater_than": filters.outstanding_amt_greater_than,
+					"outstanding_amt_less_than": filters.outstanding_amt_less_than,
+					"allocate_payment_amount": filters.allocate_payment_amount
+				};
+
+				return frappe.call({
+					method: 'csf_tz.csftz_hooks.payment_entry.get_outstanding_sales_orders',
+					args: {
+						args: args
+					},
+					callback: function (r, rt) {
+						if (r.message) {
+							var total_positive_outstanding = 0;
+
+							$.each(r.message, function (i, d) {
+								var c = frm.add_child("references");
+								c.reference_doctype = d.voucher_type;
+								c.reference_name = d.voucher_no;
+								c.due_date = d.due_date;
+								c.posting_date = d.posting_date;
+								c.total_amount = d.invoice_amount;
+								c.outstanding_amount = d.outstanding_amount;
+								
+								// Add to total outstanding
+								total_positive_outstanding += flt(d.outstanding_amount);
+								
+								var party_account_currency = frm.doc.payment_type == "Receive" ?
+									frm.doc.paid_from_account_currency : frm.doc.paid_to_account_currency;
+								
+								var company_currency = frappe.get_doc(":Company", frm.doc.company).default_currency;
+								
+								if (party_account_currency != company_currency) {
+									c.exchange_rate = d.exchange_rate;
+								} else {
+									c.exchange_rate = 1;
+								}
+							});
+
+							// Set paid amount based on outstanding sales orders
+							if (total_positive_outstanding > 0 && frappe.flags.allocate_payment_amount) {
+								if (frm.doc.payment_type == "Receive" && !frm.doc.paid_amount) {
+									frm.set_value("paid_amount", total_positive_outstanding);
+								} else if (frm.doc.payment_type == "Pay" && !frm.doc.received_amount) {
+									frm.set_value("received_amount", total_positive_outstanding);
+								}
+							}
+							
+							frm.refresh_fields();
+							
+							const paid_amount = frm.doc.payment_type == "Receive" ? frm.doc.paid_amount : frm.doc.received_amount;
+							if (paid_amount && frappe.flags.allocate_payment_amount) {
+								frm.events.allocate_party_amount_against_ref_docs(frm, paid_amount, true);
+							}
+						}
+					}
+				});
+			},
+			__("Filters"),
+			__("Get Sales Orders")
+		);
+	}
 });

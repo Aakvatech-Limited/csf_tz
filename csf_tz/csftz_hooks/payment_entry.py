@@ -150,3 +150,75 @@ def get_outstanding_reference_documents(args):
         )
 
     return data
+
+
+@frappe.whitelist()
+def get_outstanding_sales_orders(args):
+    if isinstance(args, str):
+        args = json.loads(args)
+
+    if args.get("party_type") == "Member":
+        return
+
+    if args.get("party_type") != "Customer":
+        frappe.throw(_("Sales Orders can only be fetched for Customer"))
+
+    # confirm that Supplier is not blocked (not needed for Customer, but keeping for consistency)
+    if args.get("party_type") == "Supplier":
+        supplier_status = get_supplier_block_status(args["party"])
+        if supplier_status["on_hold"]:
+            if supplier_status["hold_type"] == "All":
+                return []
+            elif supplier_status["hold_type"] == "Payments":
+                if (
+                    not supplier_status["release_date"]
+                    or getdate(nowdate()) <= supplier_status["release_date"]
+                ):
+                    return []
+
+    party_account_currency = get_account_currency(args.get("party_account"))
+    company_currency = frappe.get_cached_value(
+        "Company", args.get("company"), "default_currency"
+    )
+
+    # Get all SO which are not fully billed or against which full advance not paid
+    orders_to_be_billed = get_orders_to_be_billed(
+        args.get("posting_date"),
+        args.get("party_type"),
+        args.get("party"),
+        args.get("company"),
+        party_account_currency,
+        company_currency,
+        filters=args,
+    )
+
+    for d in orders_to_be_billed:
+        d["exchange_rate"] = 1
+        if party_account_currency != company_currency:
+            if d.voucher_type in frappe.get_hooks("invoice_doctypes"):
+                d["exchange_rate"] = frappe.db.get_value(
+                    d.voucher_type, d.voucher_no, "conversion_rate"
+                )
+            else:
+                d["exchange_rate"] = get_exchange_rate(
+                    party_account_currency, company_currency, d.posting_date
+                )
+
+    # Add posting date
+    for d in orders_to_be_billed:
+        d["posting_date"] = frappe.db.get_value(
+            d.voucher_type, d.voucher_no, "transaction_date" if d.voucher_type == "Sales Order" else "posting_date"
+        )
+        
+        # Add due date (if available)
+        if d.voucher_type == "Sales Order":
+            d["due_date"] = frappe.db.get_value(d.voucher_type, d.voucher_no, "delivery_date") or ""
+
+    if not orders_to_be_billed:
+        frappe.msgprint(
+            _(
+                "No outstanding Sales Orders found for the {0} {1} which qualify the filters you have specified."
+            ).format(_(args.get("party_type")).lower(), frappe.bold(args.get("party")))
+        )
+
+    return orders_to_be_billed
