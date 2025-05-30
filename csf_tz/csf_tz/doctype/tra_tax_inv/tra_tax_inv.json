@@ -1,0 +1,163 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "naming_series:",
+    "creation": "2025-01-20 12:00:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "naming_series",
+        "type",
+        "verification_code",
+        "verification_status",
+        "column_break_1",
+        "verification_date",
+        "company_name",
+        "receipt_number",
+        "items_section",
+        "items",
+        "totals_section",
+        "subtotal",
+        "total_tax",
+        "column_break_5",
+        "grand_total"
+    ],
+    "fields": [
+        {
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "label": "Series",
+            "options": "TRA-TAX-INV-.YYYY.-",
+            "reqd": 1
+        },
+        {
+            "default": "Sales",
+            "fieldname": "type",
+            "fieldtype": "Select",
+            "label": "Type",
+            "options": "Sales\nPurchase",
+            "reqd": 1
+        },
+        {
+            "fieldname": "verification_code",
+            "fieldtype": "Data",
+            "label": "Verification Code",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "verification_status",
+            "fieldtype": "Select",
+            "label": "Verification Status",
+            "options": "Pending\nVerified\nFailed",
+            "default": "Pending"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "verification_date",
+            "fieldtype": "Date",
+            "label": "Verification Date"
+        },
+        {
+            "fieldname": "company_name",
+            "fieldtype": "Data",
+            "label": "Company Name",
+            "read_only": 1
+        },
+        {
+            "fieldname": "receipt_number",
+            "fieldtype": "Data",
+            "label": "Receipt Number",
+            "read_only": 1
+        },
+        {
+            "fieldname": "items_section",
+            "fieldtype": "Section Break",
+            "label": "Items"
+        },
+        {
+            "fieldname": "items",
+            "fieldtype": "Table",
+            "label": "Items",
+            "options": "TRA TAX Inv Item",
+            "read_only": 1
+        },
+        {
+            "fieldname": "totals_section",
+            "fieldtype": "Section Break",
+            "label": "Totals"
+        },
+        {
+            "fieldname": "subtotal",
+            "fieldtype": "Currency",
+            "label": "Subtotal (Excl Tax)",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_tax",
+            "fieldtype": "Currency",
+            "label": "Total Tax",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_5",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "grand_total",
+            "fieldtype": "Currency",
+            "label": "Grand Total (Incl Tax)",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2025-01-20 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "TRA TAX Inv",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Accounts Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Accounts User",
+            "share": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
+}
