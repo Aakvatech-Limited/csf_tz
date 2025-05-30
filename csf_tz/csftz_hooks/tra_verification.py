@@ -7,50 +7,59 @@ from datetime import datetime
 @frappe.whitelist(allow_guest=True)
 def verify_tra_receipt(verification_code):
     """
-    Verify TRA receipt and extract receipt data
+    Verify TRA receipt and create TRA TAX Inv document
 
     Args:
-        verification_code (str): The receipt verification code (e.g., "3D89A530626_094801")
+        verification_code (str): The verification code from TRA receipt
 
     Returns:
-        dict: Contains receipt data and verification info
+        dict: Simple response with success status and document info
     """
     try:
+        # Try TRA verification
+        receipt_data = {}
+        verification_success = False
 
-        result = fetch_tra_verification(verification_code)
+        try:
+            verification_result = fetch_tra_verification(verification_code)
+            if "error" not in verification_result:
+                receipt_data = extract_receipt_data(
+                    verification_result["verification_data"]
+                )
+                verification_success = True
+        except Exception as e:
+            frappe.logger().error(f"TRA verification failed: {str(e)}")
 
-        if "error" in result:
-            frappe.logger().error(f"TRA Verification error: {result['error']}")
-            return {
-                "success": False,
-                "error": result["error"],
-                "verification_code": verification_code,
-            }
-
-        receipt_data = extract_receipt_data(result["verification_data"])
-
-        # Create TRA Tax Inv document after successful verification
-        tra_tax_inv_result = create_tra_tax_inv_document(
-            verification_code, receipt_data, result
+        # Always create TRA TAX Inv document
+        tra_result = create_tra_tax_inv_document_safe(
+            verification_code, receipt_data, {"success": verification_success}
         )
 
-        return {
-            "success": True,
-            "verification_code": verification_code,
-            "receipt_time_used": result["receipt_time_used"],
-            "final_url": str(result["url"]),
-            "receipt_data": receipt_data,
-            "raw_verification_data": result["verification_data"],
-            "timestamp": datetime.now().isoformat(),
-            "tra_tax_inv": tra_tax_inv_result,
-        }
+        if tra_result.get("success"):
+            return {
+                "success": True,
+                "verification_code": verification_code,
+                "message": tra_result.get(
+                    "message", "TRA TAX Inv created successfully"
+                ),
+                "doc_name": tra_result.get("doc_name", ""),
+                "company_name": tra_result.get("company_name", ""),
+                "receipt_number": tra_result.get("receipt_number", ""),
+                "total": tra_result.get("grand_total", 0),
+            }
+        else:
+            return {
+                "success": False,
+                "verification_code": verification_code,
+                "message": f"Failed to create document: {tra_result.get('message', 'Unknown error')}",
+            }
 
     except Exception as e:
-        frappe.logger().error(f"TRA Verification exception: {str(e)}")
+        frappe.logger().error(f"Critical error in TRA verification: {str(e)}")
         return {
             "success": False,
-            "error": f"Verification failed: {str(e)}",
             "verification_code": verification_code,
+            "message": f"Critical error: {str(e)}",
         }
 
 
@@ -668,3 +677,144 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
             f"Error creating TRA TAX Inv for verification code {verification_code}: {str(e)}"
         )
         return {"success": False, "message": f"Error creating TRA TAX Inv: {str(e)}"}
+
+
+def create_tra_tax_inv_document_safe(
+    verification_code, receipt_data, verification_result
+):
+    """
+    Safely create a TRA TAX Inv document with error handling
+
+    Args:
+        verification_code (str): The verification code used
+        receipt_data (dict): Extracted receipt data (may be empty)
+        verification_result (dict): Full verification result
+
+    Returns:
+        dict: Result of document creation
+    """
+    try:
+        # Check if document already exists
+        existing = frappe.db.exists(
+            "TRA TAX Inv", {"verification_code": verification_code}
+        )
+        if existing:
+            frappe.logger().info(
+                f"TRA TAX Inv already exists for verification code: {verification_code}"
+            )
+            return {
+                "success": True,
+                "message": f"TRA TAX Inv already exists for verification code: {verification_code}",
+                "existing_doc": existing,
+                "doc_name": existing,
+            }
+
+        # Create new TRA TAX Inv document
+        doc = frappe.new_doc("TRA TAX Inv")
+        doc.verification_code = verification_code
+        doc.type = "Sales"  # Default to Sales
+
+        # Set verification status based on verification success
+        if verification_result.get("success"):
+            doc.verification_status = "Verified"
+        else:
+            doc.verification_status = "Failed"
+
+        # Populate basic information if available
+        try:
+            company_info = receipt_data.get("company_info", {})
+            if company_info.get("name"):
+                doc.company_name = company_info.get("name", "")
+        except:
+            pass
+
+        try:
+            receipt_info = receipt_data.get("receipt_info", {})
+            if receipt_info.get("receipt_number"):
+                doc.receipt_number = receipt_info.get("receipt_number", "")
+        except:
+            pass
+
+        # Populate totals if available
+        try:
+            totals = receipt_data.get("totals", {})
+            if totals.get("subtotal"):
+                try:
+                    subtotal_str = str(totals.get("subtotal", "0")).replace(",", "")
+                    doc.subtotal = float(subtotal_str)
+                except:
+                    pass
+
+            if totals.get("total_tax"):
+                try:
+                    total_tax_str = str(totals.get("total_tax", "0")).replace(",", "")
+                    doc.total_tax = float(total_tax_str)
+                except:
+                    pass
+
+            if totals.get("grand_total"):
+                try:
+                    grand_total_str = str(totals.get("grand_total", "0")).replace(
+                        ",", ""
+                    )
+                    doc.grand_total = float(grand_total_str)
+                except:
+                    pass
+        except:
+            pass
+
+        # Populate items if available
+        try:
+            items = receipt_data.get("items", [])
+            for item in items:
+                try:
+                    item_row = doc.append("items", {})
+                    item_row.description = item.get("description", "")
+                    item_row.quantity = item.get("quantity", "")
+                    if item.get("amount"):
+                        try:
+                            amount_str = str(item.get("amount", "0")).replace(",", "")
+                            item_row.amount = float(amount_str)
+                        except:
+                            item_row.amount = 0
+                except:
+                    continue
+        except:
+            pass
+
+        # Save the document
+        doc.insert()
+
+        frappe.logger().info(
+            f"TRA TAX Inv created successfully: {doc.name} for verification code: {verification_code}"
+        )
+
+        # Prepare success message with details
+        message_parts = [f"TRA TAX Inv created: {doc.name}"]
+        if doc.company_name:
+            message_parts.append(f"Company: {doc.company_name}")
+        if doc.receipt_number:
+            message_parts.append(f"Receipt: {doc.receipt_number}")
+        if doc.grand_total:
+            message_parts.append(f"Total: {doc.grand_total}")
+
+        return {
+            "success": True,
+            "message": " | ".join(message_parts),
+            "doc_name": doc.name,
+            "verification_status": doc.verification_status,
+            "company_name": doc.company_name or "",
+            "receipt_number": doc.receipt_number or "",
+            "grand_total": doc.grand_total or 0,
+            "items_count": len(doc.items) if doc.items else 0,
+        }
+
+    except Exception as e:
+        frappe.logger().error(
+            f"Error creating TRA TAX Inv for verification code {verification_code}: {str(e)}"
+        )
+        return {
+            "success": False,
+            "message": f"Error creating TRA TAX Inv: {str(e)}",
+            "verification_code": verification_code,
+        }
