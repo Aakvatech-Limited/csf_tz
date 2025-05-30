@@ -150,3 +150,10 @@ def get_outstanding_reference_documents(args):
         )
 
     return data
+
+def validate(self, method):
+    company = frappe.get_cached_doc("Company", self.company)
+
+    if company.restrict_unallocated_amount_for_supplier and self.restrict_unallocated_amount_for_supplier:
+            if self.unallocated_amount > 0: 
+                frappe.throw(_("Cannot submit Payment Entry <b>{0}</b> with unallocated amount.").format(self.name))

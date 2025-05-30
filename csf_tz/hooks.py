@@ -259,6 +259,7 @@ doc_events = {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
     },
     "Payment Entry": {
+        "validate": "csf_tz.csftz_hooks.payment_entry.validate",
         "before_submit": [
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
