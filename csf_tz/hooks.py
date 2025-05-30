@@ -26,12 +26,8 @@ override_doctype_class = {
 # app_include_css = "/assets/csf_tz/css/csf_tz.css"
 # app_include_js = "/assets/csf_tz/js/csf_tz.js"
 app_include_js = [
-    "/assets/js/select_dialog.min.js",
-    "/assets/js/to_console.min.js",
-    "/assets/js/jobcards.min.js",
-    "/assets/csf_tz/node_modules/vuetify/dist/vuetify.js",
+    '/assets/csf_tz/csf_tz.bundle.js'
 ]
-
 app_include_css = "/assets/csf_tz/css/theme.css"
 web_include_css = "/assets/csf_tz/css/theme.css"
 # include js, css files in header of web template
@@ -259,6 +255,7 @@ doc_events = {
         "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
     },
     "Payment Entry": {
+        "validate": "csf_tz.csftz_hooks.payment_entry.validate",
         "before_submit": [
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",

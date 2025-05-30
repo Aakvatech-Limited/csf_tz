@@ -19,6 +19,10 @@ from frappe import ValidationError, _, qb, scrub, throw
 
 @frappe.whitelist()
 def get_outstanding_reference_documents(args):
+    # Check if the feature is disabled in CSF TZ Settings
+    if frappe.db.get_single_value("CSF TZ Settings", "disable_get_outstanding_functionality"):
+        return []
+    
     if isinstance(args, str):
         args = json.loads(args)
 
@@ -151,7 +155,6 @@ def get_outstanding_reference_documents(args):
 
     return data
 
-
 @frappe.whitelist()
 def get_outstanding_sales_orders(args):
     if isinstance(args, str):
@@ -222,3 +225,10 @@ def get_outstanding_sales_orders(args):
         )
 
     return orders_to_be_billed
+
+def validate(self, method):
+    company = frappe.get_cached_doc("Company", self.company)
+
+    if company.restrict_unallocated_amount_for_supplier and self.restrict_unallocated_amount_for_supplier:
+        if self.unallocated_amount > 0: 
+            frappe.throw(_("Cannot submit Payment Entry <b>{0}</b> with unallocated amount.").format(self.name))

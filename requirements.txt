@@ -8,3 +8,4 @@ xmltodict
 PyPDF2
 PyPDF3
 qrcode
+pandas
