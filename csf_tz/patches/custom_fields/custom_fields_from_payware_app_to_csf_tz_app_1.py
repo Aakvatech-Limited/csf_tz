@@ -3,7 +3,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 
 def execute():
-    fieds = {
+    fields = {
         "Employee": [
             {
                 "fieldname": "attachments",
@@ -141,5 +141,5 @@ def execute():
         ],
     }
 
-    create_custom_fields(fieds, update=True)
+    create_custom_fields(fields, update=True)
 
