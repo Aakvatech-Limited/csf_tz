@@ -19,6 +19,10 @@ from frappe import ValidationError, _, qb, scrub, throw
 
 @frappe.whitelist()
 def get_outstanding_reference_documents(args):
+    # Check if the feature is disabled in CSF TZ Settings
+    if frappe.db.get_single_value("CSF TZ Settings", "disable_get_outstanding_functionality"):
+        return []
+    
     if isinstance(args, str):
         args = json.loads(args)
 

@@ -29,6 +29,15 @@ frappe.ui.form.on("Payment Entry", {
 
 	party: function (frm) {
 		if (frm.is_new()) {
+			// check if the feature is disabled in CSF TZ Settings
+			frappe.db.get_single_value("CSF TZ Settings", "disable_get_outstanding_functionality")
+			.then(disabled => {
+				if (disabled) {
+					// Feature is disabled, do not proceed with get_outstanding_documents
+					return;
+				}
+				
+				// Feature is enabled, proceed with existing functionality
 			const today = frappe.datetime.get_today();
 			const filters = {
 				from_posting_date: frappe.datetime.add_days(today, -3650),
@@ -37,11 +46,21 @@ frappe.ui.form.on("Payment Entry", {
 			}
 			if (["Customer", "Supplier"].includes(frm.doc.party_type) && frm.doc.paid_from_account_currency && frm.doc.paid_to_account_currency) {
 				frm.events.get_outstanding_documents(frm, filters);
-			}
+			  }
+		    });
 		}
 	},
 
 	get_outstanding_documents: function (frm, filters) {
+		// first check if the feature s disabled in CSF TZ Settings
+		return frappe.db.get_single_value("CSF TZ Settings", "disable_get_outstanding_functionality")
+			.then(disabled => {
+				if (disabled) {
+					// Feature is disabled, do not proceed
+					return;
+				}
+				
+				// Continue with normal functionality
 		if (typeof frappe.route_history[frappe.route_history.length - 2] != "undefined") {
 			if (frappe.route_history[frappe.route_history.length - 2][1] in ["Sales Invoice", "Employee Advance", "Purchase Invoice"]) {
 				return;
@@ -148,6 +167,7 @@ frappe.ui.form.on("Payment Entry", {
 				}
 
 			}
+		  });
 		});
 	},
 });

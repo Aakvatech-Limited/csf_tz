@@ -15,6 +15,7 @@
   "role_to_reopen_po",
   "allow_reopen_of_material_request_based_on_role",
   "role_to_reopen_material_request",
+  "disable_get_outstanding_functionality",
   "column_break_3",
   "auto_pos_for_role",
   "is_manufacture",
@@ -308,12 +309,18 @@
    "fieldname": "enable_trade_in",
    "fieldtype": "Check",
    "label": "Enable Trade In"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_get_outstanding_functionality",
+   "fieldtype": "Check",
+   "label": "Disable Automatic Get Outstanding Documents"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-12-31 15:59:11.939749",
+ "modified": "2025-04-22 15:52:10.107291",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
