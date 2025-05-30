@@ -5,17 +5,38 @@ from datetime import datetime
 
 
 @frappe.whitelist(allow_guest=True)
-def verify_tra_receipt(verification_code):
+def verify_tra_receipt(verification_code=None, qr_code_data=None):
     """
     Verify TRA receipt and create TRA TAX Inv document
 
     Args:
         verification_code (str): The verification code from TRA receipt
+        qr_code_data (str): Alternative parameter - full URL from QR code
 
     Returns:
         dict: Simple response with success status and document info
     """
     try:
+        # Handle both verification_code and qr_code_data parameters
+        if qr_code_data and not verification_code:
+            # Extract verification code from QR code URL
+            if "verify.tra.go.tz/" in qr_code_data:
+                verification_code = qr_code_data.split("verify.tra.go.tz/")[-1]
+
+            else:
+                return {
+                    "success": False,
+                    "message": "Invalid QR code data format",
+                    "qr_code_data": qr_code_data,
+                }
+
+        # Also handle case where verification_code itself contains the full URL
+        if verification_code and "verify.tra.go.tz/" in verification_code:
+            verification_code = verification_code.split("verify.tra.go.tz/")[-1]
+
+        if not verification_code:
+            return {"success": False, "message": "No verification code provided"}
+
         # Try TRA verification
         receipt_data = {}
         verification_success = False
@@ -27,6 +48,7 @@ def verify_tra_receipt(verification_code):
                     verification_result["verification_data"]
                 )
                 verification_success = True
+
         except Exception as e:
             frappe.logger().error(f"TRA verification failed: {str(e)}")
 
@@ -55,7 +77,6 @@ def verify_tra_receipt(verification_code):
             }
 
     except Exception as e:
-        frappe.logger().error(f"Critical error in TRA verification: {str(e)}")
         return {
             "success": False,
             "verification_code": verification_code,
@@ -344,7 +365,6 @@ def extract_receipt_from_html(html_content):
         extract_verification_info(soup, receipt_data)
 
     except Exception as e:
-        frappe.logger().error(f"Error parsing HTML receipt: {str(e)}")
         receipt_data["parsing_error"] = str(e)
 
     return receipt_data
@@ -661,10 +681,6 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
         # Save the document
         doc.insert()
 
-        frappe.logger().info(
-            f"TRA TAX Inv created successfully: {doc.name} for verification code: {verification_code}"
-        )
-
         return {
             "success": True,
             "message": "TRA TAX Inv created successfully",
@@ -673,9 +689,6 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
         }
 
     except Exception as e:
-        frappe.logger().error(
-            f"Error creating TRA TAX Inv for verification code {verification_code}: {str(e)}"
-        )
         return {"success": False, "message": f"Error creating TRA TAX Inv: {str(e)}"}
 
 
@@ -703,8 +716,8 @@ def create_tra_tax_inv_document_safe(
                 f"TRA TAX Inv already exists for verification code: {verification_code}"
             )
             return {
-                "success": True,
-                "message": f"TRA TAX Inv already exists for verification code: {verification_code}",
+                "success": False,
+                "message": f"Receipt already exists for verification code: {verification_code}",
                 "existing_doc": existing,
                 "doc_name": existing,
             }
@@ -785,10 +798,6 @@ def create_tra_tax_inv_document_safe(
         # Save the document
         doc.insert()
 
-        frappe.logger().info(
-            f"TRA TAX Inv created successfully: {doc.name} for verification code: {verification_code}"
-        )
-
         # Prepare success message with details
         message_parts = [f"TRA TAX Inv created: {doc.name}"]
         if doc.company_name:
@@ -810,9 +819,7 @@ def create_tra_tax_inv_document_safe(
         }
 
     except Exception as e:
-        frappe.logger().error(
-            f"Error creating TRA TAX Inv for verification code {verification_code}: {str(e)}"
-        )
+
         return {
             "success": False,
             "message": f"Error creating TRA TAX Inv: {str(e)}",
