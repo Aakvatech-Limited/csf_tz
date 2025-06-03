@@ -30,7 +30,21 @@ def create_fields_from_json(custom_fields_obj):
     ]
     doctype_custom_fields_dict = {}
 
+    # Ensure custom_fields_obj is a list
+    if not isinstance(custom_fields_obj, list):
+        print(f"Warning: Expected list but got {type(custom_fields_obj)}")
+        return
+
     for custom_field in custom_fields_obj:
+        # Validate custom field structure
+        if not isinstance(custom_field, dict):
+            print(f"Warning: Expected dict but got {type(custom_field)}")
+            continue
+
+        if "dt" not in custom_field:
+            print(f"Warning: Missing 'dt' field in custom_field")
+            continue
+
         doctype = custom_field["dt"]
         all_fields = frappe.get_meta("Custom Field").get_valid_columns()
         field_list = set(all_fields).difference(disallowed_fields)
@@ -58,8 +72,13 @@ def execute():
         )
     )
     for file in files:
-        data = load_json(file)
-        create_fields_from_json(data)
+        try:
+            data = load_json(file)
+            create_fields_from_json(data)
+        except Exception as e:
+            # Log error but continue with other files
+            print(f"Error processing custom fields file {file}: {e}")
+            continue
 
 
 @frappe.whitelist()
