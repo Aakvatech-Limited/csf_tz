@@ -67,7 +67,7 @@ class CSFTZSettings(Document):
                 frappe.enqueue(
                     method=self.populate_tz_regions_background,
                     queue="long",
-                    timeout=7200,  # 2 hour timeout
+                    timeout=14400,  # 4 hour timeout
                     is_async=True,
                     job_name=f"populate_tz_regions",
                 )
