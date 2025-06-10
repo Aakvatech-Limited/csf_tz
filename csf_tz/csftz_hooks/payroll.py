@@ -142,7 +142,7 @@ def enqueue_print_slips(kwargs):
             }
         )
         ret.save(ignore_permissions=1)
-        console("Printing Finished", "The PDF file is ready in attatchments")
+        console("Printing Finished", "The PDF file is ready in attachments")
         return ret
 
 
