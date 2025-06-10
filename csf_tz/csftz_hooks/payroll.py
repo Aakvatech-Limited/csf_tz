@@ -183,7 +183,8 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
 
 def read_multi_pdf(output):
     fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
-    output.write(open(fname, "wb"))
+    with open(fname, "wb") as f:
+        output.write(f)
 
     with open(fname, "rb") as fileobj:
         filedata = fileobj.read()
