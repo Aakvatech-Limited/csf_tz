@@ -96,7 +96,10 @@ function checkMaxUnclaimedAndCreateEA(frm, unclaimed_count) {
         'frappe.client.get_value',
         {
             doctype: 'Company',
-            fieldname: ['max_unclaimed_ea', 'abbr']
+            fieldname: ['max_unclaimed_ea', 'abbr'],
+            filters: {
+                name: frm.doc.company
+            }
         },
         function (company_response) {
             let max_unclaimed_ea = company_response.max_unclaimed_ea;
