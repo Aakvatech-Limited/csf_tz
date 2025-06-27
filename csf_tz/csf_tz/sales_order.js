@@ -27,7 +27,7 @@ frappe.ui.form.on("Sales Order", {
         // const show_customer_outstanding = getValue("CSF TZ Settings", "CSF TZ Settings", "show_customer_outstanding_in_sales_order");
         if (frm.csf_settings.show_customer_outstanding_in_sales_order == 1) {
             frappe.call({
-                method: 'csf_tz.csftz_hooks.customer.get_customer_total_unpaid_amount',
+                method: 'csf_tz.api.customer.get_customer_total_unpaid_amount',
                 args: {
                     customer: frm.doc.customer,
                     company: frm.doc.company,

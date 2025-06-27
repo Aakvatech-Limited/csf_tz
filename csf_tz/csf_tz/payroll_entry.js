@@ -20,7 +20,7 @@ frappe.ui.form.on("Payroll Entry", {
       }
       frm.add_custom_button(__("Update Salary Slips"), function() {
           frappe.call({
-              method: 'csf_tz.csftz_hooks.payroll.update_slips',
+              method: 'csf_tz.api.payroll.update_slips',
               args: {
                   payroll_entry: frm.doc.name,
               },
@@ -38,7 +38,7 @@ frappe.ui.form.on("Payroll Entry", {
       }
       frm.add_custom_button(__("Print Salary Slips"), function() {
           frappe.call({
-              method: 'csf_tz.csftz_hooks.payroll.print_slips',
+              method: 'csf_tz.api.payroll.print_slips',
               args: {
                   payroll_entry: frm.doc.name,
               },
@@ -56,7 +56,7 @@ frappe.ui.form.on("Payroll Entry", {
       }
       frm.add_custom_button(__("Create Journal Entry"), function () {
           frappe.call({
-              method: 'csf_tz.csftz_hooks.payroll.create_journal_entry',
+              method: 'csf_tz.api.payroll.create_journal_entry',
               args: {
                   payroll_entry: frm.doc.name,
               },

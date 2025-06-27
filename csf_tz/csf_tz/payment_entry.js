@@ -102,7 +102,7 @@ frappe.ui.form.on("Payment Entry", {
 
 
 		return frappe.call({
-			method: 'csf_tz.csftz_hooks.payment_entry.get_outstanding_reference_documents',
+			method: 'csf_tz.api.payment_entry.get_outstanding_reference_documents',
 			args: {
 				args: args
 			},
@@ -242,7 +242,7 @@ frappe.ui.form.on("Payment Entry", {
 				};
 
 				return frappe.call({
-					method: 'csf_tz.csftz_hooks.payment_entry.get_outstanding_sales_orders',
+					method: 'csf_tz.api.payment_entry.get_outstanding_sales_orders',
 					args: {
 						args: args
 					},

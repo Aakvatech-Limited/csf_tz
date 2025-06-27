@@ -2,7 +2,7 @@ frappe.ui.form.on('Additional Salary', {
 	refresh: function(frm) {
 		cur_frm.add_custom_button(__("Generate Additional Salary Records"), function() {
 			frappe.call({
-				method: "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
+				method: "csf_tz.api.additional_salary.generate_additional_salary_records",
 				args: {},
 				callback: function () {
 					cur_frm.reload_doc();
@@ -29,7 +29,7 @@ frappe.ui.form.on('Additional Salary', {
 	no_of_hours: function(frm) {
 		if (frm.doc.employee && frm.doc.payroll_date) {
 			frappe.call({
-				method: "csf_tz.csftz_hooks.additional_salary.get_employee_base_salary_in_hours",
+				method: "csf_tz.api.additional_salary.get_employee_base_salary_in_hours",
 				args: {
 					employee: frm.doc.employee,
 					payroll_date: frm.doc.payroll_date

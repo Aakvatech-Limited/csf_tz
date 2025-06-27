@@ -1,7 +1,7 @@
 frappe.ui.form.on('Employee', {
     generate_contact_qr: function(frm) {
         frappe.call({
-            method: 'csf_tz.csftz_hooks.employee_contact_qr.generate_contact_qr',
+            method: 'csf_tz.api.employee_contact_qr.generate_contact_qr',
             args: {
                 employee: frm.doc.name
             },

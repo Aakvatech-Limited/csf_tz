@@ -3,7 +3,7 @@ frappe.ui.form.on("Landed Cost Voucher", {
         frm.clear_table("taxes");
         if (frm.doc.import_file) {
             frappe.call({
-                method: 'csf_tz.csftz_hooks.landed_cost_voucher.get_landed_cost_expenses',
+                method: 'csf_tz.api.landed_cost_voucher.get_landed_cost_expenses',
                 args: {
                     import_file: frm.doc.import_file,
                 },

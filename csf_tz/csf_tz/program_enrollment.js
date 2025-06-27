@@ -4,7 +4,7 @@ frappe.ui.form.on("Program Enrollment", {
         frm.events.get_courses(frm);
         if (frm.doc.program) {
             frappe.call({
-                method: "csf_tz.csftz_hooks.program_enrollment.get_fee_schedule",
+                method: "csf_tz.api.program_enrollment.get_fee_schedule",
                 args: {
                     "program": frm.doc.program,
                     "student_category": frm.doc.student_category,

@@ -55,7 +55,7 @@ frappe.ui.form.on("Salary Slip", {
         }
         frm.add_custom_button(__("Update Salary Slip"), function() {
             frappe.call({
-                method: 'csf_tz.csftz_hooks.payroll.update_slip',
+                method: 'csf_tz.api.payroll.update_slip',
                 args: {
                     salary_slip: frm.doc.name,
                 },
