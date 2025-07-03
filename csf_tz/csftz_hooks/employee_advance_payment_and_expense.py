@@ -28,7 +28,9 @@ def create_payment_entry(doc):
             payment_entry.reference_no = doc.name
             payment_entry.reference_date = frappe.utils.nowdate()
 
-            # payment_entry.submit()
+            # Save with ignore_permissions=True so employees can create payment entries
+            payment_entry.insert(ignore_permissions=True)
+
             frappe.msgprint(f"Payment Entry {payment_entry.name} created successfully")
 
             return payment_entry
