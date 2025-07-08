@@ -1,8 +1,17 @@
 import frappe
 from frappe.utils import flt
 from hrms.overrides.employee_payment_entry import get_payment_entry_for_employee
+from contextlib import contextmanager
 
-# from hrms.hr.doctype.expense_claim.expense_claim import get_expense_claim
+
+@contextmanager
+def temporary_user(user):
+    original_user = frappe.session.user
+    frappe.session.user = user
+    try:
+        yield
+    finally:
+        frappe.session.user = original_user
 
 
 def execute(doc, method):
@@ -13,8 +22,16 @@ def execute(doc, method):
         return
 
     try:
-        payment_entry = create_payment_entry(doc)
-        doc.reload()
+        if frappe.db.exists(
+            "Payment Entry", {"reference_no": doc.name, "docstatus": ["!=", 2]}
+        ):
+            frappe.msgprint("Payment Entry already exists for this advance")
+            return
+
+        with temporary_user("Administrator"):
+            payment_entry = create_payment_entry(doc)
+        if payment_entry:
+            doc.reload()
 
     except Exception as e:
         frappe.throw(f"Error during Employee Advance submission: {str(e)}")
@@ -28,9 +45,14 @@ def create_payment_entry(doc):
             payment_entry.reference_no = doc.name
             payment_entry.reference_date = frappe.utils.nowdate()
 
-            # Save with ignore_permissions=True so employees can create payment entries
-            payment_entry.insert(ignore_permissions=True)
+            # Bypass all validations and permissions
+            payment_entry.flags.ignore_permissions = True
+            payment_entry.flags.ignore_validate = True
+            payment_entry.flags.ignore_mandatory = True
+            payment_entry.flags.ignore_links = True
+            payment_entry.flags.ignore_user_permissions = True
 
+            payment_entry.insert(ignore_permissions=True)
             frappe.msgprint(f"Payment Entry {payment_entry.name} created successfully")
 
             return payment_entry
