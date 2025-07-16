@@ -67,6 +67,9 @@ def get_data(filters, salary_slips, currency, company_currency):
             "end_date": ss.end_date,
             "payment_days": ss.payment_days,
             "currency": ss.currency,
+            "docstatus": get_status_display(ss.docstatus),
+            "workflow_state": getattr(ss, "workflow_state", None)
+            or get_default_workflow_state(ss.docstatus),
         }
         if filters.get("multi_currency") and ss.currency != company_currency:
             row["exchange_rate"] = ss.exchange_rate
@@ -409,6 +412,18 @@ def get_columns(filters, company_currency, earning_types, ded_types):
             "fieldtype": "Int",
             "width": 120,
         },
+        {
+            "label": _("Status"),
+            "fieldname": "docstatus",
+            "fieldtype": "Data",
+            "width": 80,
+        },
+        {
+            "label": _("Workflow State"),
+            "fieldname": "workflow_state",
+            "fieldtype": "Data",
+            "width": 120,
+        },
     ]
     return columns
 
@@ -513,34 +528,280 @@ def get_departments(department, company):
     return departments_list
 
 
+def get_status_display(docstatus):
+    """Convert docstatus to human readable format"""
+    status_map = {0: "Draft", 1: "Submitted", 2: "Cancelled"}
+    return status_map.get(docstatus, "Unknown")
+
+
+def get_default_workflow_state(docstatus):
+    """Get default workflow state based on docstatus"""
+    if docstatus == 0:
+        return "Draft"
+    elif docstatus == 1:
+        return "Approved"
+    elif docstatus == 2:
+        return "Cancelled"
+    return "Unknown"
+
+
+def is_approvable(docstatus, workflow_state, workflow_info=None):
+    """Check if a salary slip can be approved using dynamic workflow states"""
+    # Draft documents can always be approved if no workflow
+    if docstatus == 0 and not workflow_info:
+        return True
+
+    # Get workflow info if not provided
+    if not workflow_info:
+        workflow_info = get_workflow_info()
+
+    # If no workflow, only draft documents can be approved
+    if not workflow_info.get("has_workflow"):
+        return docstatus == 0
+
+    # Check if current workflow state is in approvable states
+    approvable_states = workflow_info.get("approvable_states", [])
+
+    # If workflow state is in approvable states
+    if workflow_state and workflow_state in approvable_states:
+        return True
+
+    # If no workflow state but document is draft, it might be approvable
+    if not workflow_state and docstatus == 0:
+        return True
+
+    return False
+
+
+def get_cached_workflow_info():
+    """Get cached workflow info to avoid repeated calls"""
+    cache_key = "salary_slip_workflow_info"
+    workflow_info = frappe.cache().get_value(cache_key)
+
+    if not workflow_info:
+        workflow_info = get_workflow_info()
+        # Cache for 5 minutes
+        frappe.cache().set_value(cache_key, workflow_info, expires_in_sec=300)
+
+    return workflow_info
+
+
+@frappe.whitelist()
+def get_workflow_info():
+    """Get dynamic workflow information for Salary Slip doctype"""
+    from frappe.model.workflow import get_workflow_name
+
+    try:
+        workflow_name = get_workflow_name("Salary Slip")
+        if not workflow_name:
+            return {
+                "has_workflow": False,
+                "approvable_states": ["Draft"],  # Default for non-workflow
+                "approval_actions": ["Submit"],
+            }
+
+        workflow_doc = frappe.get_doc("Workflow", workflow_name)
+
+        # Get all states that can transition to an approved/submitted state
+        approvable_states = []
+        approval_actions = set()
+
+        # Find states that have outgoing transitions (can be acted upon)
+        for transition in workflow_doc.transitions:
+            # States that can transition are potentially approvable
+            approvable_states.append(transition.state)
+            approval_actions.add(transition.action)
+
+        # Remove duplicates and get unique approvable states
+        approvable_states = list(set(approvable_states))
+        approval_actions = list(approval_actions)
+
+        # Filter out final states (states with no outgoing transitions)
+        final_states = []
+
+        for state in workflow_doc.states:
+            if state.state not in [t.state for t in workflow_doc.transitions]:
+                final_states.append(state.state)
+
+        # Remove final states from approvable states
+        approvable_states = [
+            state for state in approvable_states if state not in final_states
+        ]
+
+        return {
+            "has_workflow": True,
+            "workflow_name": workflow_name,
+            "approvable_states": approvable_states,
+            "approval_actions": approval_actions,
+            "all_states": [state.state for state in workflow_doc.states],
+        }
+
+    except Exception as e:
+        frappe.log_error(f"Error getting workflow info: {str(e)}")
+        return {
+            "has_workflow": False,
+            "approvable_states": ["Draft"],
+            "approval_actions": ["Submit"],
+            "error": str(e),
+        }
+
+
 @frappe.whitelist()
 def approve(data):
     from frappe.utils.background_jobs import enqueue
     import json
 
-    data = json.loads(data)
-    enqueue(
-        method=enqueue_approve,
-        queue="short",
-        timeout=10000,
-        job_name="approve_salary_slip",
-        is_async=True,
-        kwargs=data,
-    )
-    return _("Start Processing")
+    try:
+        data = json.loads(data) if isinstance(data, str) else data
+
+        if not data or not isinstance(data, list):
+            return _("No valid data provided for approval")
+
+        # Filter valid and approvable salary slip records
+        valid_slips = []
+        for item in data:
+            if (
+                isinstance(item, dict)
+                and item.get("salary_slip_id")
+                and item.get("salary_slip_id") != "Total"
+            ):
+                # Check if the salary slip can be approved using dynamic workflow info
+                docstatus = item.get("docstatus")
+                workflow_state = item.get("workflow_state")
+
+                # Convert status display back to numeric if needed
+                if isinstance(docstatus, str):
+                    status_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+                    docstatus = status_map.get(docstatus, docstatus)
+
+                # Get cached workflow info for validation
+                workflow_info = get_cached_workflow_info()
+
+                if is_approvable(docstatus, workflow_state, workflow_info):
+                    valid_slips.append(item)
+
+        if not valid_slips:
+            return _("No valid salary slips found for approval")
+
+        enqueue(
+            method=enqueue_approve,
+            queue="short",
+            timeout=10000,
+            job_name="approve_salary_slip",
+            is_async=True,
+            kwargs={"data": valid_slips},
+        )
+        return _("Processing {0} salary slip(s) for approval").format(len(valid_slips))
+
+    except Exception as e:
+        frappe.log_error(f"Error in approve function: {str(e)}")
+        return _("Error occurred while processing approval request")
 
 
 def enqueue_approve(kwargs):
     from frappe.model.workflow import apply_workflow
 
-    data = kwargs
-    for i in data:
-        if not i.get("salary_slip_id") or i.get("salary_slip_id") == "Total":
+    data = kwargs.get("data", [])
+    success_count = 0
+    error_count = 0
+    skipped_count = 0
+    errors = []
+    success_slips = []
+
+    # Get workflow info once for all processing
+    workflow_info = get_cached_workflow_info()
+
+    for item in data:
+        if not item.get("salary_slip_id") or item.get("salary_slip_id") == "Total":
             continue
-        doc = frappe.get_doc("Salary Slip", i.get("salary_slip_id"))
-        if doc.workflow_state == "Pending":
-            try:
-                apply_workflow(doc, "Approve")
-                frappe.db.commit()
-            except Exception as e:
-                frappe.log_error(e)
+
+        salary_slip_id = item.get("salary_slip_id")
+        employee_name = item.get("employee_name", "Unknown")
+
+        try:
+            doc = frappe.get_doc("Salary Slip", salary_slip_id)
+
+            # Double-check if the slip can still be approved using dynamic workflow info
+            if not is_approvable(
+                doc.docstatus, getattr(doc, "workflow_state", None), workflow_info
+            ):
+                errors.append(
+                    f"Salary Slip {salary_slip_id} ({employee_name}): Cannot be approved in current state"
+                )
+                skipped_count += 1
+                continue
+
+            # Use dynamic workflow information
+            if workflow_info.get("has_workflow"):
+                # Use workflow if available - try dynamic approval actions
+                approval_actions = workflow_info.get(
+                    "approval_actions", ["Approve", "Submit", "Accept"]
+                )
+                action_applied = False
+
+                for action in approval_actions:
+                    try:
+                        apply_workflow(doc, action)
+                        success_count += 1
+                        success_slips.append(f"{salary_slip_id} ({employee_name})")
+                        action_applied = True
+                        frappe.db.commit()
+                        break
+                    except Exception:
+                        continue
+
+                if not action_applied:
+                    errors.append(
+                        f"Salary Slip {salary_slip_id} ({employee_name}): No valid workflow action found from {approval_actions}"
+                    )
+                    error_count += 1
+            else:
+                # No workflow - simple submit if draft
+                if doc.docstatus == 0:
+                    doc.submit()
+                    success_count += 1
+                    success_slips.append(f"{salary_slip_id} ({employee_name})")
+                    frappe.db.commit()
+                else:
+                    errors.append(
+                        f"Salary Slip {salary_slip_id} ({employee_name}): Already submitted or cancelled"
+                    )
+                    error_count += 1
+
+        except Exception as e:
+            error_msg = f"Salary Slip {salary_slip_id} ({employee_name}): {str(e)}"
+            errors.append(error_msg)
+            frappe.log_error(f"Error approving salary slip {salary_slip_id}: {str(e)}")
+            error_count += 1
+            continue
+
+    # Create detailed summary message
+    summary_parts = []
+    if success_count > 0:
+        summary_parts.append(f"✅ {success_count} salary slip(s) approved successfully")
+    if error_count > 0:
+        summary_parts.append(f"❌ {error_count} failed")
+    if skipped_count > 0:
+        summary_parts.append(f"⏭️ {skipped_count} skipped")
+
+    summary_msg = "Approval Process Completed:\n" + "\n".join(summary_parts)
+
+    # Add details of successful approvals
+    if success_slips:
+        summary_msg += f"\n\nSuccessfully approved:\n• " + "\n• ".join(
+            success_slips[:5]
+        )
+        if len(success_slips) > 5:
+            summary_msg += f"\n• ... and {len(success_slips) - 5} more"
+
+    # Log detailed errors if any
+    if errors:
+        error_log = "\n".join(errors)
+        frappe.log_error(error_log, "Salary Slip Approval Errors")
+        if len(errors) <= 3:
+            summary_msg += f"\n\nErrors:\n• " + "\n• ".join(errors)
+        else:
+            summary_msg += f"\n\nErrors: {len(errors)} errors occurred. Check Error Log for details."
+
+    # Send notification to user
+    frappe.publish_realtime("msgprint", summary_msg, user=frappe.session.user)
