@@ -1,352 +1,381 @@
 {
- "actions": [],
- "creation": "2020-06-14 23:47:22.553281",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "unique_records",
-  "validate_net_rate",
-  "fetch_default_tax_category",
-  "enable_dependent_auto_permission",
-  "limit_uom_as_item_uom",
-  "show_customer_outstanding_in_sales_order",
-  "allow_reopen_of_po_based_on_role",
-  "role_to_reopen_po",
-  "allow_reopen_of_material_request_based_on_role",
-  "role_to_reopen_material_request",
-  "disable_get_outstanding_functionality",
-  "column_break_3",
-  "auto_pos_for_role",
-  "is_manufacture",
-  "allow_delete_in_sql_command",
-  "allow_batch_splitting",
-  "item_qty_poppup_message",
-  "validate_grand_total_vs_payment_amount_on_sales_invoice",
-  "target_warehouse_based_price_list",
-  "section_break_8",
-  "sle_gle_reposting_start_date",
-  "column_break_10",
-  "start_sle_gle_reporting",
-  "trade_in_settings_section",
-  "enable_trade_in",
-  "sales_invoice_qty_settings_section",
-  "override_sales_invoice_qty",
-  "payroll_overrides_section",
-  "enable_payroll_approval",
-  "override_salary_slip_email_message",
-  "salary_slip_email_message",
-  "column_break_u48fq",
-  "enable_fixed_working_days_per_month",
-  "working_days_per_month",
-  "override_email_queue_batch_size",
-  "email_qatch_batch_size",
-  "hr_settings_section",
-  "enable_overtime_calculation",
-  "column_break_ihhi5",
-  "override_fetch_shift_details",
-  "payware_settings_section",
-  "working_hours_per_month",
-  "default_account_for_additional_component_cash_journal",
-  "column_break_bhc2q",
-  "ot_module"
- ],
- "fields": [
-  {
-   "default": "0",
-   "fieldname": "unique_records",
-   "fieldtype": "Check",
-   "label": "Unique Records"
-  },
-  {
-   "fieldname": "auto_pos_for_role",
-   "fieldtype": "Link",
-   "label": "Auto Pos For Role",
-   "options": "Role"
-  },
-  {
-   "default": "0",
-   "fieldname": "validate_net_rate",
-   "fieldtype": "Check",
-   "label": "Validate Net Rate in Sales Invoice"
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "description": "Fetch Tax Category from Default Tax Templates",
-   "fieldname": "fetch_default_tax_category",
-   "fieldtype": "Check",
-   "label": "Fetch Default Tax Category"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_manufacture",
-   "fieldtype": "Check",
-   "label": "Make Manufacture Entry instead of Material Receipt"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_delete_in_sql_command",
-   "fieldtype": "Check",
-   "label": "Allow Delete in SQL Command"
-  },
-  {
-   "fieldname": "sle_gle_reposting_start_date",
-   "fieldtype": "Date",
-   "label": "SLE GLE Reposting Start Date"
-  },
-  {
-   "fieldname": "section_break_8",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_10",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "start_sle_gle_reporting",
-   "fieldtype": "Button",
-   "label": "Start SLE GLE Reporting"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_dependent_auto_permission",
-   "fieldtype": "Check",
-   "label": "Enable Dependent Auto Permission"
-  },
-  {
-   "default": "0",
-   "description": "if ticked, a popup message showing description will appear on sales invoice when item qty remaining is less to 0",
-   "fieldname": "item_qty_poppup_message",
-   "fieldtype": "Check",
-   "label": "Item Qty Poppup Massage"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_batch_splitting",
-   "fieldtype": "Check",
-   "label": "Allow Batch Splitting"
-  },
-  {
-   "default": "0",
-   "fieldname": "limit_uom_as_item_uom",
-   "fieldtype": "Check",
-   "label": "Limit UOM as per Item UOM"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_customer_outstanding_in_sales_order",
-   "fieldtype": "Check",
-   "label": "Show Customer Outstanding in Sales Order"
-  },
-  {
-   "fieldname": "payroll_overrides_section",
-   "fieldtype": "Section Break",
-   "label": "Payroll Overrides"
-  },
-  {
-   "default": "26",
-   "depends_on": "eval:doc.enable_fixed_working_days_per_month",
-   "fieldname": "working_days_per_month",
-   "fieldtype": "Int",
-   "label": "Working Days per Month",
-   "mandatory_depends_on": "eval:doc.enable_fixed_working_days_per_month"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_fixed_working_days_per_month",
-   "fieldtype": "Check",
-   "label": "Enable Fixed Working Days per Month"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_payroll_approval",
-   "fieldtype": "Check",
-   "label": "Enable Payroll Approval"
-  },
-  {
-   "fieldname": "column_break_u48fq",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "1",
-   "description": "If ticked, system will compare grand total and payment amount, if they differ system will stop, submission of sales invoice",
-   "fieldname": "validate_grand_total_vs_payment_amount_on_sales_invoice",
-   "fieldtype": "Check",
-   "label": "Validate Grand Total vs Payment Amount on Sales Invoice"
-  },
-  {
-   "fieldname": "hr_settings_section",
-   "fieldtype": "Section Break",
-   "label": "HR Settings"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_overtime_calculation",
-   "fieldtype": "Check",
-   "label": "Enable Overtime Calculation"
-  },
-  {
-   "fieldname": "column_break_ihhi5",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "description": "If ticked, Shift Details will be fetched using custom methods on Employee Checkin",
-   "fieldname": "override_fetch_shift_details",
-   "fieldtype": "Check",
-   "label": "Override Fetch Shift Details"
-  },
-  {
-   "default": "0",
-   "fieldname": "target_warehouse_based_price_list",
-   "fieldtype": "Check",
-   "label": "Enable Target Warehouse Based Buying Price List"
-  },
-  {
-   "default": "0",
-   "fieldname": "override_salary_slip_email_message",
-   "fieldtype": "Check",
-   "label": "Override Salary Slip Email Message"
-  },
-  {
-   "depends_on": "eval: doc.override_salary_slip_email_message == 1",
-   "fieldname": "salary_slip_email_message",
-   "fieldtype": "Code",
-   "label": "Salary Slip Email Message",
-   "mandatory_depends_on": "eval: doc.override_salary_slip_email_message == 1"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "payware_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Payware Settings"
-  },
-  {
-   "fieldname": "working_hours_per_month",
-   "fieldtype": "Float",
-   "label": "Working Hours per Month"
-  },
-  {
-   "fieldname": "default_account_for_additional_component_cash_journal",
-   "fieldtype": "Link",
-   "label": "Default Account for additional component cash journal",
-   "options": "Account"
-  },
-  {
-   "fieldname": "column_break_bhc2q",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "ot_module",
-   "fieldtype": "Check",
-   "label": "OT Module"
-  },
-  {
-   "default": "0",
-   "fieldname": "override_email_queue_batch_size",
-   "fieldtype": "Check",
-   "label": "Override Email Queue Batch Size"
-  },
-  {
-   "depends_on": "eval: doc.override_email_queue_batch_size == 1;",
-   "fieldname": "email_qatch_batch_size",
-   "fieldtype": "Int",
-   "label": "Email Qatch Batch Size",
-   "mandatory_depends_on": "eval: doc.override_email_queue_batch_size == 1;"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_reopen_of_po_based_on_role",
-   "fieldtype": "Check",
-   "label": "Allow Reopen of Purchase Order based on Role"
-  },
-  {
-   "depends_on": "eval: doc.allow_reopen_of_po_based_on_role == 1",
-   "fieldname": "role_to_reopen_po",
-   "fieldtype": "Link",
-   "label": "Role to Reopen PO",
-   "mandatory_depends_on": "eval: doc.allow_reopen_of_po_based_on_role == 1",
-   "options": "Role"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_reopen_of_material_request_based_on_role",
-   "fieldtype": "Check",
-   "label": "Allow Reopen of Material Request based on Role"
-  },
-  {
-   "depends_on": "eval: doc.allow_reopen_of_material_request_based_on_role == 1",
-   "fieldname": "role_to_reopen_material_request",
-   "fieldtype": "Link",
-   "label": "Role to Reopen Material Request",
-   "mandatory_depends_on": "eval: doc.allow_reopen_of_material_request_based_on_role == 1",
-   "options": "Role"
-  },
-  {
-   "fieldname": "sales_invoice_qty_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Sales Invoice Qty Settings"
-  },
-  {
-   "default": "0",
-   "fieldname": "override_sales_invoice_qty",
-   "fieldtype": "Check",
-   "label": "Override Sales Invoice Qty"
-  },
-  {
-   "fieldname": "trade_in_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Trade In Settings"
-  },
-  {
-   "default": "0",
-   "description": "Enable this feature to handle trade-in items directly within Sales Invoices.",
-   "fieldname": "enable_trade_in",
-   "fieldtype": "Check",
-   "label": "Enable Trade In"
-  },
-  {
-   "default": "0",
-   "fieldname": "disable_get_outstanding_functionality",
-   "fieldtype": "Check",
-   "label": "Disable Automatic Get Outstanding Documents"
-  }
- ],
- "index_web_pages_for_search": 1,
- "issingle": 1,
- "links": [],
- "modified": "2025-04-22 15:52:10.107291",
- "modified_by": "Administrator",
- "module": "CSF TZ",
- "name": "CSF TZ Settings",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "All",
-   "share": 1
-  }
- ],
- "quick_entry": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+    "actions": [],
+    "creation": "2020-06-14 23:47:22.553281",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "unique_records",
+        "validate_net_rate",
+        "fetch_default_tax_category",
+        "enable_dependent_auto_permission",
+        "limit_uom_as_item_uom",
+        "show_customer_outstanding_in_sales_order",
+        "allow_reopen_of_po_based_on_role",
+        "role_to_reopen_po",
+        "allow_reopen_of_material_request_based_on_role",
+        "role_to_reopen_material_request",
+        "disable_get_outstanding_functionality",
+        "column_break_3",
+        "auto_pos_for_role",
+        "is_manufacture",
+        "allow_delete_in_sql_command",
+        "allow_batch_splitting",
+        "item_qty_poppup_message",
+        "validate_grand_total_vs_payment_amount_on_sales_invoice",
+        "target_warehouse_based_price_list",
+        "section_break_8",
+        "sle_gle_reposting_start_date",
+        "column_break_10",
+        "start_sle_gle_reporting",
+        "trade_in_settings_section",
+        "enable_trade_in",
+        "sales_invoice_qty_settings_section",
+        "override_sales_invoice_qty",
+        "payroll_overrides_section",
+        "enable_payroll_approval",
+        "override_salary_slip_email_message",
+        "salary_slip_email_message",
+        "column_break_u48fq",
+        "enable_fixed_working_days_per_month",
+        "working_days_per_month",
+        "override_email_queue_batch_size",
+        "email_qatch_batch_size",
+        "hr_settings_section",
+        "enable_overtime_calculation",
+        "column_break_ihhi5",
+        "override_fetch_shift_details",
+        "payware_settings_section",
+        "working_hours_per_month",
+        "default_account_for_additional_component_cash_journal",
+        "column_break_bhc2q",
+        "ot_module",
+        "tz_regions_section",
+        "populate_tz_regions",
+        "column_break_tz_regions",
+        "tz_regions_populated"
+    ],
+    "fields": [
+        {
+            "default": "0",
+            "fieldname": "unique_records",
+            "fieldtype": "Check",
+            "label": "Unique Records"
+        },
+        {
+            "fieldname": "auto_pos_for_role",
+            "fieldtype": "Link",
+            "label": "Auto Pos For Role",
+            "options": "Role"
+        },
+        {
+            "default": "0",
+            "fieldname": "validate_net_rate",
+            "fieldtype": "Check",
+            "label": "Validate Net Rate in Sales Invoice"
+        },
+        {
+            "fieldname": "column_break_3",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "0",
+            "description": "Fetch Tax Category from Default Tax Templates",
+            "fieldname": "fetch_default_tax_category",
+            "fieldtype": "Check",
+            "label": "Fetch Default Tax Category"
+        },
+        {
+            "default": "0",
+            "fieldname": "is_manufacture",
+            "fieldtype": "Check",
+            "label": "Make Manufacture Entry instead of Material Receipt"
+        },
+        {
+            "default": "0",
+            "fieldname": "allow_delete_in_sql_command",
+            "fieldtype": "Check",
+            "label": "Allow Delete in SQL Command"
+        },
+        {
+            "fieldname": "sle_gle_reposting_start_date",
+            "fieldtype": "Date",
+            "label": "SLE GLE Reposting Start Date"
+        },
+        {
+            "fieldname": "section_break_8",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "column_break_10",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "start_sle_gle_reporting",
+            "fieldtype": "Button",
+            "label": "Start SLE GLE Reporting"
+        },
+        {
+            "default": "1",
+            "fieldname": "enable_dependent_auto_permission",
+            "fieldtype": "Check",
+            "label": "Enable Dependent Auto Permission"
+        },
+        {
+            "default": "0",
+            "description": "if ticked, a popup message showing description will appear on sales invoice when item qty remaining is less to 0",
+            "fieldname": "item_qty_poppup_message",
+            "fieldtype": "Check",
+            "label": "Item Qty Poppup Massage"
+        },
+        {
+            "default": "0",
+            "fieldname": "allow_batch_splitting",
+            "fieldtype": "Check",
+            "label": "Allow Batch Splitting"
+        },
+        {
+            "default": "0",
+            "fieldname": "limit_uom_as_item_uom",
+            "fieldtype": "Check",
+            "label": "Limit UOM as per Item UOM"
+        },
+        {
+            "default": "0",
+            "fieldname": "show_customer_outstanding_in_sales_order",
+            "fieldtype": "Check",
+            "label": "Show Customer Outstanding in Sales Order"
+        },
+        {
+            "fieldname": "payroll_overrides_section",
+            "fieldtype": "Section Break",
+            "label": "Payroll Overrides"
+        },
+        {
+            "default": "26",
+            "depends_on": "eval:doc.enable_fixed_working_days_per_month",
+            "fieldname": "working_days_per_month",
+            "fieldtype": "Int",
+            "label": "Working Days per Month",
+            "mandatory_depends_on": "eval:doc.enable_fixed_working_days_per_month"
+        },
+        {
+            "default": "0",
+            "fieldname": "enable_fixed_working_days_per_month",
+            "fieldtype": "Check",
+            "label": "Enable Fixed Working Days per Month"
+        },
+        {
+            "default": "0",
+            "fieldname": "enable_payroll_approval",
+            "fieldtype": "Check",
+            "label": "Enable Payroll Approval"
+        },
+        {
+            "fieldname": "column_break_u48fq",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "1",
+            "description": "If ticked, system will compare grand total and payment amount, if they differ system will stop, submission of sales invoice",
+            "fieldname": "validate_grand_total_vs_payment_amount_on_sales_invoice",
+            "fieldtype": "Check",
+            "label": "Validate Grand Total vs Payment Amount on Sales Invoice"
+        },
+        {
+            "fieldname": "hr_settings_section",
+            "fieldtype": "Section Break",
+            "label": "HR Settings"
+        },
+        {
+            "default": "0",
+            "fieldname": "enable_overtime_calculation",
+            "fieldtype": "Check",
+            "label": "Enable Overtime Calculation"
+        },
+        {
+            "fieldname": "column_break_ihhi5",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "0",
+            "description": "If ticked, Shift Details will be fetched using custom methods on Employee Checkin",
+            "fieldname": "override_fetch_shift_details",
+            "fieldtype": "Check",
+            "label": "Override Fetch Shift Details"
+        },
+        {
+            "default": "0",
+            "fieldname": "target_warehouse_based_price_list",
+            "fieldtype": "Check",
+            "label": "Enable Target Warehouse Based Buying Price List"
+        },
+        {
+            "default": "0",
+            "fieldname": "override_salary_slip_email_message",
+            "fieldtype": "Check",
+            "label": "Override Salary Slip Email Message"
+        },
+        {
+            "depends_on": "eval: doc.override_salary_slip_email_message == 1",
+            "fieldname": "salary_slip_email_message",
+            "fieldtype": "Code",
+            "label": "Salary Slip Email Message",
+            "mandatory_depends_on": "eval: doc.override_salary_slip_email_message == 1"
+        },
+        {
+            "collapsible": 1,
+            "fieldname": "payware_settings_section",
+            "fieldtype": "Section Break",
+            "label": "Payware Settings"
+        },
+        {
+            "fieldname": "working_hours_per_month",
+            "fieldtype": "Float",
+            "label": "Working Hours per Month"
+        },
+        {
+            "fieldname": "default_account_for_additional_component_cash_journal",
+            "fieldtype": "Link",
+            "label": "Default Account for additional component cash journal",
+            "options": "Account"
+        },
+        {
+            "fieldname": "column_break_bhc2q",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "0",
+            "fieldname": "ot_module",
+            "fieldtype": "Check",
+            "label": "OT Module"
+        },
+        {
+            "default": "0",
+            "fieldname": "override_email_queue_batch_size",
+            "fieldtype": "Check",
+            "label": "Override Email Queue Batch Size"
+        },
+        {
+            "depends_on": "eval: doc.override_email_queue_batch_size == 1;",
+            "fieldname": "email_qatch_batch_size",
+            "fieldtype": "Int",
+            "label": "Email Qatch Batch Size",
+            "mandatory_depends_on": "eval: doc.override_email_queue_batch_size == 1;"
+        },
+        {
+            "default": "0",
+            "fieldname": "allow_reopen_of_po_based_on_role",
+            "fieldtype": "Check",
+            "label": "Allow Reopen of Purchase Order based on Role"
+        },
+        {
+            "depends_on": "eval: doc.allow_reopen_of_po_based_on_role == 1",
+            "fieldname": "role_to_reopen_po",
+            "fieldtype": "Link",
+            "label": "Role to Reopen PO",
+            "mandatory_depends_on": "eval: doc.allow_reopen_of_po_based_on_role == 1",
+            "options": "Role"
+        },
+        {
+            "default": "0",
+            "fieldname": "allow_reopen_of_material_request_based_on_role",
+            "fieldtype": "Check",
+            "label": "Allow Reopen of Material Request based on Role"
+        },
+        {
+            "depends_on": "eval: doc.allow_reopen_of_material_request_based_on_role == 1",
+            "fieldname": "role_to_reopen_material_request",
+            "fieldtype": "Link",
+            "label": "Role to Reopen Material Request",
+            "mandatory_depends_on": "eval: doc.allow_reopen_of_material_request_based_on_role == 1",
+            "options": "Role"
+        },
+        {
+            "fieldname": "sales_invoice_qty_settings_section",
+            "fieldtype": "Section Break",
+            "label": "Sales Invoice Qty Settings"
+        },
+        {
+            "default": "0",
+            "fieldname": "override_sales_invoice_qty",
+            "fieldtype": "Check",
+            "label": "Override Sales Invoice Qty"
+        },
+        {
+            "fieldname": "trade_in_settings_section",
+            "fieldtype": "Section Break",
+            "label": "Trade In Settings"
+        },
+        {
+            "default": "0",
+            "description": "Enable this feature to handle trade-in items directly within Sales Invoices.",
+            "fieldname": "enable_trade_in",
+            "fieldtype": "Check",
+            "label": "Enable Trade In"
+        },
+        {
+            "default": "0",
+            "fieldname": "disable_get_outstanding_functionality",
+            "fieldtype": "Check",
+            "label": "Disable Automatic Get Outstanding Documents"
+        },
+        {
+            "collapsible": 1,
+            "fieldname": "tz_regions_section",
+            "fieldtype": "Section Break",
+            "label": "TZ Regions Data"
+        },
+        {
+            "default": "0",
+            "description": "Check this box to populate TZ Regions, Districts, Wards and Villages from JSON data. This is a one-time operation that may take several minutes.",
+            "fieldname": "populate_tz_regions",
+            "fieldtype": "Check",
+            "label": "Populate TZ Regions Data"
+        },
+        {
+            "fieldname": "column_break_tz_regions",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "0",
+            "description": "This field shows whether TZ Regions data has been successfully populated.",
+            "fieldname": "tz_regions_populated",
+            "fieldtype": "Check",
+            "label": "TZ Regions Data Populated",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "links": [],
+    "modified": "2025-04-22 15:52:10.107291",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "CSF TZ Settings",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "All",
+            "share": 1
+        }
+    ],
+    "quick_entry": 1,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
 }
