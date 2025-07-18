@@ -4,7 +4,7 @@ frappe.require([
 
 frappe.ui.form.on("Sales Order", {
     refresh: function (frm) {
-        frappe.get_doc("CSF TZ Settings", "CSF TZ Settings").then(csf_settings => {
+        frappe.db.get_doc("CSF TZ Settings", "CSF TZ Settings").then(csf_settings => {
             frm.csf_settings = csf_settings;
             if (frm.csf_settings.limit_uom_as_item_uom == 1) {
             frm.set_query("uom", "items", function (frm, cdt, cdn) {
