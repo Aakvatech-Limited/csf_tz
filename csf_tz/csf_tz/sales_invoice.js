@@ -1,16 +1,11 @@
 frappe.require([
-  "/assets/csf_tz/js/csfUtlis.js",
   "/assets/csf_tz/js/shortcuts.js",
 ]);
 
 frappe.ui.form.on("Sales Invoice", {
   refresh: function (frm) {
-    const limit_uom_as_item_uom = getValue(
-      "CSF TZ Settings",
-      "CSF TZ Settings",
-      "limit_uom_as_item_uom"
-    );
-    if (limit_uom_as_item_uom == 1) {
+    frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
+      if (limit_uom_as_item_uom == 1) {
       frm.set_query("uom", "items", function (frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         return {
@@ -22,7 +17,8 @@ frappe.ui.form.on("Sales Invoice", {
           },
         };
       });
-    }
+      }
+    });
     frm.trigger("set_pos");
     frm.trigger("make_sales_invoice_btn");
     frm.trigger("set_trade_in_field_visibility");
