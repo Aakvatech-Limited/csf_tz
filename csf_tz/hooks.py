@@ -25,9 +25,7 @@ override_doctype_class = {
 # include js, css files in header of desk.html
 # app_include_css = "/assets/csf_tz/css/csf_tz.css"
 # app_include_js = "/assets/csf_tz/js/csf_tz.js"
-app_include_js = [
-    '/assets/csf_tz/csf_tz.bundle.js'
-]
+app_include_js = "csf_tz.bundle.js"
 app_include_css = "/assets/csf_tz/css/theme.css"
 web_include_css = "/assets/csf_tz/css/theme.css"
 # include js, css files in header of web template
@@ -66,7 +64,7 @@ doctype_js = {
     "BOM": "csf_tz/bom_addittional_costs.js",
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
-    "Employee": "csf_tz/employee_contact_qr.js"
+    "Employee": "csf_tz/employee_contact_qr.js",
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
@@ -156,7 +154,6 @@ doc_events = {
             "csf_tz.custom_api.check_submit_delivery_note",
             "csf_tz.custom_api.make_withholding_tax_gl_entries_for_sales",
             "csf_tz.custom_api.create_trade_in_stock_entry",
-            
         ],
         "validate": [
             "csf_tz.custom_api.check_validate_delivery_note",
@@ -259,7 +256,7 @@ doc_events = {
         "before_submit": [
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
-        ]
+        ],
     },
     "Landed Cost Voucher": {
         "validate": [
@@ -317,9 +314,6 @@ scheduler_events = {
 jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
 
 
-
-
-
 # Testing
 # -------
 
@@ -334,8 +328,4 @@ override_whitelisted_methods = {
     "erpnext.buying.doctype.purchase_order.purchase_order.close_or_unclose_purchase_orders": "csf_tz.csftz_hooks.purchase_order.close_or_unclose_purchase_orders",
     "erpnext.stock.doctype.material_request.material_request.update_status": "csf_tz.csftz_hooks.material_request.update_mr_status",
     "erpnext.stock.get_item_details.get_item_details": "csf_tz.csftz_hooks.custom_get_item_details.custom_get_item_details",
-
-
-
-
 }
