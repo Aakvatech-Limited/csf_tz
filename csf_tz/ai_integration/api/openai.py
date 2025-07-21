@@ -2,126 +2,108 @@ import os
 import frappe
 from openai import OpenAI
 
+
 @frappe.whitelist()
 def analyze_doctype_with_openai(
     doctype_name,
     prompt,
-    doc_data=None
-):  
-    llm_settings = frappe.get_cached_doc("LLM Settings", "LLM Settings")
-    api_key = llm_settings.get_password("openai_api_key")
-    
-    if not api_key:
-        frappe.throw("OpenAI API key not found in LLM Settings")
-    
-    client = OpenAI(api_key=api_key)
-    model = llm_settings.default_model or "gpt-4"
-    
-    messages = []
-    
-    def send_message_to_openai(user_message, log_title, log_details=""):
-        """Helper function to send message to OpenAI and handle response"""
-        messages.append({
-            "role": "user",
-            "content": user_message
-        })
-        
+    doc_data=None,
+    force_resend=False
+):
+    # Check for existing
+    existing_log = frappe.get_all("OpenAI Query Log", filters={
+        "doctype_name": doctype_name,
+        "query": prompt
+    }, fields=["name", "status"], limit=1)
+
+    if existing_log and not force_resend:
+        response = frappe.get_value("OpenAI Query Log", existing_log[0].name, "response")
+        return response or f"<h1> Your query has already been processed with status: {existing_log[0].status}</h1>"
+
+    # Create new log
+    query_log = frappe.get_doc({
+        "doctype": "OpenAI Query Log",
+        "doctype_name": doctype_name,
+        "query": prompt,
+        "status": "Queued",
+        "resend_count": (existing_log[0].resend_count + 1) if existing_log else 1
+    }).insert(ignore_permissions=True)
+
+    frappe.enqueue(
+        method=process_openai_query_log,
+        queue="long",
+        job_name=f"Analyze {doctype_name} with OpenAI",
+        log_name=query_log.name,
+        doc_data=doc_data
+    )
+
+    return f"<h1> Your query has been {query_log.status}</h1>"
+
+
+def process_openai_query_log(log_name, doc_data=None):
+    log = frappe.get_doc("OpenAI Query Log", log_name)
+
+    try:
+        log.status = "In Progress"
+        log.save(ignore_permissions=True)
+
+        llm_settings = frappe.get_cached_doc("LLM Settings", "LLM Settings")
+        api_key = llm_settings.get_password("openai_api_key")
+        if not api_key:
+            frappe.throw("OpenAI API key not found in LLM Settings")
+
+        model = llm_settings.default_model or "gpt-4"
+        client = OpenAI(api_key=api_key)
+
+        messages = [{
+            "role": "system",
+            "content": "You are a helpful assistant for Frappe/ERPNext development."
+        }]
+
+        # Doc data or files
+        if doc_data:
+            messages.append({
+                "role": "user",
+                "content": f"Please remember and process this documentation content for DocType '{log.doctype_name}':\n\n{doc_data}"
+            })
+        else:
+            content_blocks = get_doc_files(log.doctype_name)
+            for i, content in enumerate(content_blocks, 1):
+                messages.append({
+                    "role": "user",
+                    "content": f"Please remember and process this file content for DocType '{log.doctype_name}' (File {i} of {len(content_blocks)}):\n\n{content}"
+                })
+
+        # Prompt for analysis
+        messages.append({"role": "user", "content": log.query})
+
+        # Send to OpenAI
         response = client.chat.completions.create(
             model=model,
             messages=messages
         )
-        
-        messages.append({
-            "role": "assistant",
-            "content": response.choices[0].message.content
-        })
-        
-        frappe.log_error(
-            title=log_title,
-            message=f"{log_details} \n <br> {response.choices[0].message.content}"
-        )
-        
-        return response.choices[0].message.content
-    
-    try:
-        if doc_data:
-            # Use provided JSON doc_data directly
-            user_message = f"Please remember and process this documentation content for DocType '{doctype_name}':\n\n{doc_data}\n\nPlease confirm you have processed and remembered this documentation."
-            send_message_to_openai(
-                user_message,
-                "OpenAI Doc Data Sent",
-                f"Successfully sent doc_data for {doctype_name}"
-            )
-            
-        else:
-            content_blocks = get_doc_files(doctype_name)
-            
-            for i, content_block in enumerate(content_blocks, 1):
-                # Send each file separately with memory instruction
-                file_message = f"Please remember and process this file content for DocType '{doctype_name}' (File {i} of {len(content_blocks)}):\n\n{content_block}\n\nPlease confirm you have processed and remembered this file content."
-                send_message_to_openai(
-                    file_message,
-                    "OpenAI File Sent",
-                    f"Successfully sent file {i} for {doctype_name}"
-                )
-        
-        # Step 3: Send the actual analysis prompt separately with Markdown formatting request
-        analysis_prompt = f"""Now, based on all the documentation and files I've shared with you for DocType '{doctype_name}', please analyze and respond to this prompt:
+        reply = response.choices[0].message.content
 
-        {prompt}
+        if not reply.strip().startswith("#"):
+            reply = f"# {log.doctype_name} Analysis\n\n{reply}"
 
-        Please format your response as a well-structured Markdown document with:
-        - Clear headings and subheadings
-        - Proper code blocks with syntax highlighting
-        - Bullet points or numbered lists where appropriate
-        - Tables for structured data
-        - Bold and italic text for emphasis
-        - Clear sections and subsections
-        - Professional documentation formatting
+        log.response = reply
+        log.status = "Complete"
+        log.save(ignore_permissions=True)
 
-        Make it ready for use as actual technical documentation."""
-
-        messages.append({
-            "role": "user",
-            "content": analysis_prompt
-        })
-        
-        # Get the final analysis response
-        final_response = client.chat.completions.create(
-            model=model,
-            messages=messages
-        )
-        
-        # Ensure the response is properly formatted as Markdown
-        markdown_content = final_response.choices[0].message.content
-        
-        # Add document header if not present
-        if not markdown_content.strip().startswith('#'):
-            markdown_content = f"# {doctype_name} Analysis\n\n{markdown_content}"
-        
-        return markdown_content
-
-    except Exception as e:
-        frappe.log_error(
-            title="OpenAI API Call Failed",
-            message=frappe.get_traceback()
-        )
-        frappe.throw(
-            title="AI Assist Error",
-            msg=str(e)
-        )
+    except Exception:
+        log.status = "Failed"
+        log.response = frappe.get_traceback()
+        log.save(ignore_permissions=True)
+        frappe.log_error("OpenAI Background Job Failed", frappe.get_traceback())
 
 
 def get_doc_files(doctype_name):
     try:
         module = frappe.get_meta(doctype_name).module
         module_path = frappe.get_module_path(module)
-
         parts = module_path.split(os.sep)
-        if "apps" in parts:
-            app_name = parts[parts.index("apps") + 1]
-        else:
-            app_name = parts[-3]  # fallback for docker/dev environments
+        app_name = parts[parts.index("apps") + 1] if "apps" in parts else parts[-3]
     except Exception:
         frappe.throw(f"Cannot find app for DocType {doctype_name}")
 
@@ -135,10 +117,10 @@ def get_doc_files(doctype_name):
     }
 
     content_blocks = []
-    for label, file_path in files.items():
-        if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                content_blocks.append(f"\n\n### {label}\n```{file_path.split('.')[-1]}\n{f.read()}\n```")
+    for label, path in files.items():
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                content_blocks.append(f"### {label}\n```{path.split('.')[-1]}\n{f.read()}\n```")
 
     if not content_blocks:
         frappe.throw("No source files (.py, .js, .json) found for this DocType.")

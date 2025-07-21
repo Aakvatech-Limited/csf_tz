@@ -1,127 +1,86 @@
 $(document).on('app_ready', function () {
-	frappe.router.on("change", () => {
-		var route = frappe.get_route();
-		if (route && route[0] == "Form") {
-			frappe.ui.form.on(route[1], {
-				refresh: function (frm) {
-                    frm.page.add_menu_item(__("AI Assist: Explain Doctype"), function () {
+    frappe.router.on("change", () => {
+        var route = frappe.get_route();
+        if (route && route[0] == "Form") {
+            frappe.ui.form.on(route[1], {
+                refresh: function (frm) {
+                    frm.page.add_menu_item(__("AI Assist: Explain Doctype"), function () {   
                         let dialog = new frappe.ui.Dialog({
-                            title: __("AI Assist - DocType Analysis"),
+                            title: __("AI Assist - DocType User Manual"),
                             size: "large",
                             fields: [
                                 {
-                                    fieldname: "doctype_name",
-                                    label: __("DocType Name"),
-                                    fieldtype: "Link",
-                                    options: "DocType",
-                                    reqd: 1,
-                                    default: frm.doc.doctype,
-                                    description: __("Select the DocType you want to analyze")
-                                },
-                                {
-                                    fieldname: "prompt",
-                                    label: __("Analysis Prompt"),
-                                    fieldtype: "Text",
-                                    reqd: 1,
-                                    default: __("Explain this DocType including its purpose, all fields, and relationships with other erpnext doctypes."),
-                                    description: __("Enter what you want to know about this DocType")
-                                },
-                                {
-                                    fieldname: "response_section",
-                                    fieldtype: "Section Break",
-                                    label: __("AI Response")
-                                },
-                                {
                                     fieldname: "response",
                                     label: __("Response"),
-                                    fieldtype: "HTML",
-                                    description: __("AI response will appear here")
+                                    fieldtype: "HTML"
                                 }
                             ],
                             secondary_action_label: __("Close"),
                             secondary_action: function() {
                                 dialog.hide();
-                            },
-                            primary_action_label: __("Analyze"),
-                            primary_action: function(values) {
-                                if (!values.doctype_name || !values.prompt) {
-                                    frappe.msgprint(__("Please fill all required fields"));
-                                    return;
-                                }
-                                
-                                // Store reference to original analyze function
-                                let originalAnalyzeFunction = arguments.callee;
-                                
-                                dialog.set_value("response", __("Analyzing... Please wait."));
-                                
-                                dialog.set_primary_action(__("Analyzing..."));
-                                dialog.primary_action = null;
-                                
-                                frappe.call({
-                                    method: "csf_tz.ai_integration.api.openai.analyze_doctype_with_openai",
-                                    args: {
-                                        doctype_name: values.doctype_name,
-                                        prompt: values.prompt
-                                    },
-                                    freeze: true,
-                                    freeze_message: __("Analyzing..."),
-                                    callback: function(r) {
-                                        if (r.message) {
-                                            let htmlContent = frappe.markdown(r.message);
-                                            dialog.set_value("response", htmlContent);
-                                            
-                                            dialog.get_field("doctype_name").toggle(false);
-                                            dialog.get_field("prompt").toggle(false);
-                                            
-                                            dialog.set_primary_action(__("Try Again"), function() {
-                                                dialog.get_field("doctype_name").toggle(true);
-                                                dialog.get_field("prompt").toggle(true);
-                                                
-                                                dialog.set_value("response", "");
-                                                
-                                                dialog.set_primary_action(__("Analyze"), originalAnalyzeFunction);
-                                                
-                                                dialog.get_field("doctype_name").set_focus();
-                                            });
-                                            
-                                            frappe.utils.play_sound("submit");
-                                            frappe.show_alert({
-                                                message: __("Analysis completed successfully!"),
-                                                indicator: "green"
-                                            });
-                                        }
-                                    },
-                                    error: function(r) {
-                                        console.error("OpenAI API Error:", r);
-                                        
-                                        dialog.set_value("response", __("Error occurred while analyzing. Please check the console for details."));
-                                        
-                                        dialog.get_field("doctype_name").toggle(false);
-                                        dialog.get_field("prompt").toggle(false);
-                                        
-                                        dialog.set_primary_action(__("Try Again"), function() {
-                                            dialog.get_field("doctype_name").toggle(true);
-                                            dialog.get_field("prompt").toggle(true);
-                                            
-                                            dialog.set_value("response", "");
-                                            
-                                            dialog.set_primary_action(__("Analyze"), originalAnalyzeFunction);
-                                            
-                                            dialog.get_field("doctype_name").set_focus();
-                                        });
-                                        
-                                        frappe.show_alert({
-                                            message: __("Analysis failed. Please try again."),
-                                            indicator: "red"
-                                        });
-                                    }
-                                });
-                            },
+                            }
                         });
                         
-                        dialog.set_value("doctype_name", frm.doc.doctype);
-                        dialog.get_field("doctype_name").set_focus();
-                        dialog.show();
+                        let data = {
+                            doctype: frm.doc.doctype,
+                            name: frm.doc.name,
+                            title: frm.doc.title || frm.doc.name,
+                            fields: {}
+                        };
+                        
+                        for (let field of frm.meta.fields) {
+                            if (frm.doc[field.fieldname] && field.fieldtype !== "Section Break" && field.fieldtype !== "Column Break") {
+                                data.fields[field.fieldname] = {
+                                    value: frm.doc[field.fieldname],
+                                    label: field.label,
+                                    fieldtype: field.fieldtype
+                                };
+                            }
+                        }
+                        doctype_prompt = `Create user manual with below headings:
+                                        1. Overview
+                                        2. Key Features
+                                        3. Pre-Requisites
+                                        4. Step-by-Step Usage
+                                        5. Script Customizations
+                                        6. Troubleshooting (Common Errors and Resolutions)
+                                        7. User Roles and Permissions
+                                        8. Key Notes
+                                        9. What business process pain point does it help remove`                             
+                        frappe.call({
+                            method: "csf_tz.ai_integration.api.openai.analyze_doctype_with_openai",
+                            args: {
+                                doctype_name: frm.doc.doctype,
+                                prompt: doctype_prompt
+                            },
+                            freeze: true,
+                            freeze_message: __("Analyzing..."),
+                            callback: function(r) {
+                                if (r.message) {
+                                    // Convert Markdown to HTML using Frappe's built-in function
+                                    let htmlContent = frappe.markdown(r.message);
+                                    dialog.set_value("response", htmlContent);
+                                }
+                                
+                                frappe.utils.play_sound("submit");
+                                dialog.show();
+                                
+                                frappe.show_alert({
+                                    message: __("Analysis completed successfully!"),
+                                    indicator: "green"
+                                });
+                            },
+                            error: function(r) {
+                                console.error("OpenAI API Error:", r);
+                                
+                                dialog.set_value("response", __("Error occurred while analyzing. Please check the console for details."));
+                                
+                                frappe.show_alert({
+                                    message: __("Analysis failed. Please try again."),
+                                    indicator: "red"
+                                });
+                            }
+                        });
                     });
                     
                     frm.page.add_menu_item(__("AI Assist: Explain This Document"), function () { 
@@ -158,11 +117,23 @@ $(document).on('app_ready', function () {
                             }
                         }
                         
+                        document_prompt = `You are a business analyst reviewing a document from an ERP system (ERPNext). You will receive a single submitted document in JSON format (such as a Sales Invoice, Journal Entry, Material Request, etc.). Using only the information in the document:
+                                        1. Identify and summarize the document's business purpose.
+                                        2. Identify any key parties (customers, suppliers, employees, etc.).
+                                        3. Note the financial and operational impact of the transaction (revenue, expense, taxes, stock movements).
+                                        4. Highlight any references or linked documents if they appear.
+                                        5. Point out any exceptions, risks, or data that might require attention (e.g., overdue, missing links, mismatched status).
+                                        6. Conclude with what business outcome this document supports.
+
+                                        Avoid technical or database terminology. Your response should be suitable for a business operations manager. Write clearly, use bullets or short paragraphs, and name the document type and ID.
+
+                                        Document JSON:`
+
                         frappe.call({
                             method: "csf_tz.ai_integration.api.openai.analyze_doctype_with_openai",
                             args: {
                                 doctype_name: frm.doc.doctype,
-                                prompt: "Explain this frappe document form including detail of each field in the document",
+                                prompt: document_prompt,
                                 doc_data: JSON.stringify(data)
                             },
                             freeze: true,
@@ -194,8 +165,8 @@ $(document).on('app_ready', function () {
                             }
                         });
                     });
-				}
-			});
-		}
-	});
+                }
+            });
+        }
+    });
 });
