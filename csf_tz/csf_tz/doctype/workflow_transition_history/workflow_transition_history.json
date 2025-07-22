@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2025-07-22 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "reference_name",
+  "workflow",
+  "user",
+  "column_break_lgfk",
+  "previous_state",
+  "current_state",
+  "transition_date",
+  "section_break_igff",
+  "comments"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Document",
+   "options": "reference_doctype",
+   "reqd": 1
+  },
+  {
+   "fieldname": "workflow",
+   "fieldtype": "Link",
+   "label": "Workflow",
+   "options": "Workflow"
+  },
+  {
+   "fieldname": "previous_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Previous State",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Current State",
+   "reqd": 1
+  },
+  {
+   "default": "now",
+   "fieldname": "transition_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Transition Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Text",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "column_break_lgfk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_igff",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-22 10:39:49.241620",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "Workflow Transition History",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Workflow Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "transition_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "reference_name",
+ "track_changes": 1
+}
