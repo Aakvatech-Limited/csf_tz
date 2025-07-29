@@ -1,0 +1,590 @@
+[
+  {
+    "Location": "Amani",
+    "Ward": "Amani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71115"
+  },
+  {
+    "Location": "Bububu",
+    "Ward": "Bububu",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71207"
+  },
+  {
+    "Location": "Bumbwisudi",
+    "Ward": "Kizimbani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71210"
+  },
+  {
+    "Location": "Bweleo",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Chuini",
+    "Ward": "Mbuzini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71208"
+  },
+  {
+    "Location": "Chukwani",
+    "Ward": "Kiembesamaki",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71214"
+  },
+  {
+    "Location": "Chumbuni",
+    "Ward": "Chumbuni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71112"
+  },
+  {
+    "Location": "Dimani",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Dole",
+    "Ward": "Kizimbani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71210"
+  },
+  {
+    "Location": "Fumba",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Fuoni Kibondeni",
+    "Ward": "Fuoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71213"
+  },
+  {
+    "Location": "Fuoni Kijitoupele",
+    "Ward": "Kijitoupele",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71205"
+  },
+  {
+    "Location": "Gulioni",
+    "Ward": "Makadara",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71106"
+  },
+  {
+    "Location": "Jang'Ombe",
+    "Ward": "Jang'ombe",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71109"
+  },
+  {
+    "Location": "Kama",
+    "Ward": "Mfenesini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71209"
+  },
+  {
+    "Location": "Karakana",
+    "Ward": "Mwembe Makumbi",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71111"
+  },
+  {
+    "Location": "Kianga",
+    "Ward": "Mwera",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71212"
+  },
+  {
+    "Location": "Kibweni",
+    "Ward": "Bububu",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71207"
+  },
+  {
+    "Location": "Kidongo Chekundu",
+    "Ward": "Kwahani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71107"
+  },
+  {
+    "Location": "Kiembesamaki",
+    "Ward": "Kiembesamaki",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71214"
+  },
+  {
+    "Location": "Kihinani",
+    "Ward": "Mbuzini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71208"
+  },
+  {
+    "Location": "Kikwajuni Bondeni",
+    "Ward": "Kikwajuni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71102"
+  },
+  {
+    "Location": "Kikwajuni Juu",
+    "Ward": "Kikwajuni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71102"
+  },
+  {
+    "Location": "Kilimahewa Bondeni",
+    "Ward": "Kilimahewa",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71114"
+  },
+  {
+    "Location": "Kilimahewa Juu",
+    "Ward": "Kilimahewa",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71114"
+  },
+  {
+    "Location": "Kilimani",
+    "Ward": "Miembeni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71105"
+  },
+  {
+    "Location": "Kinuni",
+    "Ward": "Magogoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71203"
+  },
+  {
+    "Location": "Kiponda",
+    "Ward": "Mkunazini",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71101"
+  },
+  {
+    "Location": "Kisauni",
+    "Ward": "Tomondo",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71202"
+  },
+  {
+    "Location": "Kisima Majongoo",
+    "Ward": "Kikwajuni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71102"
+  },
+  {
+    "Location": "Kisiwandui",
+    "Ward": "Kikwajuni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71102"
+  },
+  {
+    "Location": "Kizimbani",
+    "Ward": "Kizimbani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71210"
+  },
+  {
+    "Location": "Kombeni",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Kwaalamsha",
+    "Ward": "Kwahani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71107"
+  },
+  {
+    "Location": "Kwaalinathoo",
+    "Ward": "Kwaalinathoo",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71108"
+  },
+  {
+    "Location": "Kwahani",
+    "Ward": "Kwahani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71107"
+  },
+  {
+    "Location": "Kwamtipura",
+    "Ward": "Kwamtipura",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71113"
+  },
+  {
+    "Location": "Kwawazee",
+    "Ward": "Nyerere",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71117"
+  },
+  {
+    "Location": "Magogoni",
+    "Ward": "Magogoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71203"
+  },
+  {
+    "Location": "Magomeni",
+    "Ward": "Magomeni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71116"
+  },
+  {
+    "Location": "Makadara",
+    "Ward": "Makadara",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71106"
+  },
+  {
+    "Location": "Malindi",
+    "Ward": "Mchangani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71103"
+  },
+  {
+    "Location": "Matarumbeta",
+    "Ward": "Kwaalinathoo",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71108"
+  },
+  {
+    "Location": "Maungani",
+    "Ward": "Fuoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71213"
+  },
+  {
+    "Location": "Mbuzini",
+    "Ward": "Mbuzini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71208"
+  },
+  {
+    "Location": "Mchangani",
+    "Ward": "Mchangani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71103"
+  },
+  {
+    "Location": "Melinne",
+    "Ward": "Mwanakwerekwe",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71201"
+  },
+  {
+    "Location": "Meya",
+    "Ward": "Meya",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71119"
+  },
+  {
+    "Location": "Mfenesini",
+    "Ward": "Mfenesini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71209"
+  },
+  {
+    "Location": "Miembeni",
+    "Ward": "Miembeni",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71105"
+  },
+  {
+    "Location": "Migombani",
+    "Ward": "Mpendae",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71118"
+  },
+  {
+    "Location": "Mikunguni",
+    "Ward": "Muungano",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71110"
+  },
+  {
+    "Location": "Mkele",
+    "Ward": "Mkele",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71120"
+  },
+  {
+    "Location": "Mkunazini",
+    "Ward": "Mkunazini",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71101"
+  },
+  {
+    "Location": "Mlandege",
+    "Ward": "Makadara",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71106"
+  },
+  {
+    "Location": "Mombasa",
+    "Ward": "Tomondo",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71202"
+  },
+  {
+    "Location": "Mpendae",
+    "Ward": "Mpendae",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71118"
+  },
+  {
+    "Location": "Mtofaani",
+    "Ward": "Mwera",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71212"
+  },
+  {
+    "Location": "Mtoni",
+    "Ward": "Mtoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71206"
+  },
+  {
+    "Location": "Mtoni Kidatu",
+    "Ward": "Mtoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71206"
+  },
+  {
+    "Location": "Mtopepo",
+    "Ward": "Mtoni",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71206"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Muungano",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71110"
+  },
+  {
+    "Location": "Mwakaje",
+    "Ward": "Mfenesini",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71209"
+  },
+  {
+    "Location": "Mwanakwerekwe",
+    "Ward": "Mwanakwerekwe",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71201"
+  },
+  {
+    "Location": "Mwanyanya",
+    "Ward": "Mwanyanya",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71211"
+  },
+  {
+    "Location": "Mwembe Makumbi",
+    "Ward": "Mwembe Makumbi",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71111"
+  },
+  {
+    "Location": "Mwembeladu",
+    "Ward": "Rahaleo",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71104"
+  },
+  {
+    "Location": "Mwembeshauri",
+    "Ward": "Rahaleo",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71104"
+  },
+  {
+    "Location": "Mwembetanga",
+    "Ward": "Mchangani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71103"
+  },
+  {
+    "Location": "Mwera",
+    "Ward": "Mwera",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71212"
+  },
+  {
+    "Location": "Nyamanzi",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Nyerere",
+    "Ward": "Nyerere",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71117"
+  },
+  {
+    "Location": "Pangawe",
+    "Ward": "Kijitoupele",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71205"
+  },
+  {
+    "Location": "Rahaleo",
+    "Ward": "Rahaleo",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71104"
+  },
+  {
+    "Location": "Sebleni",
+    "Ward": "Amani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71115"
+  },
+  {
+    "Location": "Shakani",
+    "Ward": "Dimani",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71215"
+  },
+  {
+    "Location": "Shangani",
+    "Ward": "Mkunazini",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71101"
+  },
+  {
+    "Location": "Sharifumsa",
+    "Ward": "Mwanyanya",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71211"
+  },
+  {
+    "Location": "Shaurimoyo",
+    "Ward": "Kwamtipura",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71113"
+  },
+  {
+    "Location": "Sogea",
+    "Ward": "Nyerere",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71117"
+  },
+  {
+    "Location": "Tomondo",
+    "Ward": "Tomondo",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71202"
+  },
+  {
+    "Location": "Urusi",
+    "Ward": "Jang'ombe",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71109"
+  },
+  {
+    "Location": "Vikokotoni",
+    "Ward": "Mchangani",
+    "District": "Mjini",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71103"
+  },
+  {
+    "Location": "Welezo",
+    "Ward": "Welezo",
+    "District": "Magharibi",
+    "Region": "Mjini Magharibi",
+    "Postcode": "71204"
+  }
+]

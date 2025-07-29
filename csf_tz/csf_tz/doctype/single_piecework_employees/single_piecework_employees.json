@@ -17,7 +17,10 @@
   "column_break_10",
   "amount",
   "section_break_11",
-  "additional_salary"
+  "additional_salary",
+  "parent",
+  "parentfield",
+  "parenttype"
  ],
  "fields": [
   {
@@ -98,6 +101,33 @@
   {
    "fieldname": "section_break_9",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "parent",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "parentfield",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Field",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "parenttype",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Type",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "istable": 1,

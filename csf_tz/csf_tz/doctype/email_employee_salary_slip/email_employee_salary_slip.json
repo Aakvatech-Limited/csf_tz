@@ -11,7 +11,10 @@
   "column_break_3",
   "department",
   "designation",
-  "send_email"
+  "send_email",
+  "parent",
+  "parentfield",
+  "parenttype"
  ],
  "fields": [
   {
@@ -56,6 +59,33 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Send Email"
+  },
+  {
+   "fieldname": "parent",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "parentfield",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Field",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "parenttype",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Type",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
