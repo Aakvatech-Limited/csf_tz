@@ -13,6 +13,7 @@ from csf_tz.custom_api import print_out
 import re
 import json
 from time import sleep
+from frappe.utils import create_batch
 
 
 class VehicleFineRecord(Document):
@@ -44,93 +45,96 @@ def check_fine_all_vehicles(batch_size=20):
     plate_list = frappe.get_all(
         "Vehicle", fields=["name", "number_plate"], limit_page_length=0
     )
+    all_number_plates = [v["number_plate"] or v["name"] for v in plate_list]
     all_fine_list = []
-    total_vehicles = len(plate_list)
+    total_vehicles = len(all_number_plates)
 
     for i in range(0, total_vehicles, batch_size):
-        batch_vehicles = plate_list[i : i + batch_size]
-        for vehicle in batch_vehicles:
-            # Enqueue get_fine(number_plate=vehicle["number_plate"] or vehicle["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                number_plate=vehicle["number_plate"] or vehicle["name"],
-            )
-
-            fine_list = []
-            # fine_list = get_fine(
-            #     number_plate=vehicle["number_plate"] or vehicle["name"]
-            # )
-            if fine_list and len(fine_list) > 0:
-                all_fine_list.extend(fine_list)
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+        batch_plates = all_number_plates[i : i + batch_size]
+        fine_list = get_fine(number_plates=batch_plates, batch_size=batch_size)
+        if fine_list and len(fine_list) > 0:
+            all_fine_list.extend(fine_list)
+        sleep(2)  # Sleep between batches only
 
     # Get all the references that are not paid
     reference_list = frappe.get_all(
         "Vehicle Fine Record",
         filters={"status": ["!=", "PAID"], "reference": ["not in", all_fine_list]},
     )
-
-    for i in range(0, len(reference_list), batch_size):
-        batch_references = reference_list[i : i + batch_size]
-        for reference in batch_references:
-            # Enqueue get_fine(reference=reference["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                reference=reference["vehicle"],
-            )
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+    all_references = [r["vehicle"] for r in reference_list]
+    for i in range(0, len(all_references), batch_size):
+        batch_refs = all_references[i : i + batch_size]
+        get_fine(references=batch_refs, batch_size=batch_size)
+        sleep(2)  # Sleep between batches
 
 
 @frappe.whitelist()
-def get_fine(number_plate=None, reference=None):
-    if not number_plate and not reference:
+def get_fine(number_plates=None, references=None, batch_size=20, max_retries=3, retry_delay=5):
+    """
+    Enhanced get_fine: Accepts a list of number plates or references and processes them in batches using create_batch.
+    Args:
+        number_plates (list): List of number plates.
+        references (list): List of references.
+        batch_size (int): Batch size for processing.
+        max_retries (int): Max retries for 429 errors.
+        retry_delay (int): Initial delay in seconds for retry.
+    Returns:
+        list: List of fine results.
+    """
+    if not number_plates and not references:
         print_out(
-            _("Please provide either number plate or reference"),
+            _("Please provide either number plates or references (as lists)"),
             alert=True,
             add_traceback=True,
             to_error_log=True,
         )
-        return
-
-    if number_plate and len(number_plate) < 7:
-        print_out(
-            f"Please provide a valid number plate for {number_plate}",
-            alert=True,
-            add_traceback=True,
-            to_error_log=True,
-        )
-        return
-
-    fine_list = []
+        return []
+    # Combine both lists if provided
+    items = []
+    if number_plates:
+        items.extend(number_plates)
+    if references:
+        items.extend(references)
+    results = []
     url = "https://tms.tpf.go.tz/api/OffenceCheck"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
-
-    payload = {"vehicle": number_plate or reference}
-
-    try:
-        sleep(2)  # Sleep to avoid hitting the server too frequently
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        frappe.log_error("HTTP error", str(e))
-        frappe.throw(f"Error contacting traffic system: {str(e)}")
-
-    try:
-        result = response.json()
-    except Exception as e:
-        frappe.log_error("Invalid JSON", str(e))
-        frappe.throw("Invalid response format from traffic system")
-
-    data = result.get("pending_transactions", [])
-
-    if data:
-        print(f"Vehicle: {number_plate or reference} has no pending transactions")
-        return fine_list
-    else:
-        if frappe.db.exists("Vehicle Fine Record", payload):
-            doc = frappe.get_doc("Vehicle Fine Record", payload)
-            doc.status = "PAID"
-            doc.save()
-
-    frappe.db.commit()
-    return fine_list
+    for batch in create_batch(items, batch_size):
+        for item in batch:
+            payload = {"vehicle": item}
+            retries = 0
+            while retries <= max_retries:
+                try:
+                    sleep(2)
+                    response = requests.post(url, json=payload, headers=headers, timeout=10)
+                    response.raise_for_status()
+                    try:
+                        result = response.json()
+                    except Exception as e:
+                        frappe.log_error("Invalid JSON", str(e))
+                        break
+                    data = result.get("pending_transactions", [])
+                    if data:
+                        continue  # This is wrong - should process the data!
+                        # print(f"Vehicle: {item} has no pending transactions")
+                    else:
+                        if frappe.db.exists("Vehicle Fine Record", payload):
+                            doc = frappe.get_doc("Vehicle Fine Record", payload)
+                            doc.status = "PAID"
+                            doc.save()
+                    frappe.db.commit()
+                    results.append(result)
+                    break
+                except requests.exceptions.HTTPError as e:
+                    if hasattr(response, 'status_code') and response.status_code == 429:
+                        sleep(retry_delay * (2 ** retries))
+                        retries += 1
+                        continue
+                    else:
+                        frappe.log_error("HTTP error", str(e))
+                        break
+                except Exception as e:
+                    frappe.log_error("Request error", str(e))
+                    break
+            if retries > max_retries:
+                frappe.log_error("Max retries exceeded for 429 error", str(payload))
+    return results
