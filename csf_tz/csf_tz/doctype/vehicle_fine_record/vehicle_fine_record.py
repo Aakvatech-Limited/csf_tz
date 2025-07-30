@@ -114,7 +114,7 @@ def get_fine(number_plates=None, references=None, batch_size=20, max_retries=3, 
                         break
                     data = result.get("pending_transactions", [])
                     if data:
-                        continue
+                        continue  # This is wrong - should process the data!
                         # print(f"Vehicle: {item} has no pending transactions")
                     else:
                         if frappe.db.exists("Vehicle Fine Record", payload):
