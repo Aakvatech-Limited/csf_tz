@@ -56,7 +56,7 @@ To install this application, please follow these steps:
 
 **Clone the Repository**:  
 bash  
-`git clone https://github.com/aakvatech/csf_tz.git`  
+`git clone https://github.com/Aakvatech-Limited/csf_tz.git`  
 **Navigate to the Directory**:  
 bash  
 `cd csf_tz`  
