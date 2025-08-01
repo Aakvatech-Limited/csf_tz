@@ -52,5 +52,38 @@ frappe.query_reports["Employee Checkin & Checkout Report"] = {
 			"width": "150px",
 			"reqd": 0
 		}
-	]
+	],
+	"onload": function(report) {
+		frappe.call({
+			method: "csf_tz.csf_tz.report.employee_checkin_&_checkout_report.employee_checkin_&_checkout_report.get_employee_checkin_summary",
+			callback: function(r) {
+				if (r.message) {
+					// Remove any previous summary
+					$('#employee-checkin-summary').remove();
+					// Create two cards for IN and OUT
+					let summary_html = `
+						<div id="employee-checkin-summary" style="display: flex; gap: 16px; justify-content: center; margin-bottom: 16px;">
+							<div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+								<div class="card-header">IN</div>
+								<div class="card-body">
+									<h5 class="card-title">${r.message.in_count}</h5>
+									<p class="card-text">Checkins for <b>${r.message.date}</b></p>
+								</div>
+							</div>
+							<div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+								<div class="card-header">OUT</div>
+								<div class="card-body">
+									<h5 class="card-title">${r.message.out_count}</h5>
+									<p class="card-text">Checkouts for <b>${r.message.date}</b></p>
+								</div>
+							</div>
+						</div>
+					`;
+
+					// Insert above the filters
+					$(summary_html).insertBefore('.page-form');
+				}
+			}
+		});
+	}
 };

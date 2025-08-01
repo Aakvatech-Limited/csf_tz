@@ -43,6 +43,22 @@ def execute(filters=None):
         )
         df.fillna("", inplace=True)
 
+        # Calculate Total Hours Spent
+        def calc_total_hours(row):
+            try:
+                if row["checkin_time"] and row["checkout_time"]:
+                    t1 = datetime.strptime(row["checkin_time"], "%H:%M:%S")
+                    t2 = datetime.strptime(row["checkout_time"], "%H:%M:%S")
+                    delta = t2 - t1
+                    if delta.days < 0:
+                        delta = timedelta(days=0, seconds=delta.seconds, microseconds=delta.microseconds)
+                    return str(delta)
+                else:
+                    return ""
+            except Exception:
+                return ""
+        df["total_hours_spent"] = df.apply(calc_total_hours, axis=1)
+
         # Sort the dataframe by date first, then by employee
         df = df.sort_values(by=["date", "employee"])
 
@@ -53,11 +69,13 @@ def execute(filters=None):
         # Handle cases where only one of check-in or check-out data exists
         if checkin_records:
             checkin_data = pd.DataFrame.from_records(checkin_records)
+            checkin_data["total_hours_spent"] = ""
             checkin_data = checkin_data.sort_values(by=["date", "employee"])
             data += checkin_data.values.tolist()
 
         if checkout_records:
             checkout_data = pd.DataFrame.from_records(checkout_records)
+            checkout_data["total_hours_spent"] = ""
             checkout_data = checkout_data.sort_values(by=["date", "employee"])
             data += checkout_data.values.tolist()
 
@@ -96,6 +114,8 @@ def get_columns(filters):
         {"fieldname": "checkout_time", "label": _("Checkout Time"), "fieldtype": "Time"},
         {"fieldname": "early_exit_grace_time", "label": _("Early Exit Grace Period"), "fieldtype": "Time"},
         {"fieldname": "checkout_status", "label": _("Checkout Status"), "fieldtype": "Data"},
+        # Add Total Hours Spent as the last column
+        {"fieldname": "total_hours_spent", "label": _("Total Hours Spent"), "fieldtype": "Data", "width": 120},
     ]
     return columns
 
@@ -297,3 +317,21 @@ def get_checkout_details(conditions, filters):
         ORDER BY DATE(chec.time) ASC, chec.employee ASC
     """.format(conditions=conditions), filters, as_dict=1)
     return data
+
+def get_today_summary():
+    today = frappe.utils.today()
+    in_count = frappe.db.sql(
+        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='IN' AND DATE(time)=%s", (today,)
+    )[0][0]
+    out_count = frappe.db.sql(
+        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='OUT' AND DATE(time)=%s", (today,)
+    )[0][0]
+    return {
+        "date": today,
+        "in_count": in_count,
+        "out_count": out_count
+    }
+
+@frappe.whitelist()
+def get_employee_checkin_summary():
+    return get_today_summary()
