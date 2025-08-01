@@ -3054,3 +3054,40 @@ def create_trade_in_stock_entry(doc, method):
             frappe.throw(f"Error during Stock Entry creation: {str(e)}")
     else:
         frappe.msgprint("No valid items found for stock entry.")
+
+@frappe.whitelist()
+def create_write_off_jv_si(sales_invoice, account):
+    si = frappe.get_doc("Sales Invoice", sales_invoice)
+    if not si.outstanding_amount or si.outstanding_amount <= 0:
+        frappe.throw("No outstanding amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = si.company
+    jv.posting_date = si.posting_date
+
+    # Credit the Debtors account from the Sales Invoice
+    jv.append("accounts", {
+        "account": si.debit_to,
+        "credit_in_account_currency": flt(si.outstanding_amount),
+        "party_type": "Customer",
+        "party": si.customer,
+        "reference_type": "Sales Invoice",
+        "reference_name": si.name
+    })
+
+    # Debit the Write Off account
+    jv.append("accounts", {
+        "account": account,
+        "debit_in_account_currency": flt(si.outstanding_amount),
+        "reference_type": "Sales Invoice",
+        "reference_name": si.name
+    })
+
+    jv.save()
+    # jv.submit()  # Uncomment if you want to auto-submit
+
+    # Mark Sales Invoice as paid
+    frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
+
+    return jv.name

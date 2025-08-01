@@ -22,6 +22,27 @@ frappe.ui.form.on("Sales Invoice", {
     frm.trigger("set_pos");
     frm.trigger("make_sales_invoice_btn");
     frm.trigger("set_trade_in_field_visibility");
+    if (frm.doc.docstatus === 1 && frm.doc.outstanding_amount > 0) {
+      frm.add_custom_button(__('Write Off'), function() {
+        if (!frm.doc.write_off_account) {
+          frappe.msgprint(__('Please set the Write Off Account before proceeding.'));
+          return;
+        }
+        frappe.call({
+          method: "csf_tz.custom_api.create_write_off_jv_si",
+          args: {
+            sales_invoice: frm.doc.name,
+            account: frm.doc.write_off_account,
+          },
+          callback: function(r) {
+            if (!r.exc) {
+              frappe.msgprint(__('Write-off Journal Entry {0} created', [r.message]));
+              frm.reload_doc();
+            }
+          }
+        });
+      }, __("Actions"));
+    }
   },
   onload: function (frm) {
     frm.trigger("set_pos");
