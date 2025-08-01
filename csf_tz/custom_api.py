@@ -3085,7 +3085,7 @@ def create_write_off_jv_si(sales_invoice, account):
     })
 
     jv.save()
-    # jv.submit()  # Uncomment if you want to auto-submit
+    jv.submit()
 
     # Mark Sales Invoice as paid
     frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
