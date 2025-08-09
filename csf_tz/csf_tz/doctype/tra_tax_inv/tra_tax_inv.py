@@ -974,18 +974,10 @@ def validate_tra_tax_inv_for_invoice(tra_doc, invoice_type):
             # Note: We don't validate supplier existence since we auto-create them
 
         elif invoice_type == "Sales Invoice":
-            # For Sales Invoice, company_name from TRA receipt is our customer
-            if tra_doc.company_name:
-                customer_exists = frappe.db.exists(
-                    "Customer", {"customer_name": tra_doc.company_name}
-                )
-                if not customer_exists:
-                    # Also try exact match on customer code
-                    customer_exists = frappe.db.exists("Customer", tra_doc.company_name)
-                if not customer_exists:
-                    missing_party = f"Customer: {tra_doc.company_name}"
-            else:
+            # For Sales Invoice, we auto-create customers, so just check if company_name exists
+            if not tra_doc.company_name:
                 missing_party = "Customer: No company name found in TRA Tax Inv"
+            # Note: We don't validate customer existence since we auto-create them
 
         # Prepare validation result
         if missing_items or missing_party:
@@ -1049,6 +1041,8 @@ def create_purchase_invoice_from_tra(tra_doc):
             pi_item = pi_doc.append("items", {})
             pi_item.item_code = item_code
             pi_item.item_name = tra_item.description
+            # Use TRA Tax Inv description as item description in the invoice
+            pi_item.description = tra_item.description
             try:
                 pi_item.qty = float(tra_item.quantity) if tra_item.quantity else 1
             except (ValueError, TypeError):
@@ -1082,7 +1076,7 @@ def create_sales_invoice_from_tra(tra_doc):
 
     # Set basic information
     # For Sales Invoice, company_name from TRA receipt is our customer
-    si_doc.customer = get_or_suggest_customer(tra_doc.company_name)
+    si_doc.customer = get_or_create_customer(tra_doc.company_name)
     si_doc.posting_date = frappe.utils.today()
     si_doc.due_date = frappe.utils.today()
 
@@ -1096,6 +1090,8 @@ def create_sales_invoice_from_tra(tra_doc):
             si_item = si_doc.append("items", {})
             si_item.item_code = item_code
             si_item.item_name = tra_item.description
+            # Use TRA Tax Inv description as item description in the invoice
+            si_item.description = tra_item.description
             try:
                 si_item.qty = float(tra_item.quantity) if tra_item.quantity else 1
             except (ValueError, TypeError):
@@ -1223,9 +1219,53 @@ def get_or_suggest_supplier(supplier_name):
     return supplier_name
 
 
+def get_or_create_customer(customer_name):
+    """
+    Get existing customer or create new customer if not found
+
+    Args:
+        customer_name (str): Customer name from TRA Tax Inv
+
+    Returns:
+        str: Customer code (existing or newly created)
+    """
+    if not customer_name:
+        return None
+
+    # Try to find existing customer by name
+    customer_code = frappe.db.get_value(
+        "Customer", {"customer_name": customer_name}, "name"
+    )
+    if customer_code:
+        return customer_code
+
+    # Try exact match on customer code
+    if frappe.db.exists("Customer", customer_name):
+        return customer_name
+
+    # If not found, create new customer
+    try:
+        customer_doc = frappe.new_doc("Customer")
+        customer_doc.customer_name = customer_name
+        customer_doc.customer_group = (
+            frappe.db.get_single_value("Selling Settings", "customer_group")
+            or "All Customer Groups"
+        )
+        customer_doc.customer_type = "Company"
+        customer_doc.insert()
+
+        frappe.logger().info(f"Auto-created customer: {customer_name}")
+        return customer_doc.name
+
+    except Exception as e:
+        frappe.logger().error(f"Failed to create customer '{customer_name}': {str(e)}")
+        # Return the name anyway, let validation handle the error
+        return customer_name
+
+
 def get_or_suggest_customer(customer_name):
     """
-    Get existing customer or suggest customer code based on name
+    Get existing customer or suggest customer code based on name (legacy function)
 
     Args:
         customer_name (str): Customer name from TRA Tax Inv
