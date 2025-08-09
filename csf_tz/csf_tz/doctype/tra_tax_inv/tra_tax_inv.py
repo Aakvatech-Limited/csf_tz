@@ -960,30 +960,34 @@ def validate_tra_tax_inv_for_invoice(tra_doc, invoice_type):
 
         # Validate party (Customer/Supplier) exists
         if invoice_type == "Purchase Invoice":
-            # For Purchase Invoice, check if supplier exists
-            if tra_doc.company_name:
+            # For Purchase Invoice, customer_name from TRA receipt is our supplier
+            if tra_doc.customer_name:
                 supplier_exists = frappe.db.exists(
-                    "Supplier", {"supplier_name": tra_doc.company_name}
+                    "Supplier", {"supplier_name": tra_doc.customer_name}
                 )
                 if not supplier_exists:
                     # Also try exact match on supplier code
-                    supplier_exists = frappe.db.exists("Supplier", tra_doc.company_name)
+                    supplier_exists = frappe.db.exists(
+                        "Supplier", tra_doc.customer_name
+                    )
                 if not supplier_exists:
-                    missing_party = f"Supplier: {tra_doc.company_name}"
+                    missing_party = f"Supplier: {tra_doc.customer_name}"
+            else:
+                missing_party = "Supplier: No customer name found in TRA Tax Inv"
 
         elif invoice_type == "Sales Invoice":
-            # For Sales Invoice, check if customer exists
-            if tra_doc.customer_name:
+            # For Sales Invoice, company_name from TRA receipt is our customer
+            if tra_doc.company_name:
                 customer_exists = frappe.db.exists(
-                    "Customer", {"customer_name": tra_doc.customer_name}
+                    "Customer", {"customer_name": tra_doc.company_name}
                 )
                 if not customer_exists:
                     # Also try exact match on customer code
-                    customer_exists = frappe.db.exists(
-                        "Customer", tra_doc.customer_name
-                    )
+                    customer_exists = frappe.db.exists("Customer", tra_doc.company_name)
                 if not customer_exists:
-                    missing_party = f"Customer: {tra_doc.customer_name}"
+                    missing_party = f"Customer: {tra_doc.company_name}"
+            else:
+                missing_party = "Customer: No company name found in TRA Tax Inv"
 
         # Prepare validation result
         if missing_items or missing_party:
@@ -1028,7 +1032,8 @@ def create_purchase_invoice_from_tra(tra_doc):
     pi_doc = frappe.new_doc("Purchase Invoice")
 
     # Set basic information
-    pi_doc.supplier = get_or_suggest_supplier(tra_doc.company_name)
+    # For Purchase Invoice, customer_name from TRA receipt is our supplier
+    pi_doc.supplier = get_or_suggest_supplier(tra_doc.customer_name)
     pi_doc.posting_date = frappe.utils.today()
     pi_doc.due_date = frappe.utils.today()
 
@@ -1078,7 +1083,8 @@ def create_sales_invoice_from_tra(tra_doc):
     si_doc = frappe.new_doc("Sales Invoice")
 
     # Set basic information
-    si_doc.customer = get_or_suggest_customer(tra_doc.customer_name)
+    # For Sales Invoice, company_name from TRA receipt is our customer
+    si_doc.customer = get_or_suggest_customer(tra_doc.company_name)
     si_doc.posting_date = frappe.utils.today()
     si_doc.due_date = frappe.utils.today()
 
