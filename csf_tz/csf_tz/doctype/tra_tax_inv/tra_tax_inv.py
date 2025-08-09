@@ -949,7 +949,15 @@ def validate_tra_tax_inv_for_invoice(tra_doc, invoice_type):
             if not item.description:
                 continue
 
-            # Try to find item by description (you may want to adjust this logic)
+            # Check if mapped_item_code is provided and valid
+            if hasattr(item, "mapped_item_code") and item.mapped_item_code:
+                if not frappe.db.exists("Item", item.mapped_item_code):
+                    missing_items.append(
+                        f"{item.description} (mapped to: {item.mapped_item_code})"
+                    )
+                continue
+
+            # Fallback: Try to find item by description
             item_exists = frappe.db.exists("Item", {"item_name": item.description})
             if not item_exists:
                 # Also try exact match on item_code
@@ -960,20 +968,10 @@ def validate_tra_tax_inv_for_invoice(tra_doc, invoice_type):
 
         # Validate party (Customer/Supplier) exists
         if invoice_type == "Purchase Invoice":
-            # For Purchase Invoice, customer_name from TRA receipt is our supplier
-            if tra_doc.customer_name:
-                supplier_exists = frappe.db.exists(
-                    "Supplier", {"supplier_name": tra_doc.customer_name}
-                )
-                if not supplier_exists:
-                    # Also try exact match on supplier code
-                    supplier_exists = frappe.db.exists(
-                        "Supplier", tra_doc.customer_name
-                    )
-                if not supplier_exists:
-                    missing_party = f"Supplier: {tra_doc.customer_name}"
-            else:
+            # For Purchase Invoice, we auto-create suppliers, so just check if customer_name exists
+            if not tra_doc.customer_name:
                 missing_party = "Supplier: No customer name found in TRA Tax Inv"
+            # Note: We don't validate supplier existence since we auto-create them
 
         elif invoice_type == "Sales Invoice":
             # For Sales Invoice, company_name from TRA receipt is our customer
@@ -1033,7 +1031,7 @@ def create_purchase_invoice_from_tra(tra_doc):
 
     # Set basic information
     # For Purchase Invoice, customer_name from TRA receipt is our supplier
-    pi_doc.supplier = get_or_suggest_supplier(tra_doc.customer_name)
+    pi_doc.supplier = get_or_create_supplier(tra_doc.customer_name)
     pi_doc.posting_date = frappe.utils.today()
     pi_doc.due_date = frappe.utils.today()
 
@@ -1046,7 +1044,7 @@ def create_purchase_invoice_from_tra(tra_doc):
         if not tra_item.description:
             continue
 
-        item_code = get_or_suggest_item(tra_item.description)
+        item_code = get_or_suggest_item(tra_item)
         if item_code:
             pi_item = pi_doc.append("items", {})
             pi_item.item_code = item_code
@@ -1093,7 +1091,7 @@ def create_sales_invoice_from_tra(tra_doc):
         if not tra_item.description:
             continue
 
-        item_code = get_or_suggest_item(tra_item.description)
+        item_code = get_or_suggest_item(tra_item)
         if item_code:
             si_item = si_doc.append("items", {})
             si_item.item_code = item_code
@@ -1116,35 +1114,90 @@ def create_sales_invoice_from_tra(tra_doc):
     return si_doc
 
 
-def get_or_suggest_item(item_description):
+def get_or_suggest_item(tra_item):
     """
-    Get existing item or suggest item code based on description
+    Get existing item code based on mapped_item_code or description
 
     Args:
-        item_description (str): Item description from TRA Tax Inv
+        tra_item: TRA Tax Inv Item object with mapped_item_code and description
 
     Returns:
         str: Item code if found, otherwise the description itself
     """
-    if not item_description:
+    # First priority: Use mapped_item_code if provided
+    if hasattr(tra_item, "mapped_item_code") and tra_item.mapped_item_code:
+        if frappe.db.exists("Item", tra_item.mapped_item_code):
+            return tra_item.mapped_item_code
+        else:
+            # Log warning if mapped item doesn't exist
+            frappe.logger().warning(
+                f"Mapped item code '{tra_item.mapped_item_code}' not found for item '{tra_item.description}'"
+            )
+
+    # Fallback: Auto-match based on description
+    if not tra_item.description:
         return None
 
     # Try to find existing item by name
-    item_code = frappe.db.get_value("Item", {"item_name": item_description}, "name")
+    item_code = frappe.db.get_value("Item", {"item_name": tra_item.description}, "name")
     if item_code:
         return item_code
 
     # Try exact match on item code
-    if frappe.db.exists("Item", item_description):
-        return item_description
+    if frappe.db.exists("Item", tra_item.description):
+        return tra_item.description
 
     # If not found, return the description as item code (validation will catch this)
-    return item_description
+    return tra_item.description
+
+
+def get_or_create_supplier(supplier_name):
+    """
+    Get existing supplier or create new supplier if not found
+
+    Args:
+        supplier_name (str): Supplier name from TRA Tax Inv
+
+    Returns:
+        str: Supplier code (existing or newly created)
+    """
+    if not supplier_name:
+        return None
+
+    # Try to find existing supplier by name
+    supplier_code = frappe.db.get_value(
+        "Supplier", {"supplier_name": supplier_name}, "name"
+    )
+    if supplier_code:
+        return supplier_code
+
+    # Try exact match on supplier code
+    if frappe.db.exists("Supplier", supplier_name):
+        return supplier_name
+
+    # If not found, create new supplier
+    try:
+        supplier_doc = frappe.new_doc("Supplier")
+        supplier_doc.supplier_name = supplier_name
+        supplier_doc.supplier_group = (
+            frappe.db.get_single_value("Buying Settings", "supplier_group")
+            or "All Supplier Groups"
+        )
+        supplier_doc.supplier_type = "Company"
+        supplier_doc.insert()
+
+        frappe.logger().info(f"Auto-created supplier: {supplier_name}")
+        return supplier_doc.name
+
+    except Exception as e:
+        frappe.logger().error(f"Failed to create supplier '{supplier_name}': {str(e)}")
+        # Return the name anyway, let validation handle the error
+        return supplier_name
 
 
 def get_or_suggest_supplier(supplier_name):
     """
-    Get existing supplier or suggest supplier code based on name
+    Get existing supplier or suggest supplier code based on name (legacy function)
 
     Args:
         supplier_name (str): Supplier name from TRA Tax Inv
