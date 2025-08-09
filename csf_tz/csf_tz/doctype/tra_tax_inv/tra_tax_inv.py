@@ -9,7 +9,17 @@ from datetime import datetime
 
 
 class TRATAXInv(Document):
-    pass
+    def validate(self):
+        """Validate the document"""
+        pass
+
+    def create_purchase_invoice(self):
+        """Create Purchase Invoice from TRA Tax Inv"""
+        return create_invoice_from_tra_tax_inv(self.name, "Purchase Invoice")
+
+    def create_sales_invoice(self):
+        """Create Sales Invoice from TRA Tax Inv"""
+        return create_invoice_from_tra_tax_inv(self.name, "Sales Invoice")
 
 
 @frappe.whitelist(allow_guest=True)
@@ -854,3 +864,329 @@ def create_tra_tax_inv_document_safe(
             "message": f"Error creating TRA TAX Inv: {str(e)}",
             "verification_code": verification_code,
         }
+
+
+@frappe.whitelist()
+def create_invoice_from_tra_tax_inv(tra_tax_inv_name, invoice_type):
+    """
+    Create Purchase Invoice or Sales Invoice from TRA Tax Inv
+
+    Args:
+        tra_tax_inv_name (str): Name of the TRA Tax Inv document
+        invoice_type (str): Either "Purchase Invoice" or "Sales Invoice"
+
+    Returns:
+        dict: Result of invoice creation with success status and details
+    """
+    try:
+        # Get the TRA Tax Inv document
+        tra_doc = frappe.get_doc("TRA TAX Inv", tra_tax_inv_name)
+
+        # Check if invoice already exists
+        if tra_doc.reference_docname and tra_doc.reference_doctype:
+            return {
+                "success": False,
+                "message": f"Invoice already created: {tra_doc.reference_doctype} - {tra_doc.reference_docname}",
+            }
+
+        # Validate required data
+        validation_result = validate_tra_tax_inv_for_invoice(tra_doc, invoice_type)
+        if not validation_result["success"]:
+            return validation_result
+
+        # Create the invoice
+        if invoice_type == "Purchase Invoice":
+            invoice_doc = create_purchase_invoice_from_tra(tra_doc)
+        elif invoice_type == "Sales Invoice":
+            invoice_doc = create_sales_invoice_from_tra(tra_doc)
+        else:
+            return {
+                "success": False,
+                "message": f"Invalid invoice type: {invoice_type}. Must be 'Purchase Invoice' or 'Sales Invoice'",
+            }
+
+        # Update TRA Tax Inv with reference
+        tra_doc.reference_doctype = invoice_type
+        tra_doc.reference_docname = invoice_doc.name
+        tra_doc.save()
+
+        return {
+            "success": True,
+            "message": f"{invoice_type} created successfully",
+            "invoice_name": invoice_doc.name,
+            "invoice_type": invoice_type,
+        }
+
+    except Exception as e:
+        frappe.logger().error(f"Error creating invoice from TRA Tax Inv: {str(e)}")
+        return {"success": False, "message": f"Error creating invoice: {str(e)}"}
+
+
+def validate_tra_tax_inv_for_invoice(tra_doc, invoice_type):
+    """
+    Validate TRA Tax Inv data before creating invoice
+
+    Args:
+        tra_doc: TRA Tax Inv document
+        invoice_type (str): Either "Purchase Invoice" or "Sales Invoice"
+
+    Returns:
+        dict: Validation result with success status and details
+    """
+    try:
+        missing_items = []
+        missing_party = None
+
+        # Check if we have items
+        if not tra_doc.items or len(tra_doc.items) == 0:
+            return {
+                "success": False,
+                "message": "No items found in TRA Tax Inv. Cannot create invoice without items.",
+            }
+
+        # Validate items exist in Item master
+        for item in tra_doc.items:
+            if not item.description:
+                continue
+
+            # Try to find item by description (you may want to adjust this logic)
+            item_exists = frappe.db.exists("Item", {"item_name": item.description})
+            if not item_exists:
+                # Also try exact match on item_code
+                item_exists = frappe.db.exists("Item", item.description)
+
+            if not item_exists:
+                missing_items.append(item.description)
+
+        # Validate party (Customer/Supplier) exists
+        if invoice_type == "Purchase Invoice":
+            # For Purchase Invoice, check if supplier exists
+            if tra_doc.company_name:
+                supplier_exists = frappe.db.exists(
+                    "Supplier", {"supplier_name": tra_doc.company_name}
+                )
+                if not supplier_exists:
+                    # Also try exact match on supplier code
+                    supplier_exists = frappe.db.exists("Supplier", tra_doc.company_name)
+                if not supplier_exists:
+                    missing_party = f"Supplier: {tra_doc.company_name}"
+
+        elif invoice_type == "Sales Invoice":
+            # For Sales Invoice, check if customer exists
+            if tra_doc.customer_name:
+                customer_exists = frappe.db.exists(
+                    "Customer", {"customer_name": tra_doc.customer_name}
+                )
+                if not customer_exists:
+                    # Also try exact match on customer code
+                    customer_exists = frappe.db.exists(
+                        "Customer", tra_doc.customer_name
+                    )
+                if not customer_exists:
+                    missing_party = f"Customer: {tra_doc.customer_name}"
+
+        # Prepare validation result
+        if missing_items or missing_party:
+            error_messages = []
+
+            if missing_party:
+                error_messages.append(f"Missing {missing_party}")
+
+            if missing_items:
+                error_messages.append(f"Missing Items: {', '.join(missing_items[:5])}")
+                if len(missing_items) > 5:
+                    error_messages.append(
+                        f"... and {len(missing_items) - 5} more items"
+                    )
+
+            return {
+                "success": False,
+                "message": "Please create the following master records first:\n"
+                + "\n".join(error_messages),
+                "missing_items": missing_items,
+                "missing_party": missing_party,
+            }
+
+        return {"success": True, "message": "Validation passed"}
+
+    except Exception as e:
+        frappe.logger().error(f"Error validating TRA Tax Inv: {str(e)}")
+        return {"success": False, "message": f"Validation error: {str(e)}"}
+
+
+def create_purchase_invoice_from_tra(tra_doc):
+    """
+    Create Purchase Invoice from TRA Tax Inv
+
+    Args:
+        tra_doc: TRA Tax Inv document
+
+    Returns:
+        Purchase Invoice document
+    """
+    # Create new Purchase Invoice
+    pi_doc = frappe.new_doc("Purchase Invoice")
+
+    # Set basic information
+    pi_doc.supplier = get_or_suggest_supplier(tra_doc.company_name)
+    pi_doc.posting_date = frappe.utils.today()
+    pi_doc.due_date = frappe.utils.today()
+
+    # Set reference information
+    pi_doc.bill_no = tra_doc.receipt_number or tra_doc.verification_code
+    pi_doc.bill_date = frappe.utils.today()
+
+    # Add items
+    for tra_item in tra_doc.items:
+        if not tra_item.description:
+            continue
+
+        item_code = get_or_suggest_item(tra_item.description)
+        if item_code:
+            pi_item = pi_doc.append("items", {})
+            pi_item.item_code = item_code
+            pi_item.item_name = tra_item.description
+            try:
+                pi_item.qty = float(tra_item.quantity) if tra_item.quantity else 1
+            except (ValueError, TypeError):
+                pi_item.qty = 1
+            pi_item.rate = float(tra_item.amount) if tra_item.amount else 0
+            pi_item.amount = pi_item.qty * pi_item.rate
+
+    # Set totals if available
+    if tra_doc.grand_total:
+        pi_doc.total = tra_doc.grand_total
+        pi_doc.grand_total = tra_doc.grand_total
+
+    # Save and submit
+    pi_doc.insert()
+
+    return pi_doc
+
+
+def create_sales_invoice_from_tra(tra_doc):
+    """
+    Create Sales Invoice from TRA Tax Inv
+
+    Args:
+        tra_doc: TRA Tax Inv document
+
+    Returns:
+        Sales Invoice document
+    """
+    # Create new Sales Invoice
+    si_doc = frappe.new_doc("Sales Invoice")
+
+    # Set basic information
+    si_doc.customer = get_or_suggest_customer(tra_doc.customer_name)
+    si_doc.posting_date = frappe.utils.today()
+    si_doc.due_date = frappe.utils.today()
+
+    # Add items
+    for tra_item in tra_doc.items:
+        if not tra_item.description:
+            continue
+
+        item_code = get_or_suggest_item(tra_item.description)
+        if item_code:
+            si_item = si_doc.append("items", {})
+            si_item.item_code = item_code
+            si_item.item_name = tra_item.description
+            try:
+                si_item.qty = float(tra_item.quantity) if tra_item.quantity else 1
+            except (ValueError, TypeError):
+                si_item.qty = 1
+            si_item.rate = float(tra_item.amount) if tra_item.amount else 0
+            si_item.amount = si_item.qty * si_item.rate
+
+    # Set totals if available
+    if tra_doc.grand_total:
+        si_doc.total = tra_doc.grand_total
+        si_doc.grand_total = tra_doc.grand_total
+
+    # Save and submit
+    si_doc.insert()
+
+    return si_doc
+
+
+def get_or_suggest_item(item_description):
+    """
+    Get existing item or suggest item code based on description
+
+    Args:
+        item_description (str): Item description from TRA Tax Inv
+
+    Returns:
+        str: Item code if found, otherwise the description itself
+    """
+    if not item_description:
+        return None
+
+    # Try to find existing item by name
+    item_code = frappe.db.get_value("Item", {"item_name": item_description}, "name")
+    if item_code:
+        return item_code
+
+    # Try exact match on item code
+    if frappe.db.exists("Item", item_description):
+        return item_description
+
+    # If not found, return the description as item code (validation will catch this)
+    return item_description
+
+
+def get_or_suggest_supplier(supplier_name):
+    """
+    Get existing supplier or suggest supplier code based on name
+
+    Args:
+        supplier_name (str): Supplier name from TRA Tax Inv
+
+    Returns:
+        str: Supplier code if found, otherwise the name itself
+    """
+    if not supplier_name:
+        return None
+
+    # Try to find existing supplier by name
+    supplier_code = frappe.db.get_value(
+        "Supplier", {"supplier_name": supplier_name}, "name"
+    )
+    if supplier_code:
+        return supplier_code
+
+    # Try exact match on supplier code
+    if frappe.db.exists("Supplier", supplier_name):
+        return supplier_name
+
+    # If not found, return the name as supplier code (validation will catch this)
+    return supplier_name
+
+
+def get_or_suggest_customer(customer_name):
+    """
+    Get existing customer or suggest customer code based on name
+
+    Args:
+        customer_name (str): Customer name from TRA Tax Inv
+
+    Returns:
+        str: Customer code if found, otherwise the name itself
+    """
+    if not customer_name:
+        return None
+
+    # Try to find existing customer by name
+    customer_code = frappe.db.get_value(
+        "Customer", {"customer_name": customer_name}, "name"
+    )
+    if customer_code:
+        return customer_code
+
+    # Try exact match on customer code
+    if frappe.db.exists("Customer", customer_name):
+        return customer_name
+
+    # If not found, return the name as customer code (validation will catch this)
+    return customer_name
