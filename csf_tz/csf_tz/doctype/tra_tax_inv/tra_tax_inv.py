@@ -650,6 +650,13 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
         receipt_info = receipt_data.get("receipt_info", {})
         doc.receipt_number = receipt_info.get("receipt_number", "")
 
+        # Populate customer information
+        customer_info = receipt_data.get("customer_info", {})
+        doc.customer_name = customer_info.get("name", "")
+        doc.customer_id_type = customer_info.get("id_type", "")
+        doc.customer_id = customer_info.get("id", "")
+        doc.customer_mobile = customer_info.get("mobile", "")
+
         # Populate totals
         totals = receipt_data.get("totals", {})
         if totals.get("subtotal"):
@@ -753,6 +760,20 @@ def create_tra_tax_inv_document_safe(
             receipt_info = receipt_data.get("receipt_info", {})
             if receipt_info.get("receipt_number"):
                 doc.receipt_number = receipt_info.get("receipt_number", "")
+        except:
+            pass
+
+        # Populate customer information if available
+        try:
+            customer_info = receipt_data.get("customer_info", {})
+            if customer_info.get("name"):
+                doc.customer_name = customer_info.get("name", "")
+            if customer_info.get("id_type"):
+                doc.customer_id_type = customer_info.get("id_type", "")
+            if customer_info.get("id"):
+                doc.customer_id = customer_info.get("id", "")
+            if customer_info.get("mobile"):
+                doc.customer_mobile = customer_info.get("mobile", "")
         except:
             pass
 
