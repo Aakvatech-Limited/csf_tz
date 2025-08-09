@@ -1,47 +1,62 @@
 {
-    "actions": [],
-    "creation": "2025-01-20 12:00:00.000000",
-    "doctype": "DocType",
-    "editable_grid": 1,
-    "engine": "InnoDB",
-    "field_order": [
-        "description",
-        "quantity",
-        "amount",
-        "mapped_item_code"
-    ],
-    "fields": [
-        {
-            "fieldname": "description",
-            "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Description",
-            "reqd": 1
-        },
-        {
-            "fieldname": "quantity",
-            "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Quantity"
-        },
-        {
-            "fieldname": "amount",
-            "fieldtype": "Currency",
-            "in_list_view": 1,
-            "label": "Amount"
-        }
-    ],
-    "index_web_pages_for_search": 1,
-    "istable": 1,
-    "links": [],
-    "modified": "2025-01-20 12:00:00.000000",
-    "modified_by": "Administrator",
-    "module": "CSF TZ",
-    "name": "TRA TAX Inv Item",
-    "owner": "Administrator",
-    "permissions": [],
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": [],
-    "track_changes": 1
+ "actions": [],
+ "creation": "2025-01-20 12:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "description",
+  "mapped_item_code",
+  "column_break_jszg",
+  "quantity",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mapped_item_code",
+   "fieldtype": "Link",
+   "label": "Mapped Item Code",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_jszg",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-09 21:27:05.804496",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "TRA TAX Inv Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }
