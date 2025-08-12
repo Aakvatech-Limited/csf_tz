@@ -649,7 +649,7 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
         # Create new TRA TAX Inv document
         doc = frappe.new_doc("TRA TAX Inv")
         doc.verification_code = verification_code
-        doc.type = "Sales"  # Default to Sales, can be changed later
+        doc.type = "Purchase"  # Default to Purchase, can be changed later
         doc.verification_status = "Verified"
         doc.verification_url = str(verification_result.get("url", ""))
 
