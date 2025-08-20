@@ -1,43 +1,63 @@
 frappe.require([
+    '/assets/csf_tz/js/csfUtlis.js',
     '/assets/csf_tz/js/shortcuts.js'
 ]);
 
 frappe.ui.form.on("Sales Order", {
-    refresh: function (frm) {
-        frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
-            if (limit_uom_as_item_uom == 1) {
+    onload: async function(frm) {
+    try {
+        // cache the promise so other events can await it
+        frm.__csf_settings_promise = frappe.db.get_doc("CSF TZ Settings", "CSF TZ Settings");
+        const settings = await frm.__csf_settings_promise;
+        frm.csf_settings = settings;
+    } catch (e) {
+        console.warn("Failed to preload CSF TZ Settings", e);
+        frm.csf_settings = null;
+    }
+    },
+    refresh: async function (frm) {
+        if (!frm.csf_settings) {
+            try {
+                frm.csf_settings = await (frm.__csf_settings_promise ||
+                    frappe.db.get_doc("CSF TZ Settings", "CSF TZ Settings"));
+            } catch (e) {
+                console.warn("No CSF settings available at refresh time");
+            }
+        }
+
+        if (frm.csf_settings && frm.csf_settings.limit_uom_as_item_uom == 1) {
             frm.set_query("uom", "items", function (frm, cdt, cdn) {
                 let row = locals[cdt][cdn];
                 return {
-                    query:
-                        "erpnext.accounts.doctype.pricing_rule.pricing_rule.get_item_uoms",
+                    query: "erpnext.accounts.doctype.pricing_rule.pricing_rule.get_item_uoms",
                     filters: {
                         value: row.item_code,
                         apply_on: "Item Code",
                     },
                 };
             });
-            }
-        });
-    },
-    customer: function (frm) {
-        if (!frm.doc.customer) {
-            return;
         }
-        // const show_customer_outstanding = getValue("CSF TZ Settings", "CSF TZ Settings", "show_customer_outstanding_in_sales_order");
-        if (frm.csf_settings.show_customer_outstanding_in_sales_order == 1) {
+    },
+
+    customer: async function (frm) {
+        if (!frm.doc.customer) return;
+
+        // ensure settings are available here too
+        const settings = frm.csf_settings || (frm.__csf_settings_promise && await frm.__csf_settings_promise);
+
+        if (settings && settings.show_customer_outstanding_in_sales_order == 1) {
             frappe.call({
                 method: 'csf_tz.csftz_hooks.customer.get_customer_total_unpaid_amount',
                 args: {
                     customer: frm.doc.customer,
                     company: frm.doc.company,
                 },
-                callback: function (r, rt) {
-                    if (r.message) {
-                        console.info(r.message);
-                    }
+                callback: function (r) {
+                    if (r.message) console.info(r.message);
                 }
             });
+        } else {
+            console.info("Skipping outstanding check: settings unavailable or disabled.");
         }
         setTimeout(function () {
             if (!frm.doc.tax_category) {
