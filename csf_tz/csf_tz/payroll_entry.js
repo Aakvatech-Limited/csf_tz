@@ -6,6 +6,20 @@ frappe.ui.form.on("Payroll Entry", {
   refresh:function(frm) {
       frm.trigger("control_action_buttons");
 
+      if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__('Opening Salary Register'), function () {
+                // Ask for confirmation
+                frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
+                    // Redirect with filter
+                    const report_name = "Salary Register";
+                    const payroll_entry = frm.doc.name;
+                    const report_url = `/app/query-report/${encodeURIComponent(report_name)}?payroll_entry=${encodeURIComponent(payroll_entry)}`;
+                    
+                    window.open(report_url, "_blank");
+                });
+            }).addClass('btn-primary');
+        }
+
       frappe.call({
         method: 'csf_tz.csftz_hooks.payroll.get_amounts_summary',
         args: {
