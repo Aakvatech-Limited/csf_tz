@@ -272,7 +272,7 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "vehicle",
- "track_changes": 1,
- "track_seen": 1,
- "track_views": 1
+ "track_changes": 0,
+ "track_seen": 0,
+ "track_views": 0
 }
