@@ -1,4 +1,4 @@
-import random
+import secrets
 import frappe
 
 # ------------ CONFIGURATION ------------
@@ -14,7 +14,11 @@ def _now():
     return frappe.utils.now_datetime()
 
 def _jitter(seconds):
-    return int(seconds * (1 + random.uniform(-BACKOFF_JITTER, BACKOFF_JITTER)))
+    # Generate cryptographically secure random jitter for backoff timing
+    # Range: -BACKOFF_JITTER to +BACKOFF_JITTER
+    random_factor = (secrets.randbelow(10000) / 10000.0) * 2 - 1  # -1 to 1
+    jitter_factor = 1 + (random_factor * BACKOFF_JITTER)
+    return int(seconds * jitter_factor)
 
 # ------------ CORE QUEUE OPERATIONS ------------
 def claim_batch(doctype, limit=BATCH_SIZE):

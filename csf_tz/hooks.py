@@ -288,7 +288,6 @@ scheduler_events = {
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
-            
         ],
         # Routine for every day 3:30am at night
         "30 3 * * *": [
