@@ -1,5 +1,3 @@
-#processor.py
-import json
 import requests
 from datetime import datetime
 from time import sleep
@@ -94,11 +92,11 @@ def run_vehicle_batch():
                     title="Vehicle API Processing Failed",
                     message=f"Error processing vehicle {task.get('vehicle_no')}: {error_msg}"
                 )
-                attempts, backoff_exp = queue.bump_attempts(TASK_DOCTYPE, task)
+                attempts, _ = queue.bump_attempts(TASK_DOCTYPE, task)
                 if attempts >= queue.MAX_ATTEMPTS:
                     queue.mark_failed(TASK_DOCTYPE, task, error_msg)
                 else:
-                    backoff_seconds = queue.BASE_BACKOFF * (2 ** backoff_exp)
+                    backoff_seconds = queue.BASE_BACKOFF * (2 ** queue.bump_attempts(TASK_DOCTYPE, task)[1])
                     queue.schedule_next(TASK_DOCTYPE, task, backoff_seconds, error_msg)
 
             if (datetime.utcnow() - start).total_seconds() > queue.TIME_BUDGET_SEC:
@@ -190,6 +188,7 @@ def reset_cycle():
         )
         return {"status": "error", "message": str(e)}
 
+
 @frappe.whitelist()
 def create_sync_task(vehicle_no, priority=0, immediate=False):
     try:
@@ -197,13 +196,13 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
         existing = frappe.db.get_value(
             TASK_DOCTYPE,
             {
-                "vehicle_no": vehicle_no, 
+                "vehicle_no": vehicle_no,
                 "status": ["in", ["Pending", "Processing"]],
                 "is_deleted": ["!=", 1]  # Only check non-deleted tasks
             },
             "name"
         )
-        
+
         if existing:
             if immediate or priority > 5:
                 frappe.db.set_value(TASK_DOCTYPE, existing, {
@@ -218,7 +217,7 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
             {"vehicle_no": vehicle_no, "is_deleted": 1},
             "name"
         )
-        
+
         if deleted_task:
             # Reactivate deleted task
             frappe.db.set_value(TASK_DOCTYPE, deleted_task, {
@@ -245,7 +244,7 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
         task.next_run_at = frappe.utils.now_datetime() if immediate else None
         task.insert(ignore_permissions=True)
         return task.name
-        
+
     except Exception as e:
         frappe.log_error(
             title="Sync Task Creation Failed",
@@ -263,23 +262,23 @@ def seed_vehicle_sync_queue():
     try:
         # Current vehicles from Vehicle doctype
         current_vehicles = frappe.get_all(
-            "Vehicle", 
-            fields=["license_plate"], 
+            "Vehicle",
+            fields=["license_plate"],
             filters={"license_plate": ["is", "set"]}
         )
-        
+
         # All existing sync tasks (including deleted ones)
         all_tasks = frappe.get_all(
             TASK_DOCTYPE,
             fields=["vehicle_no", "name", "is_deleted"]
         )
-        
+
         current_plates = {v.license_plate for v in current_vehicles if v.license_plate and len(v.license_plate) >= 7}
         existing_tasks_map = {t.vehicle_no: t for t in all_tasks}
         active_plates = {t.vehicle_no for t in all_tasks if not t.is_deleted}
-        
+
         created = skipped = invalid = reactivated = deleted_marked = 0
-        
+
         # Process current vehicles
         for v in current_vehicles:
             try:
@@ -303,27 +302,27 @@ def seed_vehicle_sync_queue():
                     title="Vehicle Sync Queue Seed Error",
                     message=f"Error processing vehicle {v.get('license_plate', 'Unknown')}: {str(e)}"
                 )
-        
+
         # Mark vehicles as deleted if they don't exist in current Vehicle doctype
         for plate in active_plates:
             if plate not in current_plates:
                 task_name = existing_tasks_map[plate].name
                 frappe.db.set_value(TASK_DOCTYPE, task_name, "is_deleted", 1)
                 deleted_marked += 1
-                
+
         frappe.db.commit()
-        
+
         return {
             "status": "success",
             "created": created,
-            "skipped": skipped, 
+            "skipped": skipped,
             "invalid": invalid,
             "reactivated": reactivated,
             "deleted_marked": deleted_marked,
             "total_vehicles": len(current_vehicles),
             "total_valid_plates": len(current_plates)
         }
-        
+
     except Exception as e:
         frappe.log_error(
             title="Seed Vehicle Sync Queue Failed",
