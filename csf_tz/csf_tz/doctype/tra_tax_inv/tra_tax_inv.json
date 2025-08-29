@@ -1,163 +1,221 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "naming_series:",
-    "creation": "2025-01-20 12:00:00.000000",
-    "doctype": "DocType",
-    "editable_grid": 1,
-    "engine": "InnoDB",
-    "field_order": [
-        "naming_series",
-        "type",
-        "verification_code",
-        "verification_status",
-        "column_break_1",
-        "verification_date",
-        "company_name",
-        "receipt_number",
-        "items_section",
-        "items",
-        "totals_section",
-        "subtotal",
-        "total_tax",
-        "column_break_5",
-        "grand_total"
-    ],
-    "fields": [
-        {
-            "fieldname": "naming_series",
-            "fieldtype": "Select",
-            "label": "Series",
-            "options": "TRA-TAX-INV-.YYYY.-",
-            "reqd": 1
-        },
-        {
-            "default": "Sales",
-            "fieldname": "type",
-            "fieldtype": "Select",
-            "label": "Type",
-            "options": "Sales\nPurchase",
-            "reqd": 1
-        },
-        {
-            "fieldname": "verification_code",
-            "fieldtype": "Data",
-            "label": "Verification Code",
-            "reqd": 1,
-            "unique": 1
-        },
-        {
-            "fieldname": "verification_status",
-            "fieldtype": "Select",
-            "label": "Verification Status",
-            "options": "Pending\nVerified\nFailed",
-            "default": "Pending"
-        },
-        {
-            "fieldname": "column_break_1",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "verification_date",
-            "fieldtype": "Date",
-            "label": "Verification Date"
-        },
-        {
-            "fieldname": "company_name",
-            "fieldtype": "Data",
-            "label": "Company Name",
-            "read_only": 1
-        },
-        {
-            "fieldname": "receipt_number",
-            "fieldtype": "Data",
-            "label": "Receipt Number",
-            "read_only": 1
-        },
-        {
-            "fieldname": "items_section",
-            "fieldtype": "Section Break",
-            "label": "Items"
-        },
-        {
-            "fieldname": "items",
-            "fieldtype": "Table",
-            "label": "Items",
-            "options": "TRA TAX Inv Item",
-            "read_only": 1
-        },
-        {
-            "fieldname": "totals_section",
-            "fieldtype": "Section Break",
-            "label": "Totals"
-        },
-        {
-            "fieldname": "subtotal",
-            "fieldtype": "Currency",
-            "label": "Subtotal (Excl Tax)",
-            "read_only": 1
-        },
-        {
-            "fieldname": "total_tax",
-            "fieldtype": "Currency",
-            "label": "Total Tax",
-            "read_only": 1
-        },
-        {
-            "fieldname": "column_break_5",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "grand_total",
-            "fieldtype": "Currency",
-            "label": "Grand Total (Incl Tax)",
-            "read_only": 1
-        }
-    ],
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2025-01-20 12:00:00.000000",
-    "modified_by": "Administrator",
-    "module": "CSF TZ",
-    "name": "TRA TAX Inv",
-    "naming_rule": "By \"Naming Series\" field",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Accounts Manager",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Accounts User",
-            "share": 1
-        }
-    ],
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": [],
-    "track_changes": 1
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-01-20 12:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_name",
+  "customer_id_type",
+  "customer_id",
+  "customer_mobile",
+  "column_break_jxpv",
+  "naming_series",
+  "type",
+  "verification_code",
+  "verification_status",
+  "column_break_1",
+  "verification_date",
+  "company_name",
+  "receipt_number",
+  "items_section",
+  "items",
+  "totals_section",
+  "subtotal",
+  "total_tax",
+  "column_break_5",
+  "grand_total",
+  "section_break_ubre",
+  "reference_doctype",
+  "column_break_okya",
+  "reference_docname"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Series",
+   "options": "TRA-TAX-INV-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "default": "Sales",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Sales\nPurchase",
+   "reqd": 1
+  },
+  {
+   "fieldname": "verification_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Verification Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "verification_status",
+   "fieldtype": "Select",
+   "label": "Verification Status",
+   "options": "Pending\nVerified\nFailed"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "verification_date",
+   "fieldtype": "Date",
+   "label": "Verification Date"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "receipt_number",
+   "fieldtype": "Data",
+   "label": "Receipt Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "TRA TAX Inv Item"
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "subtotal",
+   "fieldtype": "Currency",
+   "label": "Subtotal (Excl Tax)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_tax",
+   "fieldtype": "Currency",
+   "label": "Total Tax",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total (Incl Tax)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "CUSTOMER NAME"
+  },
+  {
+   "fieldname": "customer_id_type",
+   "fieldtype": "Data",
+   "label": "CUSTOMER ID TYPE"
+  },
+  {
+   "fieldname": "customer_id",
+   "fieldtype": "Data",
+   "label": "CUSTOMER ID"
+  },
+  {
+   "fieldname": "customer_mobile",
+   "fieldtype": "Data",
+   "label": "CUSTOMER MOBILE"
+  },
+  {
+   "fieldname": "column_break_jxpv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ubre",
+   "fieldtype": "Section Break",
+   "label": "Invoice Reference"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Data",
+   "label": "Reference Doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_okya",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_docname",
+   "fieldtype": "Data",
+   "label": "Reference Docname",
+   "options": "reference_doctype",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-09 21:25:10.371039",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "TRA TAX Inv",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
 }
