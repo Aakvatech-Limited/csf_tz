@@ -1,0 +1,55 @@
+<h2 class="text-center">{%= __("Purchase Cycle Report") %}</h2>
+<h4 class="text-center">
+	{% if (filters.from_date && filters.to_date) { %}
+		{%= frappe.datetime.str_to_user(filters.from_date) %} {%= __("to") %} {%= frappe.datetime.str_to_user(filters.to_date) %}
+	{% } %}
+</h4>
+<hr>
+
+<table class="table table-bordered table-sm">
+	<thead class="table-light">
+		<tr>
+			<th style="font-weight: bold;">{%= __("Purchase Order") %}</th>
+			<th>{%= __("Supplier") %}</th>
+			<th>{%= __("Item Code") %}</th>
+			<th class="text-end">{%= __("Qty") %}</th>
+			<th class="text-end">{%= __("Received Qty") %}</th>
+			<th class="text-end">{%= __("Pending Qty") %}</th>
+			<th class="text-end">{%= __("Amount") %}</th>
+			<th class="text-end">{%= __("Billed Amount") %}</th>
+			<th class="text-end">{%= __("Pending Amount") %}</th>
+			<th class="text-end">{%= __("Received Qty Amount") %}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% 
+		var current_po = null;
+		for (var i=0, l=data.length; i<l; i++) {
+			if (current_po !== data[i].purchase_order) {
+		%}
+			<tr class="table-secondary fw-bold" style="background-color:#ffe5e5;">
+				<td colspan="10"><strong>{%= __("Warehouses:") %} {%= data[i].warehouse %} {%= __("Status:") %} {%= data[i].status %}</strong></td>
+			</tr>
+		{% 
+			current_po = data[i].purchase_order;
+			} 
+		%}
+		<tr>
+			<td>{%= data[i].purchase_order %}</td>
+			<td>{%= data[i].supplier %}</td>
+			<td>{%= data[i].item_code %}</td>
+			<td class="text-end">{%= data[i].qty %}</td>
+			<td class="text-end">{%= data[i].received_qty %}</td>
+			<td class="text-end">{%= data[i].pending_qty %}</td>
+			<td class="text-end">{%= format_currency(data[i].amount) %}</td>
+			<td class="text-end">{%= format_currency(data[i].billed_amount) %}</td>
+			<td class="text-end">{%= format_currency(data[i].pending_amount) %}</td>
+			<td class="text-end">{%= format_currency(data[i].received_qty_amount) %}</td>
+		</tr>
+		{% } %}
+	</tbody>
+</table>
+
+<p class="text-right text-muted">
+	{%= __("Printed On") %} {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %} 
+</p>
