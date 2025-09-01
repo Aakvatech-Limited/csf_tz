@@ -10,11 +10,20 @@ frappe.ui.form.on("Payroll Entry", {
             frm.add_custom_button(__('Opening Salary Register'), function () {
                 // Ask for confirmation
                 frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
-                    // Redirect with filter
+                    // Redirect with payroll date filters
                     const report_name = "Salary Register";
-                    const payroll_entry = frm.doc.name;
-                    const report_url = `/app/query-report/${encodeURIComponent(report_name)}?payroll_entry=${encodeURIComponent(payroll_entry)}`;
-                    
+                    const from_date = frm.doc.start_date;
+                    const to_date = frm.doc.end_date;
+                    const company = frm.doc.company;
+
+                    // Build URL with proper date filters
+                    let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(from_date)}&to_date=${encodeURIComponent(to_date)}`;
+
+                    // Add company filter if available
+                    if (company) {
+                        report_url += `&company=${encodeURIComponent(company)}`;
+                    }
+
                     window.open(report_url, "_blank");
                 });
             }).addClass('btn-primary');
