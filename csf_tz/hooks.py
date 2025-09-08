@@ -65,6 +65,7 @@ doctype_js = {
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
     "Employee": "csf_tz/employee_contact_qr.js",
+    "Material Request": "csf_tz/material_request.js",
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
