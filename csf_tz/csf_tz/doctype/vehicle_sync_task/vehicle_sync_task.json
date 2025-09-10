@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-08-22 18:55:40.875910",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vehicle_details_section",
+  "vehicle_no",
+  "column_break_nipc",
+  "priority",
+  "status_details_section",
+  "status",
+  "attempts",
+  "backoff_exp",
+  "column_break_btfh",
+  "next_run_at",
+  "last_run_at",
+  "execution_details_section",
+  "claimed_at",
+  "column_break_qlib",
+  "claimed_by",
+  "error_details_section",
+  "last_error",
+  "is_deleted"
+ ],
+ "fields": [
+  {
+   "fieldname": "vehicle_no",
+   "fieldtype": "Data",
+   "label": "Vehicle No",
+   "no_copy": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nPending\nProcessing\nDone\nFailed\nPaused",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "attempts",
+   "fieldtype": "Int",
+   "label": "Attempts"
+  },
+  {
+   "fieldname": "last_error",
+   "fieldtype": "Small Text",
+   "label": "Last Error"
+  },
+  {
+   "fieldname": "vehicle_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Details"
+  },
+  {
+   "fieldname": "status_details_section",
+   "fieldtype": "Section Break",
+   "label": "Status Details"
+  },
+  {
+   "fieldname": "next_run_at",
+   "fieldtype": "Datetime",
+   "label": "Next Run at",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_btfh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "backoff_exp",
+   "fieldtype": "Int",
+   "label": "Backoff Exponent"
+  },
+  {
+   "fieldname": "last_run_at",
+   "fieldtype": "Datetime",
+   "label": "Last Run at",
+   "search_index": 1
+  },
+  {
+   "fieldname": "claimed_by",
+   "fieldtype": "Data",
+   "label": "Claimed By"
+  },
+  {
+   "fieldname": "claimed_at",
+   "fieldtype": "Datetime",
+   "label": "Claimed at"
+  },
+  {
+   "fieldname": "column_break_nipc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "execution_details_section",
+   "fieldtype": "Section Break",
+   "label": "Execution Details"
+  },
+  {
+   "fieldname": "column_break_qlib",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "error_details_section",
+   "fieldtype": "Section Break",
+   "label": "Error Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "label": "is Deleted ?"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-29 23:03:54.516203",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "Vehicle Sync Task",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
