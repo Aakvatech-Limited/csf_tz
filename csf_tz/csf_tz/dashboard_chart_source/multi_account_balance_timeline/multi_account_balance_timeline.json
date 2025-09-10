@@ -1,0 +1,13 @@
+{
+ "creation": "2025-09-03 16:58:33.556886",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2025-09-03 16:58:33.556886",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "Multi_Account Balance Timeline",
+ "owner": "Administrator",
+ "source_name": "Multi_Account Balance Timeline",
+ "timeseries": 1
+}
