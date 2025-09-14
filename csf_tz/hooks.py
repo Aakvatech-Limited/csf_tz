@@ -274,7 +274,7 @@ scheduler_events = {
     # 	"csf_tz.tasks.all"
     # ],
     "cron": { 
-        # Every minute - process exactly 5 vehicles
+       
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
         ],
@@ -337,3 +337,7 @@ override_whitelisted_methods = {
     "erpnext.stock.doctype.material_request.material_request.update_status": "csf_tz.csftz_hooks.material_request.update_mr_status",
     "erpnext.stock.get_item_details.get_item_details": "csf_tz.csftz_hooks.custom_get_item_details.custom_get_item_details",
 }
+
+
+fixtures = ["Log Settings"]
+

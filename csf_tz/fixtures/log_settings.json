@@ -1,0 +1,17 @@
+[
+  {
+    "docstatus": 0,
+    "doctype": "Log Settings",
+    "logs_to_clear": [
+      {
+        "days": 7,
+        "parent": "Log Settings",
+        "parentfield": "logs_to_clear",
+        "parenttype": "Log Settings",
+        "ref_doctype": "Vehicle Sync Task"
+      }
+    ],
+    "modified": "2025-09-14 23:21:17.887351",
+    "name": "Log Settings"
+  }
+]
