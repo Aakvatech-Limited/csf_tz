@@ -28,6 +28,7 @@
   {
    "fieldname": "vehicle_no",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Vehicle No",
    "no_copy": 1,
    "unique": 1
@@ -35,6 +36,7 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Status",
    "options": "\nPending\nProcessing\nDone\nFailed\nPaused",
    "search_index": 1
@@ -63,6 +65,7 @@
   {
    "fieldname": "next_run_at",
    "fieldtype": "Datetime",
+   "in_list_view": 1,
    "label": "Next Run at",
    "search_index": 1
   },
@@ -127,7 +130,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-29 23:03:54.516203",
+ "modified": "2025-09-14 21:43:07.623030",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Vehicle Sync Task",
@@ -150,5 +153,26 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Yellow",
+   "title": "Pending"
+  },
+  {
+   "color": "Blue",
+   "title": "Processing"
+  },
+  {
+   "color": "Green",
+   "title": "Done"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  },
+  {
+   "color": "Gray",
+   "title": "Paused"
+  }
+ ]
 }

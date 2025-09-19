@@ -274,7 +274,6 @@ scheduler_events = {
     # 	"csf_tz.tasks.all"
     # ],
     "cron": { 
-        # Every minute - process exactly 5 vehicles
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
         ],
