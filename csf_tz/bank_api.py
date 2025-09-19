@@ -131,6 +131,15 @@ def invoice_submission(doc=None, method=None, fees_name=None):
     send_fee_details_to_bank = (
         frappe.get_value("Company", doc.company, "send_fee_details_to_bank") or 0
     )
+        
+    partial_payment = frappe.get_value("Edu Tz Settings", "Edu Tz Settings", "partial_payment")
+
+    # Handle None case and convert to string for bank API
+    if partial_payment is None or not partial_payment:
+        partial_payment = "FALSE"
+    else:
+        partial_payment = "TRUE"
+    
     if not send_fee_details_to_bank:
         return
     if not doc and fees_name:
@@ -154,7 +163,7 @@ def invoice_submission(doc=None, method=None, fees_name=None):
         "amount": doc.grand_total,
         "type": "Fees Invoice",
         "code": 10,
-        "allow_partial": "FALSE",
+        "allow_partial": partial_payment,
         "callback_url": "https://"
         + get_host_name()
         + "/api/method/csf_tz.bank_api.receive_callback?token="
@@ -247,7 +256,7 @@ def make_payment_entry(method="callback", **kwargs):
 
         elif doc_info["doctype"] == "Student Applicant Fees":
             doc = frappe.get_doc("Student Applicant Fees", doc_info["name"])
-            if not doc.bank_reference == nmb_doc.reference:
+            if not doc.callback_token == nmb_doc.fees_token:
                 return
             # Below remarked after introducing VFD in AV solutions
             # jl_rows = []
@@ -300,6 +309,15 @@ def make_payment_entry(method="callback", **kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def receive_validate_reference(*args, **kwargs):
+        
+    partial_payment = frappe.get_value("Edu Tz Settings", "Edu Tz Settings", "partial_payment")
+
+    # Handle None case and convert to string for bank API
+    if partial_payment is None or not partial_payment:
+        partial_payment = "FALSE"
+    else:
+        partial_payment = "TRUE"
+    
     r = frappe.request
     # uri = url_fix(r.url.replace("+"," "))
     # http_method = r.method
@@ -327,7 +345,7 @@ def receive_validate_reference(*args, **kwargs):
             amount=doc.grand_total,
             type="Fees Invoice",
             code=10,
-            allow_partial="FALSE",
+            allow_partial= partial_payment,
             callback_url="https://"
             + get_host_name()
             + "/api/method/csf_tz.bank_api.receive_callback?token="
@@ -496,4 +514,3 @@ def url_fix(url: str, charset: str = "utf-8") -> str:
     qs = quote(url.query, safe=":&%=+$!*'(),")
     anchor = quote(url.fragment, safe=":&%=+$!*'(),")
     return urlunparse((url.scheme, url.netloc, path, qs, "", anchor))
-
