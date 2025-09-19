@@ -70,13 +70,14 @@
   {
    "fieldname": "dynamic_html",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Dynamic HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-19 16:35:32.501978",
+ "modified": "2025-09-19 16:41:16.429427",
  "modified_by": "Administrator",
  "module": "Feedback",
  "name": "Feedback Form",
