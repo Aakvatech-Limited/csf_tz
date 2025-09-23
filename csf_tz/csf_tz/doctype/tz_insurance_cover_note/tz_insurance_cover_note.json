@@ -256,10 +256,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-05-12 10:49:58.898715",
+ "modified": "2025-09-23 11:54:01.009346",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "TZ Insurance Cover Note",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -275,10 +276,12 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "vehicle",
- "track_changes": 1,
- "track_seen": 1,
- "track_views": 1
+ "track_changes": 0,
+ "track_seen": 0,
+ "track_views": 0
 }
