@@ -39,6 +39,7 @@ frappe.ui.form.on("Payroll Entry", {
                             <tr><td><b>NSSF</b></td><td>${frappe.format(summary.nssf, {fieldtype: 'Currency'})}</td></tr>
                             <tr><td><b>NHIF</b></td><td>${frappe.format(summary.nhif, {fieldtype: 'Currency'})}</td></tr>
                             <tr><td><b>WCF</b></td><td>${frappe.format(summary.wcf, { fieldtype: 'Currency' })}</td></tr>
+                            <tr><td><b>HESLB</b></td><td>${frappe.format(summary.heslb, { fieldtype: 'Currency' })}</td></tr>
                         </table>
                     </div>
                 `;
