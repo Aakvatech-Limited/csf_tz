@@ -28,18 +28,33 @@ frappe.ui.form.on("Payroll Entry", {
         callback: function (r) {
             if (r.message) {
                 const summary = r.message;
+                const rows = [];
+                const formatCurrency = value => frappe.format(value || 0, { fieldtype: 'Currency' });
+                const escapeHtml = value => {
+                    const stringValue = value || '';
+                    if (frappe.utils && typeof frappe.utils.escape_html === 'function') {
+                        return frappe.utils.escape_html(stringValue);
+                    }
+                    const element = document.createElement('div');
+                    element.textContent = stringValue;
+                    return element.innerHTML;
+                };
+
+                rows.push(`<tr><td><b>Total Gross Pay</b></td><td>${formatCurrency(summary.gross_pay)}</td></tr>`);
+                rows.push(`<tr><td><b>Total Net Pay</b></td><td>${formatCurrency(summary.net_pay)}</td></tr>`);
+
+                if (Array.isArray(summary.components)) {
+                    summary.components.forEach(item => {
+                        const label = escapeHtml(item.label || item.component);
+                        rows.push(`<tr><td><b>${label}</b></td><td>${formatCurrency(item.amount)}</td></tr>`);
+                    });
+                }
+
                 const html = `
                     <div style="padding: 10px;">
                         <h4><b>Amounts Summary</b></h4>
                         <table class="table table-bordered">
-                            <tr><td><b>Total Gross Pay</b></td><td>${frappe.format(summary.gross_pay, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>Total Net Pay</b></td><td>${frappe.format(summary.net_pay, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>SDL</b></td><td>${frappe.format(summary.sdl, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>PAYE</b></td><td>${frappe.format(summary.paye, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>NSSF</b></td><td>${frappe.format(summary.nssf, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>NHIF</b></td><td>${frappe.format(summary.nhif, {fieldtype: 'Currency'})}</td></tr>
-                            <tr><td><b>WCF</b></td><td>${frappe.format(summary.wcf, { fieldtype: 'Currency' })}</td></tr>
-                            <tr><td><b>HESLB</b></td><td>${frappe.format(summary.heslb, { fieldtype: 'Currency' })}</td></tr>
+                            ${rows.join('')}
                         </table>
                     </div>
                 `;
