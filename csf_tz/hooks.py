@@ -65,6 +65,7 @@ doctype_js = {
     "Travel Request": "csf_tz/travel_request.js",
     "Employee Advance": "csf_tz/employee_advance.js",
     "Employee": "csf_tz/employee_contact_qr.js",
+    "Material Request": "csf_tz/material_request.js",
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
@@ -272,7 +273,10 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
-    "cron": {
+    "cron": { 
+        "* * * * *": [
+            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
+        ],
         "0 */6 * * *": [
             "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
         ],
@@ -280,6 +284,7 @@ scheduler_events = {
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
         ],
         "*/15 * * * *": [
+            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.reset_cycle",
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
@@ -298,6 +303,8 @@ scheduler_events = {
         "csf_tz.csf_tz.doctype.visibility.visibility.trigger_daily_alerts",
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
+        "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.seed_vehicle_sync_queue",
+
     ],
     # "hourly": [
     # 	"csf_tz.tasks.hourly"

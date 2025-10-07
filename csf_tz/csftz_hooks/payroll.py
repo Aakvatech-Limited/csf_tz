@@ -370,3 +370,62 @@ def calculate_amount(base, no_of_hours, salary_component):
         frappe.throw(
             f"Hourly Rate not set on this Salary Component: <b>{salary_component}</b>, Please set it and try again."
         )
+
+
+@frappe.whitelist()
+def get_amounts_summary(payroll_entry):
+    gross_pay = net_pay = sdl = paye = nssf = nhif = wcf = heslb = 0.0
+
+    salary_slips = frappe.get_all(
+        "Salary Slip",
+        filters={
+            "payroll_entry": payroll_entry,
+            "docstatus": ["!=", 2],
+        },
+        fields=["name", "gross_pay", "net_pay"],
+    )
+
+    # Define possible component name variants for each category
+    component_map = {
+        "sdl": ["sdl expense", "sdl"],
+        "paye": ["paye payable", "paye"],
+        "nssf": ["nssf expense", "nssf"],
+        "nhif": ["nhif expense", "nhif"],
+        "wcf": ["wcf expense", "wcf"],
+        "heslb": ["heslb expense", "heslb"],
+    }
+
+    for slip in salary_slips:
+        gross_pay += flt(slip.gross_pay)
+        net_pay += flt(slip.net_pay)
+
+        salary_components = frappe.get_all(
+            "Salary Detail",
+            filters={"parent": slip.name},
+            fields=["salary_component", "amount"],
+        )
+        for comp in salary_components:
+            comp_name = (comp.salary_component or "").strip().lower()
+            if any(comp_name == name for name in component_map["sdl"]):
+                sdl += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["paye"]):
+                paye += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["nssf"]):
+                nssf += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["nhif"]):
+                nhif += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["wcf"]):
+                wcf += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["heslb"]):
+                heslb += flt(comp.amount)
+
+    return {
+        "gross_pay": gross_pay,
+        "net_pay": net_pay,
+        "sdl": sdl,
+        "paye": paye,
+        "nssf": nssf,
+        "nhif": nhif,
+        "wcf": wcf,
+        "heslb": heslb,
+    }

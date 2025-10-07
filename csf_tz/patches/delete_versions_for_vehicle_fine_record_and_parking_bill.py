@@ -5,5 +5,5 @@ def execute():
         DELETE FROM `tabVersion` 
         WHERE ref_doctype IN ('Vehicle Fine Record', 'Parking Bill')
     """)
-    
+   
     frappe.db.commit()

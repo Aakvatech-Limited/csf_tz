@@ -5,6 +5,48 @@ frappe.ui.form.on("Payroll Entry", {
   },
   refresh:function(frm) {
       frm.trigger("control_action_buttons");
+
+      if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__('Opening Salary Register'), function () {
+                // Ask for confirmation
+                frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
+                    // Redirect with filter
+                    const report_name = "Salary Register";
+                    
+                    let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
+                    
+                    window.open(report_url, "_blank");
+                });
+            }).addClass('btn-primary');
+        }
+
+      frappe.call({
+        method: 'csf_tz.csftz_hooks.payroll.get_amounts_summary',
+        args: {
+            payroll_entry: frm.doc.name
+        },
+        callback: function (r) {
+            if (r.message) {
+                const summary = r.message;
+                const html = `
+                    <div style="padding: 10px;">
+                        <h4><b>Amounts Summary</b></h4>
+                        <table class="table table-bordered">
+                            <tr><td><b>Total Gross Pay</b></td><td>${frappe.format(summary.gross_pay, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>Total Net Pay</b></td><td>${frappe.format(summary.net_pay, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>SDL</b></td><td>${frappe.format(summary.sdl, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>PAYE</b></td><td>${frappe.format(summary.paye, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>NSSF</b></td><td>${frappe.format(summary.nssf, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>NHIF</b></td><td>${frappe.format(summary.nhif, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>WCF</b></td><td>${frappe.format(summary.wcf, { fieldtype: 'Currency' })}</td></tr>
+                            <tr><td><b>HESLB</b></td><td>${frappe.format(summary.heslb, { fieldtype: 'Currency' })}</td></tr>
+                        </table>
+                    </div>
+                `;
+                frm.fields_dict.custom_dashboard && frm.fields_dict.custom_dashboard.$wrapper.html(html);
+            }
+        }
+    });
   },
   onload: (frm) => {
       frm.trigger("control_action_buttons");

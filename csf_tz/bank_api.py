@@ -131,6 +131,15 @@ def invoice_submission(doc=None, method=None, fees_name=None):
     send_fee_details_to_bank = (
         frappe.get_value("Company", doc.company, "send_fee_details_to_bank") or 0
     )
+        
+    partial_payment = frappe.get_value("Edu Tz Settings", "Edu Tz Settings", "partial_payment")
+
+    # Handle None case and convert to string for bank API
+    if partial_payment is None or not partial_payment:
+        partial_payment = "FALSE"
+    else:
+        partial_payment = "TRUE"
+    
     if not send_fee_details_to_bank:
         return
     if not doc and fees_name:
@@ -154,7 +163,7 @@ def invoice_submission(doc=None, method=None, fees_name=None):
         "amount": doc.grand_total,
         "type": "Fees Invoice",
         "code": 10,
-        "allow_partial": "FALSE",
+        "allow_partial": partial_payment,
         "callback_url": "https://"
         + get_host_name()
         + "/api/method/csf_tz.bank_api.receive_callback?token="
