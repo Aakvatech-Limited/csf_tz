@@ -12,7 +12,7 @@ frappe.ui.form.on("Trip Sheet", {
     );
 
     // Set query for reference_doctype in child table
-    frm.fields_dict["delivery_note"].grid.get_field(
+    frm.fields_dict["trip_sheet_reference"].grid.get_field(
       "reference_doctype"
     ).get_query = function (doc, cdt, cdn) {
       return {
@@ -64,8 +64,8 @@ frappe.ui.form.on("Trip Sheet", {
     // Clear the table first
     frm.clear_table("item_reference");
 
-    // Loop through delivery_note child table
-    (frm.doc.delivery_note || []).forEach(function (row) {
+    // Loop through trip_sheet_reference child table
+    (frm.doc.trip_sheet_reference || []).forEach(function (row) {
       if (row.reference_doctype && row.reference_document) {
         frappe.call({
           method:
@@ -97,13 +97,13 @@ frappe.ui.form.on("Trip Sheet", {
   },
 });
 
-// For filtering Stock Entry by stock_entry_type, you need to set a custom query for the reference_document field
-frappe.ui.form.on("Delivery Note Trip Sheet", {
+// For filtering Stock Entry by stock_entry_type, update the handler to use the renamed child doctype
+frappe.ui.form.on("Trip Sheet References", {
   reference_doctype: function (frm, cdt, cdn) {
     var child = locals[cdt][cdn];
     if (child.reference_doctype === "Stock Entry") {
       frappe.meta.get_docfield(
-        "Delivery Note Trip Sheet",
+        "Trip Sheet References",
         "reference_document",
         frm.doc.name
       ).get_query = function () {
@@ -115,14 +115,14 @@ frappe.ui.form.on("Delivery Note Trip Sheet", {
       };
     } else {
       frappe.meta.get_docfield(
-        "Delivery Note Trip Sheet",
+        "Trip Sheet References",
         "reference_document",
         frm.doc.name
       ).get_query = null;
     }
   },
 
-  // Optionally, trigger fetch_reference_items on delivery_note table change
+  // Trigger fetch when reference_document changes
   reference_document: function (frm, cdt, cdn) {
     frm.trigger("fetch_reference_items");
   },

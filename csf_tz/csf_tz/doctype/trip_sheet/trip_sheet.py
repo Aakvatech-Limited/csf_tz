@@ -6,58 +6,67 @@ from frappe.model.document import Document
 
 
 class TripSheet(Document):
-    # validate required fields when status is Completed (before submit)
     def validate(self):
-        # If user sets status to Completed while still in draft/state before submit,
-        # ensure required fields are present.
-        if self.status == "Completed":
-            if not self.end_km:
+        # If status set to Completed in form, ensure required fields are present.
+        if getattr(self, "status", None) == "Completed":
+            if not getattr(self, "end_km", None):
                 frappe.throw(_("End KM must be filled when status is 'Completed'."))
-            if not self.fuel_consumed:
+            if not getattr(self, "fuel_consumed", None):
                 frappe.throw(_("Fuel Consumed must be filled when status is 'Completed'."))
 
     def before_submit(self):
         # Final checks before submit
-        if self.status != "Completed":
+        if getattr(self, "status", None) != "Completed":
             frappe.throw(_("Trip status must be 'Completed' before submitting."))
-        if not self.end_km:
+        if not getattr(self, "end_km", None):
             frappe.throw(_("End KM must be filled before submitting."))
-        if not self.fuel_consumed:
+        if not getattr(self, "fuel_consumed", None):
             frappe.throw(_("Fuel Consumed must be filled before submitting."))
 
-    # Keep item_reference in sync on save: populate from delivery_note child table
     def before_save(self):
+        # Keep item_reference in sync on save
         self.set_item_reference_table()
 
     def set_item_reference_table(self):
-        # Rebuild the item_reference child table from delivery_note child table.
-        # This ensures removal of references in delivery_note is reflected here.
+        """
+        Rebuild the item_reference child table from trip_sheet_reference child table.
+        Uses fields:
+          - trip_sheet_reference[].reference_doctype
+          - trip_sheet_reference[].reference_document
+        Appends rows to item_reference with fields:
+          - reference_doctype
+          - reference_document_id
+          - item_name
+          - qty
+          - amount
+        """
         self.set("item_reference", [])
 
-        for row in self.get("delivery_note") or []:
-            # Use the actual field names in delivery_note child table:
-            # - reference_doctype (Select)
-            # - reference_document (Dynamic Link / Link)
-            if row.get("reference_doctype") and row.get("reference_document"):
-                items = get_reference_items(row.reference_doctype, row.reference_document)
-                for item in items:
-                    self.append("item_reference", {
-                        "reference_doctype": row.reference_doctype,
-                        "reference_document_id": row.reference_document,
-                        "item_name": item.get("item_name"),
-                        "qty": item.get("qty"),
-                        "amount": item.get("amount"),
-                    })
+        for row in self.get("trip_sheet_reference") or []:
+            ref_doctype = row.get("reference_doctype")
+            ref_doc = row.get("reference_document")
+            if not (ref_doctype and ref_doc):
+                continue
+
+            items = get_reference_items(ref_doctype, ref_doc) or []
+            for it in items:
+                self.append("item_reference", {
+                    "reference_doctype": ref_doctype,
+                    "reference_document_id": ref_doc,
+                    "item_name": it.get("item_name") or "",
+                    "qty": it.get("qty") or 0,
+                    "amount": it.get("amount") or 0,
+                })
 
 
 @frappe.whitelist()
 def get_reference_items(reference_doctype, reference_document):
     """
-    Return a list of items for the given reference document.
-    Each item is a dict with keys: item_name, qty, amount
+    Return list of dicts: { item_name, qty, amount } for the given reference.
+    Accepts reference_document (string id) to match JS.
     """
     items = []
-    if reference_doctype in [
+    if reference_doctype not in [
         "Purchase Order",
         "Delivery Note",
         "Purchase Receipt",
@@ -65,19 +74,29 @@ def get_reference_items(reference_doctype, reference_document):
         "Sales Order",
         "Stock Entry",
     ]:
-        try:
-            doc = frappe.get_doc(reference_doctype, reference_document)
-        except frappe.DoesNotExistError:
-            return items
+        return items
 
-        for i in getattr(doc, "items", []) or []:
-            # derive amount if available, fallback to base_amount or 0
-            amount = getattr(i, "amount", None)
-            if amount is None:
-                amount = getattr(i, "base_amount", 0)
-            items.append({
-                "item_name": getattr(i, "item_name", getattr(i, "item_code", "")),
-                "qty": getattr(i, "qty", getattr(i, "transfer_qty", 0)),
-                "amount": amount or 0,
-            })
+    try:
+        doc = frappe.get_doc(reference_doctype, reference_document)
+    except Exception:
+        return items
+
+    for i in getattr(doc, "items", []) or []:
+        amount = getattr(i, "amount", None)
+        if amount is None:
+            amount = getattr(i, "base_amount", None)
+        # qty fallback: qty or transfer_qty or delivered_qty
+        qty = getattr(i, "qty", None)
+        if qty is None:
+            qty = getattr(i, "transfer_qty", None)
+        if qty is None:
+            qty = getattr(i, "delivered_qty", 0)
+        item_name = getattr(i, "item_name", None) or getattr(i, "item_code", "")
+
+        items.append({
+            "item_name": item_name,
+            "qty": qty or 0,
+            "amount": amount or 0
+        })
+
     return items

@@ -23,7 +23,7 @@
     "start_time",
     "end_time",
     "section_break_pqtf",
-    "delivery_note",
+    "trip_sheet_reference",
     "item_reference"
   ],
   "fields": [
@@ -119,10 +119,10 @@
       "label": "End Time"
     },
     {
-      "fieldname": "delivery_note",
+      "fieldname": "trip_sheet_reference",
       "fieldtype": "Table",
-      "label": "Delivery Note",
-      "options": "Delivery Note Trip Sheet"
+      "label": "Trip sheet Reference",
+      "options": "Trip sheet References"
     },
     {
       "fieldname": "item_reference",
