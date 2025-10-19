@@ -603,20 +603,20 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
             message=f"Error creating sync task for vehicle {vehicle_no}: {str(e)}"
         )
         return None
-
 @frappe.whitelist()
 def seed_vehicle_sync_queue():
     """
-    Updated: Handles new vehicles, existing vehicles, and marks deleted ones
-    Can be used for initial seeding AND daily sync
+    Updated: Handles new vehicles, existing vehicles, and marks deleted ones.
+    Can be used for initial seeding AND daily sync.
     """
     try:
         # Current vehicles from Vehicle doctype
         current_vehicles = frappe.get_all(
             "Vehicle",
-            fields=["license_plate"],
+            fields=["license_plate", "name"],
             filters={"license_plate": ["is", "set"]}
         )
+
 
         # All existing sync tasks (including deleted ones)
         all_tasks = frappe.get_all(
@@ -624,24 +624,30 @@ def seed_vehicle_sync_queue():
             fields=["vehicle_no", "name", "is_deleted"]
         )
 
-        current_plates = {v.license_plate for v in current_vehicles if v.license_plate and len(v.license_plate) >= 7}
-        existing_tasks_map = {t.vehicle_no: t for t in all_tasks}
-        active_plates = {t.vehicle_no for t in all_tasks if not t.is_deleted}
+
+        current_plates = {
+            vehicle.license_plate or vehicle.name
+            for vehicle in current_vehicles if (vehicle.license_plate or vehicle.name)
+        }
+        existing_tasks_map = {task.vehicle_no: task for task in all_tasks}
+        active_plates = {task.vehicle_no for task in all_tasks if not task.is_deleted}
+
 
         created = skipped = invalid = reactivated = deleted_marked = 0
 
+
         # Process current vehicles
-        for v in current_vehicles:
+        for vehicle in current_vehicles:
             try:
-                plate = v.license_plate
-                if plate and len(plate) >= 7:
-                    if plate not in existing_tasks_map:
+                number_plate = vehicle.license_plate or vehicle.name
+                if number_plate:
+                    if number_plate not in existing_tasks_map:
                         # New vehicle - create sync task
-                        create_sync_task(plate, priority=0)
+                        create_sync_task(number_plate, priority=0)
                         created += 1
-                    elif existing_tasks_map[plate].is_deleted:
+                    elif existing_tasks_map[number_plate].is_deleted:
                         # Previously deleted vehicle is back - reactivate using create_sync_task
-                        create_sync_task(plate, priority=0)
+                        create_sync_task(number_plate, priority=0)
                         reactivated += 1
                     else:
                         # Already exists and active
@@ -651,8 +657,9 @@ def seed_vehicle_sync_queue():
             except Exception as e:
                 frappe.log_error(
                     title="Vehicle Sync Queue Seed Error",
-                    message=f"Error processing vehicle {v.get('license_plate', 'Unknown')}: {str(e)}"
+                    message=f"Error processing vehicle {vehicle.get('license_plate') or vehicle.get('name')}: {str(e)}"
                 )
+
 
         # Mark vehicles as deleted if they don't exist in current Vehicle doctype
         for plate in active_plates:
@@ -661,7 +668,9 @@ def seed_vehicle_sync_queue():
                 frappe.db.set_value(TASK_DOCTYPE, task_name, "is_deleted", 1)
                 deleted_marked += 1
 
+
         frappe.db.commit()
+
 
         return {
             "status": "success",
@@ -673,6 +682,7 @@ def seed_vehicle_sync_queue():
             "total_vehicles": len(current_vehicles),
             "total_valid_plates": len(current_plates)
         }
+
 
     except Exception as e:
         frappe.log_error(
