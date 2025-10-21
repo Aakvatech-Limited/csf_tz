@@ -245,6 +245,10 @@ doc_events = {
     "Employee Checkin": {
         "validate": "csf_tz.csftz_hooks.employee_checkin.validate",
     },
+    "Leave Encashment": {
+        "validate": "csf_tz.csftz_hooks.leave_encashment.validate_flags",
+        "before_submit": "csf_tz.csftz_hooks.leave_encashment.ensure_selection_before_submit",
+    },
     "Additional Salary": {
         "on_submit": "csf_tz.csftz_hooks.additional_salary.create_additional_salary_journal",
         "before_validate": "csf_tz.csftz_hooks.additional_salary.set_employee_base_salary_in_hours",
