@@ -15,7 +15,8 @@
   "contact_no",
   "section_break_itfe",
   "responses",
-  "dynamic_questions"
+  "dynamic_questions",
+  "dynamic_html"
  ],
  "fields": [
   {
@@ -65,12 +66,18 @@
   {
    "fieldname": "column_break_ldsy",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dynamic_html",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Dynamic HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-27 23:21:52.858580",
+ "modified": "2025-09-19 16:41:16.429427",
  "modified_by": "Administrator",
  "module": "Feedback",
  "name": "Feedback Form",
