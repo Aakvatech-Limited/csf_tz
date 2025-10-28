@@ -1,8 +1,9 @@
 import frappe
 
 def execute():
-    for doctype in ["Vehicle Fine Record", "Parking Bill"]:
-        versions = frappe.get_all("Version", filters={"ref_doctype": doctype}, pluck="name")
-        for version_name in versions:
-            frappe.delete_doc("Version", version_name, force=1)
+    frappe.db.sql("""
+        DELETE FROM `tabVersion` 
+        WHERE ref_doctype IN ('Vehicle Fine Record', 'Parking Bill')
+    """)
+   
     frappe.db.commit()

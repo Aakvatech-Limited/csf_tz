@@ -12,8 +12,8 @@ frappe.ui.form.on("Payroll Entry", {
                 frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
                     // Redirect with filter
                     const report_name = "Salary Register";
-                    const payroll_entry = frm.doc.name;
-                    const report_url = `/app/query-report/${encodeURIComponent(report_name)}?payroll_entry=${encodeURIComponent(payroll_entry)}`;
+                    
+                    let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
                     
                     window.open(report_url, "_blank");
                 });
@@ -38,6 +38,8 @@ frappe.ui.form.on("Payroll Entry", {
                             <tr><td><b>PAYE</b></td><td>${frappe.format(summary.paye, {fieldtype: 'Currency'})}</td></tr>
                             <tr><td><b>NSSF</b></td><td>${frappe.format(summary.nssf, {fieldtype: 'Currency'})}</td></tr>
                             <tr><td><b>NHIF</b></td><td>${frappe.format(summary.nhif, {fieldtype: 'Currency'})}</td></tr>
+                            <tr><td><b>WCF</b></td><td>${frappe.format(summary.wcf, { fieldtype: 'Currency' })}</td></tr>
+                            <tr><td><b>HESLB</b></td><td>${frappe.format(summary.heslb, { fieldtype: 'Currency' })}</td></tr>
                         </table>
                     </div>
                 `;

@@ -374,11 +374,14 @@ def calculate_amount(base, no_of_hours, salary_component):
 
 @frappe.whitelist()
 def get_amounts_summary(payroll_entry):
-    gross_pay = net_pay = sdl = paye = nssf = nhif = 0.0
+    gross_pay = net_pay = sdl = paye = nssf = nhif = wcf = heslb = 0.0
 
     salary_slips = frappe.get_all(
         "Salary Slip",
-        filters={"payroll_entry": payroll_entry},
+        filters={
+            "payroll_entry": payroll_entry,
+            "docstatus": ["!=", 2],
+        },
         fields=["name", "gross_pay", "net_pay"],
     )
 
@@ -388,6 +391,8 @@ def get_amounts_summary(payroll_entry):
         "paye": ["paye payable", "paye"],
         "nssf": ["nssf expense", "nssf"],
         "nhif": ["nhif expense", "nhif"],
+        "wcf": ["wcf expense", "wcf"],
+        "heslb": ["heslb expense", "heslb"],
     }
 
     for slip in salary_slips:
@@ -409,6 +414,10 @@ def get_amounts_summary(payroll_entry):
                 nssf += flt(comp.amount)
             elif any(comp_name == name for name in component_map["nhif"]):
                 nhif += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["wcf"]):
+                wcf += flt(comp.amount)
+            elif any(comp_name == name for name in component_map["heslb"]):
+                heslb += flt(comp.amount)
 
     return {
         "gross_pay": gross_pay,
@@ -417,4 +426,6 @@ def get_amounts_summary(payroll_entry):
         "paye": paye,
         "nssf": nssf,
         "nhif": nhif,
+        "wcf": wcf,
+        "heslb": heslb,
     }

@@ -1,0 +1,66 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "creation": "2025-10-15 18:07:27.398988",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "reference_doctype",
+    "reference_document_id",
+    "item_name",
+    "qty",
+    "amount"
+  ],
+  "fields": [
+    {
+      "fieldname": "reference_doctype",
+      "fieldtype": "Select",
+      "label": "Reference Doctype",
+      "options": "Purchase Order\nDelivery Note\nPurchase Receipt\nPurchase Invoice\nSales Order\nStock Entry",
+      "read_only": 1
+    },
+    {
+      "fieldname": "reference_document_id",
+      "fieldtype": "Dynamic Link",
+      "label": "Reference Document ID",
+      "options": "reference_doctype",
+      "read_only": 1
+    },
+    {
+      "fieldname": "item_name",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Item Name",
+      "read_only": 1
+    },
+    {
+      "fieldname": "qty",
+      "fieldtype": "Float",
+      "in_list_view": 1,
+      "label": "Quantity",
+      "read_only": 1
+    },
+    {
+      "fieldname": "amount",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Amount",
+      "read_only": 1
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2025-10-15 18:16:55.455472",
+  "modified_by": "Administrator",
+  "module": "CSF TZ",
+  "name": "Trip Sheet Item Reference",
+  "owner": "Administrator",
+  "permissions": [],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}
