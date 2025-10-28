@@ -1,0 +1,270 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "naming_series:",
+    "creation": "2025-08-19 10:00:00.000000",
+    "default_view": "List",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "naming_series",
+     "section_break_basic",
+     "purchase_invoice",
+     "supplier",
+     "transaction_date",
+     "column_break_basic",
+     "currency",
+     "original_exchange_rate",
+     "status",
+     "section_break_amounts",
+     "invoice_amount_foreign",
+     "invoice_amount_base",
+     "column_break_amounts",
+     "total_gain_loss",
+     "net_difference",
+     "section_break_lcv",
+     "landed_cost_vouchers",
+     "section_break_payments",
+     "payments",
+     "section_break_differences",
+     "exchange_differences",
+     "section_break_other",
+     "company",
+     "column_break_other",
+     "amended_from"
+    ],
+    "fields": [
+     {
+      "fieldname": "naming_series",
+      "fieldtype": "Select",
+      "label": "Naming Series",
+      "options": "FIT-.YY.-",
+      "print_hide": 1,
+      "reqd": 1,
+      "set_only_once": 1
+     },
+     {
+      "fieldname": "section_break_basic",
+      "fieldtype": "Section Break",
+      "label": "Transaction Details"
+     },
+     {
+      "fieldname": "purchase_invoice",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Purchase Invoice",
+      "options": "Purchase Invoice",
+      "reqd": 1
+     },
+     {
+      "fetch_from": "purchase_invoice.supplier",
+      "fieldname": "supplier",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Supplier",
+      "options": "Supplier",
+      "read_only": 1
+     },
+     {
+      "fetch_from": "purchase_invoice.posting_date",
+      "fieldname": "transaction_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "Transaction Date",
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_basic",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fetch_from": "purchase_invoice.currency",
+      "fieldname": "currency",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Currency",
+      "options": "Currency",
+      "read_only": 1
+     },
+     {
+      "fetch_from": "purchase_invoice.conversion_rate",
+      "fieldname": "original_exchange_rate",
+      "fieldtype": "Float",
+      "label": "Original Exchange Rate",
+      "precision": "9",
+      "read_only": 1
+     },
+     {
+      "default": "Draft",
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Status",
+      "options": "Draft\nActive\nCompleted\nCancelled",
+      "reqd": 1
+     },
+     {
+      "fieldname": "section_break_amounts",
+      "fieldtype": "Section Break",
+      "label": "Amounts"
+     },
+     {
+      "fetch_from": "purchase_invoice.grand_total",
+      "fieldname": "invoice_amount_foreign",
+      "fieldtype": "Currency",
+      "label": "Invoice Amount (Foreign)",
+      "options": "currency",
+      "read_only": 1
+     },
+     {
+      "fetch_from": "purchase_invoice.base_grand_total",
+      "fieldname": "invoice_amount_base",
+      "fieldtype": "Currency",
+      "label": "Invoice Amount (Base)",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_amounts",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "total_gain_loss",
+      "fieldtype": "Currency",
+      "label": "Total Gain/Loss",
+      "read_only": 1
+     },
+     {
+      "fieldname": "net_difference",
+      "fieldtype": "Currency",
+      "label": "Net Difference",
+      "read_only": 1
+     },
+     {
+      "fieldname": "section_break_lcv",
+      "fieldtype": "Section Break",
+      "label": "Landed Cost Vouchers"
+     },
+     {
+      "fieldname": "landed_cost_vouchers",
+      "fieldtype": "Table",
+      "label": "Landed Cost Vouchers",
+      "options": "Foreign Import LCV Details"
+     },
+     {
+      "fieldname": "section_break_payments",
+      "fieldtype": "Section Break",
+      "label": "Payments"
+     },
+     {
+      "fieldname": "payments",
+      "fieldtype": "Table",
+      "label": "Payment Details",
+      "options": "Foreign Import Payment Details"
+     },
+     {
+      "fieldname": "section_break_differences",
+      "fieldtype": "Section Break",
+      "label": "Exchange Differences"
+     },
+     {
+      "fieldname": "exchange_differences",
+      "fieldtype": "Table",
+      "label": "Exchange Difference Details",
+      "options": "Foreign Import Exchange Difference Details"
+     },
+     {
+      "fieldname": "section_break_other",
+      "fieldtype": "Section Break",
+      "label": "Other Details"
+     },
+     {
+      "fetch_from": "purchase_invoice.company",
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "read_only": 1,
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_other",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "amended_from",
+      "fieldtype": "Link",
+      "label": "Amended From",
+      "no_copy": 1,
+      "options": "Foreign Import Transaction",
+      "print_hide": 1,
+      "read_only": 1
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [
+     {
+      "link_doctype": "Purchase Invoice",
+      "link_fieldname": "name"
+     },
+     {
+      "link_doctype": "Payment Entry",
+      "link_fieldname": "party"
+     },
+     {
+      "link_doctype": "Journal Entry",
+      "link_fieldname": "user_remark"
+     }
+    ],
+    "modified": "2025-08-19 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "Foreign Import Transaction",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "cancel": 1,
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "submit": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Accounts Manager",
+      "share": 1,
+      "submit": 1,
+      "write": 1
+     },
+     {
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Accounts User",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "purchase_invoice",
+    "track_changes": 1
+   }

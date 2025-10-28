@@ -1,0 +1,94 @@
+{
+    "actions": [],
+    "creation": "2025-08-19 10:05:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "landed_cost_voucher",
+     "lcv_date",
+     "column_break_1",
+     "lcv_amount_foreign",
+     "lcv_amount_base",
+     "section_break_rates",
+     "exchange_rate_used",
+     "column_break_2",
+     "allocated_to_items",
+     "exchange_difference"
+    ],
+    "fields": [
+     {
+      "fieldname": "landed_cost_voucher",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Landed Cost Voucher",
+      "options": "Landed Cost Voucher",
+      "reqd": 1
+     },
+     {
+      "fetch_from": "landed_cost_voucher.posting_date",
+      "fieldname": "lcv_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "LCV Date",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "lcv_amount_foreign",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "LCV Amount (Foreign)",
+      "precision": "2"
+     },
+     {
+      "fetch_from": "landed_cost_voucher.total_taxes_and_charges",
+      "fieldname": "lcv_amount_base",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "LCV Amount (Base)",
+      "read_only": 1
+     },
+     {
+      "fieldname": "section_break_rates",
+      "fieldtype": "Section Break"
+     },
+     {
+      "default": "1",
+      "fieldname": "exchange_rate_used",
+      "fieldtype": "Float",
+      "label": "Exchange Rate Used",
+      "precision": "9"
+     },
+     {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "allocated_to_items",
+      "fieldtype": "Currency",
+      "label": "Allocated to Items",
+      "read_only": 1
+     },
+     {
+      "fieldname": "exchange_difference",
+      "fieldtype": "Currency",
+      "label": "Exchange Difference",
+      "read_only": 1
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "modified": "2025-08-19 10:05:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "Foreign Import LCV Details",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+   }

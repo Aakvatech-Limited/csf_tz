@@ -175,7 +175,11 @@ doc_events = {
         "after_insert": "csf_tz.custom_api.create_indirect_expense_item",
     },
     "Purchase Invoice": {
-        "on_submit": "csf_tz.custom_api.make_withholding_tax_gl_entries_for_purchase",
+        "on_submit": [
+            "csf_tz.custom_api.make_withholding_tax_gl_entries_for_purchase",
+            "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
+        ],
+        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
     },
     "Purchase Order": {
         "validate": "csf_tz.custom_api.target_warehouse_based_price_list",
@@ -262,11 +266,15 @@ doc_events = {
             "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
             "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
         ],
+        "on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_payment_to_import_tracker",
+        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_payment_from_import_tracker",
     },
     "Landed Cost Voucher": {
         "validate": [
             "csf_tz.csftz_hooks.landed_cost_voucher.total_amount",
-        ]
+        ],
+        "on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_lcv_to_import_tracker",
+        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_lcv_from_import_tracker",
     },
 }
 
@@ -307,6 +315,7 @@ scheduler_events = {
         "csf_tz.csf_tz.doctype.visibility.visibility.trigger_daily_alerts",
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
+        "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
         "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.seed_vehicle_sync_queue",
 
     ],
