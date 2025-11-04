@@ -25,6 +25,7 @@
   "item_qty_poppup_message",
   "validate_grand_total_vs_payment_amount_on_sales_invoice",
   "target_warehouse_based_price_list",
+  "enable_write_off_jv_si",
   "section_break_8",
   "sle_gle_reposting_start_date",
   "column_break_10",
@@ -351,12 +352,18 @@
    "fieldname": "allow_inter_company_stock_transfer",
    "fieldtype": "Check",
    "label": "Allow Inter company stock transfer"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_si",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Jornal Entry Sales Invoice"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-10 12:04:28.430537",
+ "modified": "2025-11-04 13:38:23.635235",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",

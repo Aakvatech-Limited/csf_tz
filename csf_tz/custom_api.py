@@ -3054,3 +3054,51 @@ def create_trade_in_stock_entry(doc, method):
             frappe.throw(f"Error during Stock Entry creation: {str(e)}")
     else:
         frappe.msgprint("No valid items found for stock entry.")
+@frappe.whitelist()
+def create_write_off_jv_si(sales_invoice, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_si", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    si = frappe.get_doc("Sales Invoice", sales_invoice)
+
+    if not si.outstanding_amount or si.outstanding_amount <= 0:
+        frappe.throw("No outstanding amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = si.company
+    jv.posting_date = si.posting_date
+
+    # Handle exchange rate
+    exchange_rate = flt(si.conversion_rate or 1)
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # CREDIT - Debtors account
+    jv.append("accounts", {
+        "account": si.debit_to,
+        "credit_in_account_currency": flt(si.outstanding_amount),
+        "party_type": "Customer",
+        "party": si.customer,
+        "reference_type": "Sales Invoice",
+        "reference_name": si.name,
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    # DEBIT - Write Off account (no reference!)
+    jv.append("accounts", {
+        "account": account,
+        "debit_in_account_currency": flt(si.outstanding_amount),
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
+
+    return jv.name
