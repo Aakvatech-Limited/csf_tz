@@ -67,7 +67,7 @@
         "fieldname": "foreign_import_trackers",
         "label": "Related Import Trackers",
         "fieldtype": "Table",
-        "options": "LCV Import Tracker Link",
+        "options": "Foreign Import LCV Details",
         "read_only": 1,
         "insert_after": "section_break_import_tracking",
         "doctype": "Custom Field"
