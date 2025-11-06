@@ -5,6 +5,63 @@ frappe.ui.form.on("Payroll Entry", {
   },
   refresh:function(frm) {
       frm.trigger("control_action_buttons");
+
+      if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__('Opening Salary Register'), function () {
+                // Ask for confirmation
+                frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
+                    // Redirect with filter
+                    const report_name = "Salary Register";
+                    
+                    let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
+                    
+                    window.open(report_url, "_blank");
+                });
+            }).addClass('btn-primary');
+        }
+
+      frappe.call({
+        method: 'csf_tz.csftz_hooks.payroll.get_amounts_summary',
+        args: {
+            payroll_entry: frm.doc.name
+        },
+        callback: function (r) {
+            if (r.message) {
+                const summary = r.message;
+                const rows = [];
+                const formatCurrency = value => frappe.format(value || 0, { fieldtype: 'Currency' });
+                const escapeHtml = value => {
+                    const stringValue = value || '';
+                    if (frappe.utils && typeof frappe.utils.escape_html === 'function') {
+                        return frappe.utils.escape_html(stringValue);
+                    }
+                    const element = document.createElement('div');
+                    element.textContent = stringValue;
+                    return element.innerHTML;
+                };
+
+                rows.push(`<tr><td><b>Total Gross Pay</b></td><td>${formatCurrency(summary.gross_pay)}</td></tr>`);
+                rows.push(`<tr><td><b>Total Net Pay</b></td><td>${formatCurrency(summary.net_pay)}</td></tr>`);
+
+                if (Array.isArray(summary.components)) {
+                    summary.components.forEach(item => {
+                        const label = escapeHtml(item.label || item.component);
+                        rows.push(`<tr><td><b>${label}</b></td><td>${formatCurrency(item.amount)}</td></tr>`);
+                    });
+                }
+
+                const html = `
+                    <div style="padding: 10px;">
+                        <h4><b>Amounts Summary</b></h4>
+                        <table class="table table-bordered">
+                            ${rows.join('')}
+                        </table>
+                    </div>
+                `;
+                frm.fields_dict.custom_dashboard && frm.fields_dict.custom_dashboard.$wrapper.html(html);
+            }
+        }
+    });
   },
   onload: (frm) => {
       frm.trigger("control_action_buttons");

@@ -370,3 +370,60 @@ def calculate_amount(base, no_of_hours, salary_component):
         frappe.throw(
             f"Hourly Rate not set on this Salary Component: <b>{salary_component}</b>, Please set it and try again."
         )
+
+
+@frappe.whitelist()
+def get_amounts_summary(payroll_entry):
+    summary = {
+        "gross_pay": 0.0,
+        "net_pay": 0.0,
+        "components": [],
+    }
+
+    salary_slips = frappe.get_all(
+        "Salary Slip",
+        filters={
+            "payroll_entry": payroll_entry,
+            "docstatus": ["!=", 2],
+        },
+        fields=["name", "gross_pay", "net_pay"],
+    )
+
+    slip_names = []
+    for slip in salary_slips:
+        summary["gross_pay"] += flt(slip.gross_pay)
+        summary["net_pay"] += flt(slip.net_pay)
+        slip_names.append(slip.name)
+
+    tracked_components = frappe.get_all(
+        "Salary Component",
+        filters={"include_in_payroll_summary": 1},
+        fields=["name"],
+        order_by="name asc",
+    )
+
+    component_names = [component.name for component in tracked_components]
+    totals_map = {}
+
+    if slip_names and component_names:
+        component_totals = frappe.get_all(
+            "Salary Detail",
+            filters={
+                "parent": ("in", slip_names),
+                "salary_component": ("in", component_names),
+            },
+            fields=["salary_component", "sum(amount) as total"],
+            group_by="salary_component",
+        )
+        totals_map = {row.salary_component: flt(row.total) for row in component_totals}
+
+    for component in tracked_components:
+        summary["components"].append(
+            {
+                "component": component.name,
+                "label": component.name,
+                "amount": totals_map.get(component.name, 0.0),
+            }
+        )
+
+    return summary

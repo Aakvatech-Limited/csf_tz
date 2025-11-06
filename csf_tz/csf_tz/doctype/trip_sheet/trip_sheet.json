@@ -1,0 +1,180 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "TS-.vehicle.-.####",
+  "creation": "2025-10-04 12:09:25.744664",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "section_break_6a9a",
+    "amended_from",
+    "vehicle",
+    "transporter_type",
+    "driver",
+    "driver_name",
+    "external_driver_name",
+    "start_km",
+    "end_km",
+    "fuel_consumed",
+    "column_break_bdjc",
+    "status",
+    "start_location",
+    "end_location",
+    "start_time",
+    "end_time",
+    "section_break_pqtf",
+    "trip_sheet_reference",
+    "item_reference"
+  ],
+  "fields": [
+    {
+      "fieldname": "section_break_6a9a",
+      "fieldtype": "Section Break"
+    },
+    {
+      "fieldname": "amended_from",
+      "fieldtype": "Link",
+      "label": "Amended From",
+      "no_copy": 1,
+      "options": "Trip Sheet",
+      "print_hide": 1,
+      "read_only": 1,
+      "search_index": 1
+    },
+    {
+      "fieldname": "vehicle",
+      "fieldtype": "Link",
+      "label": "Vehicle",
+      "options": "Vehicle"
+    },
+    {
+      "fieldname": "transporter_type",
+      "fieldtype": "Select",
+      "label": "Transporter Type",
+      "options": "Internal Transporter\nExternal Transporter"
+    },
+    {
+      "fieldname": "driver",
+      "fieldtype": "Link",
+      "label": "Driver",
+      "options": "Employee",
+      "depends_on": "eval:doc.transporter_type=='Internal Transporter'"
+    },
+    {
+      "fieldname": "driver_name",
+      "fieldtype": "Data",
+      "label": "Driver Name",
+      "fetch_from": "driver.employee_name",
+      "depends_on": "eval:doc.transporter_type=='Internal Transporter'"
+    },
+    {
+      "fieldname": "external_driver_name",
+      "fieldtype": "Data",
+      "label": "External Driver Name",
+      "depends_on": "eval:doc.transporter_type=='External Transporter'"
+    },
+    {
+      "fieldname": "start_location",
+      "fieldtype": "Data",
+      "label": "Start Location"
+    },
+    {
+      "fieldname": "start_km",
+      "fieldtype": "Float",
+      "label": "Start KM"
+    },
+    {
+      "fieldname": "end_km",
+      "fieldtype": "Float",
+      "label": "End KM"
+    },
+    {
+      "fieldname": "fuel_consumed",
+      "fieldtype": "Float",
+      "label": "Fuel Consumed"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Draft\nIn Transit\nCompleted"
+    },
+    {
+      "fieldname": "column_break_bdjc",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "end_location",
+      "fieldtype": "Data",
+      "label": "End Location"
+    },
+    {
+      "fieldname": "start_time",
+      "fieldtype": "Datetime",
+      "label": "Start Time"
+    },
+    {
+      "fieldname": "end_time",
+      "fieldtype": "Datetime",
+      "label": "End Time"
+    },
+    {
+      "fieldname": "trip_sheet_reference",
+      "fieldtype": "Table",
+      "label": "Trip sheet Reference",
+      "options": "Trip sheet References"
+    },
+    {
+      "fieldname": "item_reference",
+      "fieldtype": "Table",
+      "label": "Item Reference",
+      "options": "Trip Sheet Item Reference",
+      "read_only": 1
+    },
+    {
+      "fieldname": "section_break_pqtf",
+      "fieldtype": "Section Break"
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "is_submittable": 1,
+  "links": [],
+  "modified": "2025-10-08 15:39:25.097234",
+  "modified_by": "Administrator",
+  "module": "CSF TZ",
+  "name": "Trip Sheet",
+  "naming_rule": "Expression (old style)",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Logistic Master",
+      "share": 1,
+      "submit": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

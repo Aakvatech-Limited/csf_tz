@@ -6,6 +6,14 @@ from frappe.model.document import Document
 from erpnext.stock.get_item_details import get_valuation_rate
 
 class InterCompanyStockTransfer(Document):
+    def validate(self):
+        allow_inter_company_stock_transfer = frappe.db.get_value("CSF TZ Settings", "CSF TZ Settings", "allow_inter_company_stock_transfer")
+        if not allow_inter_company_stock_transfer:
+            frappe.throw("<b><h4>Inter Company Stock Transfer is not enabled, please contact system administrator</h4></b>")
+        if self.from_company == self.to_company:
+            frappe.throw("From and To Company cannot be same")
+
+
     def before_submit(self,warehouse=None):
         item_list_from, item_list_to = [], []
 

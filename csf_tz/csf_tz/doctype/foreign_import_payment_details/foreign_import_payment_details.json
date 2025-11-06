@@ -1,0 +1,97 @@
+{
+    "actions": [],
+    "creation": "2025-08-19 10:10:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "payment_entry",
+     "payment_date",
+     "column_break_1",
+     "payment_amount_foreign",
+     "payment_amount_base",
+     "section_break_rates",
+     "payment_exchange_rate",
+     "column_break_2",
+     "exchange_difference",
+     "journal_entry_created"
+    ],
+    "fields": [
+     {
+      "fieldname": "payment_entry",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Payment Entry",
+      "options": "Payment Entry",
+      "reqd": 1
+     },
+     {
+      "fetch_from": "payment_entry.posting_date",
+      "fieldname": "payment_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "Payment Date",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fetch_from": "payment_entry.paid_amount",
+      "fieldname": "payment_amount_foreign",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Payment Amount (Foreign)",
+      "read_only": 1
+     },
+     {
+      "fetch_from": "payment_entry.base_paid_amount",
+      "fieldname": "payment_amount_base",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Payment Amount (Base)",
+      "read_only": 1
+     },
+     {
+      "fieldname": "section_break_rates",
+      "fieldtype": "Section Break"
+     },
+     {
+      "fetch_from": "payment_entry.source_exchange_rate",
+      "fieldname": "payment_exchange_rate",
+      "fieldtype": "Float",
+      "label": "Payment Exchange Rate",
+      "precision": "9",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "exchange_difference",
+      "fieldtype": "Currency",
+      "label": "Exchange Difference",
+      "read_only": 1
+     },
+     {
+      "default": "0",
+      "fieldname": "journal_entry_created",
+      "fieldtype": "Check",
+      "label": "Journal Entry Created",
+      "read_only": 1
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "modified": "2025-08-19 10:10:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "Foreign Import Payment Details",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+   }

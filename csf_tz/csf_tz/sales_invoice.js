@@ -167,6 +167,70 @@ frappe.ui.form.on("Sales Invoice", {
       });
   },
 
+  // Write-off Journal Entry Feature
+  add_write_off_button: function (frm) {
+    // Check if feature is enabled and conditions are met
+    frappe.db
+      .get_single_value("CSF TZ Settings", "enable_write_off_jv_si")
+      .then((enable_write_off) => {
+        if (enable_write_off &&
+            frm.doc.docstatus === 1 &&
+            frm.doc.outstanding_amount > 0 &&
+            !frm.doc.is_return) {
+
+          frm.add_custom_button(__("Write Off Outstanding"), function () {
+            // Show dialog to select write-off account
+            let dialog = new frappe.ui.Dialog({
+              title: __("Write Off Outstanding Amount"),
+              fields: [
+                {
+                  fieldname: "write_off_account",
+                  label: __("Write Off Account"),
+                  fieldtype: "Link",
+                  options: "Account",
+                  reqd: 1,
+                  get_query: function() {
+                    return {
+                      filters: {
+                        "report_type": "Balance Sheet",
+                        "is_group": 0,
+                        "company": frm.doc.company
+                      }
+                    };
+                  }
+                },
+                {
+                  fieldname: "outstanding_amount",
+                  label: __("Outstanding Amount"),
+                  fieldtype: "Currency",
+                  default: frm.doc.outstanding_amount,
+                  read_only: 1
+                }
+              ],
+              primary_action_label: __("Create Write Off Entry"),
+              primary_action: function(values) {
+                frappe.call({
+                  method: "csf_tz.custom_api.create_write_off_jv_si",
+                  args: {
+                    sales_invoice: frm.doc.name,
+                    account: values.write_off_account
+                  },
+                  callback: function(r) {
+                    if (r.message) {
+                      frappe.msgprint(__("Write-off Journal Entry created: {0}", [r.message]));
+                      frm.reload_doc();
+                    }
+                  }
+                });
+                dialog.hide();
+              }
+            });
+            dialog.show();
+          }, __("Create"));
+        }
+      });
+  },
+
   custom_is_trade_in: function (frm) {
     if (frm.doc.custom_is_trade_in) {
       frappe.db
