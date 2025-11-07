@@ -1234,7 +1234,6 @@ def make_stock_reconciliation_for_all_pending_material_request(*args):
         return
     mat_req_list = get_pending_material_request()
     data = {}
-    frappe.throw(str(mat_req_list))
     for i in mat_req_list:
         mat_req_doc = frappe.get_doc("Material Request", i["name"])
 
