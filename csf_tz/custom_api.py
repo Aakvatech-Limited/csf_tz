@@ -1229,9 +1229,12 @@ def get_stock_balance_for(
 
 @frappe.whitelist()
 def make_stock_reconciliation_for_all_pending_material_request(*args):
+    auto_stock_reconciliation = frappe.db.get_value("CSF TZ Settings", "CSF TZ Settings", "auto_stock_reconciliation") or 0
+    if auto_stock_reconciliation != 1:
+        return
     mat_req_list = get_pending_material_request()
     data = {}
-
+    frappe.throw(str(mat_req_list))
     for i in mat_req_list:
         mat_req_doc = frappe.get_doc("Material Request", i["name"])
 
