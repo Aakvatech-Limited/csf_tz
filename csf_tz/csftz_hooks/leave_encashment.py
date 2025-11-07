@@ -1,215 +1,234 @@
 import frappe
 from frappe import _, bold
 from frappe.utils import cint, flt
-
-from hrms.hr.doctype.leave_encashment.leave_encashment import LeaveEncashment as HRMSLeaveEncashment
+from hrms.hr.doctype.leave_encashment.leave_encashment import (
+    LeaveEncashment as HRMSLeaveEncashment,
+)
 
 
 def validate_flags(doc, method=None):
-	if not _has_flag_fields(doc):
-		return
+    """Validate and auto-set is_deduction/is_earning flags."""
+    if not has_flag_fields(doc):
+        return
 
-	doc.is_deduction = cint(doc.is_deduction)
-	doc.is_earning = cint(doc.is_earning)
+    doc.is_deduction = cint(doc.is_deduction)
+    doc.is_earning = cint(doc.is_earning)
 
-	_auto_select_flags(doc)
-	_ensure_valid_selection(doc)
+    auto_select_flags(doc)
+    ensure_valid_selection(doc)
 
 
 def ensure_selection_before_submit(doc, method=None):
-	validate_flags(doc)
+    validate_flags(doc)
 
-	if not (getattr(doc, "is_deduction", 0) or getattr(doc, "is_earning", 0)):
-		frappe.throw(_("Please select either Is Deduction or Is Earning before submitting."))
-
-
-def _has_flag_fields(doc):
-	return hasattr(doc, "is_deduction") and hasattr(doc, "is_earning")
+    if not (getattr(doc, "is_deduction", 0) or getattr(doc, "is_earning", 0)):
+        frappe.throw(
+            _("Please select either Is Deduction or Is Earning before submitting.")
+        )
 
 
-def _ensure_valid_selection(doc):
-	if getattr(doc, "is_deduction", 0) and getattr(doc, "is_earning", 0):
-		frappe.throw(_("Select either Is Deduction or Is Earning, not both."))
+def has_flag_fields(doc):
+    return hasattr(doc, "is_deduction") and hasattr(doc, "is_earning")
 
 
-def _auto_select_flags(doc):
-	days = flt(getattr(doc, "encashment_days", 0))
-	amount = flt(getattr(doc, "encashment_amount", 0))
+def auto_select_flags(doc):
+    days = flt(getattr(doc, "encashment_days", 0))
+    amount = flt(getattr(doc, "encashment_amount", 0))
 
-	if days < 0 or (not days and amount < 0):
-		doc.is_deduction = 1
-		doc.is_earning = 0
-	elif days > 0 or amount > 0:
-		doc.is_deduction = 0
-		doc.is_earning = 1
-
-
-def _doc_has_fields(doc, fieldnames):
-	for field in fieldnames:
-		if hasattr(doc, field):
-			return True
-	return False
+    if days < 0 or (not days and amount < 0):
+        doc.is_deduction = 1
+        doc.is_earning = 0
+    elif days > 0 or amount > 0:
+        doc.is_deduction = 0
+        doc.is_earning = 1
 
 
-def _get_salary_component_from_doc(doc, fieldnames):
-	for field in fieldnames:
-		if hasattr(doc, field):
-			value = getattr(doc, field)
-			if value:
-				return value
-	return None
+def ensure_valid_selection(doc):
+    if getattr(doc, "is_deduction", 0) and getattr(doc, "is_earning", 0):
+        frappe.throw(_("Select either Is Deduction or Is Earning, not both."))
 
 
-def _get_salary_component_from_leave_type(leave_type, fieldnames):
-	for field in fieldnames:
-		if frappe.db.has_column("Leave Type", field):
-			value = frappe.db.get_value("Leave Type", leave_type, field)
-			if value:
-				return value
-	return None
+def get_salary_component(doc, purpose):
+    if purpose == "deduction":
+        doc_fields = ["deduction_salary_component", "salary_component_deduction"]
+        leave_type_fields = [
+            "deduction_salary_component",
+            "deduction_component",
+            "leave_encashment_deduction_component",
+        ]
+    else:
+        doc_fields = ["earning_salary_component", "salary_component_earning"]
+        leave_type_fields = ["earning_salary_component", "earning_component"]
+
+    component = get_value_from_fields(doc, doc_fields)
+    if component:
+        return component, _("Leave Encashment")
+
+    component = get_leave_type_value(doc.leave_type, leave_type_fields)
+    if component:
+        return component, _("Leave Type {0}").format(doc.leave_type)
+
+    source = (
+        _("Leave Encashment")
+        if has_any_field(doc, doc_fields)
+        else _("Leave Type {0}").format(doc.leave_type)
+    )
+    return None, source
 
 
-def _ensure_salary_component(name, abbr, component_type):
-	existing = frappe.db.exists("Salary Component", name)
-	if existing:
-		current_type = frappe.db.get_value("Salary Component", name, "type")
-		if current_type != component_type:
-			frappe.db.set_value("Salary Component", name, "type", component_type)
-		return name
-
-	doc = frappe.get_doc(
-		{
-			"doctype": "Salary Component",
-			"salary_component": name,
-			"salary_component_abbr": abbr,
-			"type": component_type,
-			"depends_on_payment_days": 0,
-			"statistical_component": 0,
-			"do_not_include_in_total": 0,
-		}
-	)
-	doc.insert(ignore_permissions=True)
-	return doc.name
+def get_value_from_fields(doc, fieldnames):
+    """Get first non-empty value from doc fields."""
+    for field in fieldnames:
+        if hasattr(doc, field):
+            value = getattr(doc, field)
+            if value:
+                return value
+    return None
 
 
-def _get_default_salary_component(purpose):
-	expected_type = "Deduction" if purpose == "deduction" else "Earning"
-
-	candidates = (
-		["Leave Encashment Deduction", "Leave Encashment - Deduction", "Leave Encashment (Deduction)"]
-		if purpose == "deduction"
-		else ["Leave Encashment"]
-	)
-
-	for candidate in candidates:
-		if frappe.db.exists("Salary Component", {"name": candidate, "type": expected_type}):
-			return candidate
-
-	if purpose == "deduction":
-		return _ensure_salary_component("Leave Encashment Deduction", "LED", expected_type)
-
-	if frappe.db.exists("Salary Component", {"name": "Leave Encashment", "type": expected_type}):
-		return "Leave Encashment"
-
-	return _ensure_salary_component("Leave Encashment", "LE", expected_type)
+def get_leave_type_value(leave_type, fieldnames):
+    """Get first non-empty value from leave type fields."""
+    for field in fieldnames:
+        if frappe.db.has_column("Leave Type", field):
+            value = frappe.db.get_value("Leave Type", leave_type, field)
+            if value:
+                return value
+    return None
 
 
-def _get_salary_component(doc, purpose):
-	if purpose == "deduction":
-		doc_fields = ["deduction_salary_component", "salary_component_deduction"]
-		leave_type_fields = ["deduction_salary_component", "deduction_component", "leave_encashment_deduction_component"]
-	else:
-		doc_fields = ["earning_salary_component", "salary_component_earning"]
-		leave_type_fields = ["earning_salary_component", "earning_component"]
-
-	component = _get_salary_component_from_doc(doc, doc_fields)
-	if component:
-		return component, _("Leave Encashment")
-
-	component = _get_salary_component_from_leave_type(doc.leave_type, leave_type_fields)
-	if component:
-		return component, _("Leave Type {0}").format(doc.leave_type)
-
-	source = _("Leave Encashment") if _doc_has_fields(doc, doc_fields) else _("Leave Type {0}").format(doc.leave_type)
-	return None, source
+def has_any_field(doc, fieldnames):
+    """Check if doc has any of the specified fields."""
+    return any(hasattr(doc, field) for field in fieldnames)
 
 
-_original_create_additional_salary = HRMSLeaveEncashment.create_additional_salary
-_original_before_submit = HRMSLeaveEncashment.before_submit
+def get_default_salary_component(purpose):
+    """Get or create default salary component."""
+    expected_type = "Deduction" if purpose == "deduction" else "Earning"
+
+    candidates = (
+        [
+            "Leave Encashment Deduction",
+            "Leave Encashment - Deduction",
+            "Leave Encashment (Deduction)",
+        ]
+        if purpose == "deduction"
+        else ["Leave Encashment"]
+    )
+
+    for candidate in candidates:
+        if frappe.db.exists(
+            "Salary Component", {"name": candidate, "type": expected_type}
+        ):
+            return candidate
+
+    name = (
+        "Leave Encashment Deduction" if purpose == "deduction" else "Leave Encashment"
+    )
+    abbr = "LED" if purpose == "deduction" else "LE"
+    return ensure_salary_component(name, abbr, expected_type)
 
 
-def _custom_create_additional_salary(self):
-	if not _has_flag_fields(self):
-		return _original_create_additional_salary(self)
+def ensure_salary_component(name, abbr, component_type):
+    if frappe.db.exists("Salary Component", name):
+        current_type = frappe.db.get_value("Salary Component", name, "type")
+        if current_type != component_type:
+            frappe.db.set_value("Salary Component", name, "type", component_type)
+        return name
 
-	is_deduction = cint(getattr(self, "is_deduction", 0))
-	is_earning_flag = cint(getattr(self, "is_earning", 0))
+    doc = frappe.get_doc(
+        {
+            "doctype": "Salary Component",
+            "salary_component": name,
+            "salary_component_abbr": abbr,
+            "type": component_type,
+            "depends_on_payment_days": 0,
+            "statistical_component": 0,
+            "do_not_include_in_total": 0,
+        }
+    )
+    doc.insert(ignore_permissions=True)
+    return doc.name
 
-	if is_deduction and is_earning_flag:
-		frappe.throw(_("Select either Is Deduction or Is Earning, not both."))
-
-	if not is_deduction and not is_earning_flag:
-		return _original_create_additional_salary(self)
-
-	component_type = "deduction" if is_deduction else "earning"
-	component, source = _get_salary_component(self, component_type)
-
-	if not component:
-		default_component = _get_default_salary_component(component_type)
-		if default_component:
-			component = default_component
-			source = _("Default Salary Component")
-		else:
-			raise_msg = _("Please set a Salary Component for {0} on {1}.").format(
-				_("Deduction") if component_type == "deduction" else _("Earning"),
-				source,
-			)
-			frappe.throw(raise_msg)
-
-	raw_amount = flt(self.encashment_amount)
-	amount = abs(raw_amount)
-
-	additional_salary = frappe.new_doc("Additional Salary")
-	additional_salary.company = self.company or frappe.get_value("Employee", self.employee, "company")
-	additional_salary.employee = self.employee
-	additional_salary.currency = self.currency
-	additional_salary.salary_component = component
-	additional_salary.type = "Deduction" if is_deduction else "Earning"
-	additional_salary.payroll_date = self.encashment_date
-	additional_salary.amount = amount
-	additional_salary.overwrite_salary_structure_amount = 0
-	additional_salary.ref_doctype = self.doctype
-	additional_salary.ref_docname = self.name
-	additional_salary.submit()
-
-	self.additional_salary = additional_salary.name
-	self.db_set("additional_salary", additional_salary.name)
-
-	return additional_salary
+original_before_submit = HRMSLeaveEncashment.before_submit
+original_on_submit = HRMSLeaveEncashment.on_submit
 
 
-HRMSLeaveEncashment.create_additional_salary = _custom_create_additional_salary
+def custom_before_submit(self):
+    """Custom before_submit to allow negative amounts for deductions."""
+    if self.encashment_amount is None:
+        frappe.throw(_("Encashment amount is required"))
+
+    amount = flt(self.encashment_amount)
+
+    if has_flag_fields(self):
+        validate_flags(self)
+
+        if self.is_deduction and amount < 0:
+            return
+
+        # Allow positive amounts for earnings
+        if self.is_earning and amount > 0:
+            # Call original validation for positive amounts
+            return original_before_submit(self)
+
+        # Zero or mismatched amounts
+        if (
+            amount == 0
+            or (self.is_deduction and amount > 0)
+            or (self.is_earning and amount < 0)
+        ):
+            frappe.throw(_("Invalid amount for selected encashment type"))
+    else:
+        # Standard behavior - only positive amounts
+        return original_before_submit(self)
 
 
-def _custom_before_submit(self):
-	if self.encashment_amount is None:
-		frappe.throw(_("Encashment amount is required before submitting."))
-
-	amount = flt(self.encashment_amount)
-	if _has_flag_fields(self):
-		self.is_deduction = cint(getattr(self, "is_deduction", 0))
-		self.is_earning = cint(getattr(self, "is_earning", 0))
-		_auto_select_flags(self)
-		_ensure_valid_selection(self)
-
-		if not (self.is_deduction or self.is_earning):
-			frappe.throw(_("Please select either Is Deduction or Is Earning before submitting."))
-
-		if amount < 0 and not self.is_deduction:
-			frappe.throw(_("Negative encashment requires {0} to be enabled.").format(bold(_("Is Deduction"))))
-
-	if amount > 0:
-		return _original_before_submit(self)
+def custom_on_submit(self):
+    """Custom on_submit to handle deductions and earnings."""
+    # Handle custom flags if present
+    if has_flag_fields(self):
+        create_custom_additional_salary(self)
+    else:
+        # Use original behavior
+        original_on_submit(self)
 
 
-HRMSLeaveEncashment.before_submit = _custom_before_submit
+def create_custom_additional_salary(doc):
+    """Create additional salary for deduction or earning."""
+    is_deduction = cint(getattr(doc, "is_deduction", 0))
+    component_type = "deduction" if is_deduction else "earning"
+
+    # Get salary component
+    component, source = get_salary_component(doc, component_type)
+    if not component:
+        component = get_default_salary_component(component_type)
+        if not component:
+            frappe.throw(
+                _("Please set a Salary Component for {0} on {1}.").format(
+                    _("Deduction") if is_deduction else _("Earning"), source
+                )
+            )
+
+    # Create additional salary
+    additional_salary = frappe.new_doc("Additional Salary")
+    additional_salary.company = doc.company or frappe.get_value(
+        "Employee", doc.employee, "company"
+    )
+    additional_salary.employee = doc.employee
+    additional_salary.currency = doc.currency
+    additional_salary.salary_component = component
+    additional_salary.type = "Deduction" if is_deduction else "Earning"
+    additional_salary.payroll_date = doc.encashment_date
+    additional_salary.amount = abs(flt(doc.encashment_amount))
+    additional_salary.overwrite_salary_structure_amount = 0
+    additional_salary.ref_doctype = doc.doctype
+    additional_salary.ref_docname = doc.name
+    additional_salary.submit()
+
+    doc.additional_salary = additional_salary.name
+    doc.db_set("additional_salary", additional_salary.name)
+
+
+# Apply monkey patches
+HRMSLeaveEncashment.before_submit = custom_before_submit
+HRMSLeaveEncashment.on_submit = custom_on_submit

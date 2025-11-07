@@ -251,7 +251,6 @@ doc_events = {
     },
     "Leave Encashment": {
         "validate": "csf_tz.csftz_hooks.leave_encashment.validate_flags",
-        "before_submit": "csf_tz.csftz_hooks.leave_encashment.ensure_selection_before_submit",
     },
     "Additional Salary": {
         "on_submit": "csf_tz.csftz_hooks.additional_salary.create_additional_salary_journal",
