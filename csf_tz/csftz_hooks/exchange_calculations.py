@@ -61,12 +61,23 @@ def link_lcv_to_import_tracker(doc, method):
         return
     
     for pr_row in doc.purchase_receipts:
+        receipt_doc = pr_row.get("receipt_document") or pr_row.get("purchase_receipt")
+        if not receipt_doc:
+            continue
+
         # Find related purchase invoice through purchase receipt
-        pi_items = frappe.db.sql("""
-            SELECT DISTINCT pii.parent as purchase_invoice
-            FROM `tabPurchase Invoice Item` pii
-            WHERE pii.purchase_receipt = %s
-        """, pr_row.purchase_receipt, as_dict=True)
+        if pr_row.get("receipt_document_type") == "Purchase Invoice":
+            pi_items = [{"purchase_invoice": receipt_doc}]
+        else:
+            pi_items = frappe.db.sql(
+                """
+                SELECT DISTINCT pii.parent as purchase_invoice
+                FROM `tabPurchase Invoice Item` pii
+                WHERE pii.purchase_receipt = %s
+            """,
+                receipt_doc,
+                as_dict=True,
+            )
         
         for pi_item in pi_items:
             tracker_name = frappe.db.get_value("Foreign Import Transaction", 
@@ -541,4 +552,3 @@ def manually_link_payment_to_tracker(payment_entry_name, tracker_name=None):
     except Exception as e:
         frappe.log_error(f"Error manually linking payment {payment_entry_name} to tracker {tracker_name}: {str(e)}")
         return {"error": str(e)}
-
