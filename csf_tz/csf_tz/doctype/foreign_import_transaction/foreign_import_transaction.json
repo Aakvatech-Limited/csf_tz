@@ -129,12 +129,14 @@
       "fieldtype": "Column Break"
      },
      {
+      "allow_on_submit": 1,
       "fieldname": "total_gain_loss",
       "fieldtype": "Currency",
       "label": "Total Gain/Loss",
       "read_only": 1
      },
      {
+      "allow_on_submit": 1,
       "fieldname": "net_difference",
       "fieldtype": "Currency",
       "label": "Net Difference",
@@ -146,6 +148,7 @@
       "label": "Landed Cost Vouchers"
      },
      {
+      "allow_on_submit": 1,
       "fieldname": "landed_cost_vouchers",
       "fieldtype": "Table",
       "label": "Landed Cost Vouchers",
@@ -157,6 +160,7 @@
       "label": "Payments"
      },
      {
+      "allow_on_submit": 1,
       "fieldname": "payments",
       "fieldtype": "Table",
       "label": "Payment Details",
@@ -168,6 +172,7 @@
       "label": "Exchange Differences"
      },
      {
+      "allow_on_submit": 1,
       "fieldname": "exchange_differences",
       "fieldtype": "Table",
       "label": "Exchange Difference Details",
