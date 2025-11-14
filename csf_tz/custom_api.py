@@ -3104,3 +3104,136 @@ def create_write_off_jv_si(sales_invoice, account):
     frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
 
     return jv.name
+
+
+@frappe.whitelist()
+def create_write_off_jv_pi(purchase_invoice, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_pi", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    pi = frappe.get_doc("Purchase Invoice", purchase_invoice)
+
+    if not pi.outstanding_amount or pi.outstanding_amount <= 0:
+        frappe.throw("No outstanding amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = pi.company
+    jv.posting_date = pi.posting_date
+
+    # Handle exchange rate
+    exchange_rate = flt(pi.conversion_rate or 1)
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # DEBIT - Creditors account
+    jv.append("accounts", {
+        "account": pi.credit_to,
+        "debit_in_account_currency": flt(pi.outstanding_amount),
+        "party_type": "Supplier",
+        "party": pi.supplier,
+        "reference_type": "Purchase Invoice",
+        "reference_name": pi.name,
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    # CREDIT - Write Off account (no reference!)
+    jv.append("accounts", {
+        "account": account,
+        "credit_in_account_currency": flt(pi.outstanding_amount),
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Purchase Invoice", pi.name, "outstanding_amount", 0)
+
+    return jv.name
+
+
+@frappe.whitelist()
+def create_write_off_jv_pe(payment_entry, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_pe", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    pe = frappe.get_doc("Payment Entry", payment_entry)
+
+    if not pe.unallocated_amount or pe.unallocated_amount <= 0:
+        frappe.throw("No unallocated amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = pe.company
+    jv.posting_date = pe.posting_date
+
+    # Handle exchange rate - Payment Entry uses paid_from_account_currency or paid_to_account_currency
+    exchange_rate = 1
+    if pe.payment_type == "Receive":
+        exchange_rate = flt(pe.source_exchange_rate or 1)
+    else:
+        exchange_rate = flt(pe.target_exchange_rate or 1)
+
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # Determine the party account based on payment type
+    if pe.payment_type == "Receive":
+        party_account = pe.paid_from
+        party_type = "Customer"
+        party = pe.party if pe.party_type == "Customer" else None
+    else:  # Pay
+        party_account = pe.paid_to
+        party_type = "Supplier"
+        party = pe.party if pe.party_type == "Supplier" else None
+
+    # DEBIT - Party account (if Receive) or CREDIT - Party account (if Pay)
+    if pe.payment_type == "Receive":
+        jv.append("accounts", {
+            "account": party_account,
+            "debit_in_account_currency": flt(pe.unallocated_amount),
+            "party_type": party_type,
+            "party": party,
+            "reference_type": "Payment Entry",
+            "reference_name": pe.name,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+    else:
+        jv.append("accounts", {
+            "account": party_account,
+            "credit_in_account_currency": flt(pe.unallocated_amount),
+            "party_type": party_type,
+            "party": party,
+            "reference_type": "Payment Entry",
+            "reference_name": pe.name,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+
+    # CREDIT - Write Off account (if Receive) or DEBIT - Write Off account (if Pay)
+    if pe.payment_type == "Receive":
+        jv.append("accounts", {
+            "account": account,
+            "credit_in_account_currency": flt(pe.unallocated_amount),
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+    else:
+        jv.append("accounts", {
+            "account": account,
+            "debit_in_account_currency": flt(pe.unallocated_amount),
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Payment Entry", pe.name, "unallocated_amount", 0)
+
+    return jv.name

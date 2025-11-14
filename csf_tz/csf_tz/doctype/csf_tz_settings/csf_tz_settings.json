@@ -27,6 +27,8 @@
   "target_warehouse_based_price_list",
   "enable_write_off_jv_si",
   "auto_stock_reconciliation",
+  "enable_write_off_jv_pi",
+  "enable_write_off_jv_pe",
   "section_break_8",
   "sle_gle_reposting_start_date",
   "column_break_10",
@@ -358,19 +360,31 @@
    "default": "0",
    "fieldname": "enable_write_off_jv_si",
    "fieldtype": "Check",
-   "label": "Enable Write Off Jornal Entry Sales Invoice"
+   "label": "Enable Write Off Journal Entry Sales Invoice"
   },
   {
    "default": "0",
    "fieldname": "auto_stock_reconciliation",
    "fieldtype": "Check",
    "label": "Allow auto creation of stock reconciliation from material request"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_pi",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Journal Entry Purchase Invoice"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_pe",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Journal Entry Payment Entry"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-07 09:32:27.713073",
+ "modified": "2025-11-14 07:19:24.947494",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",

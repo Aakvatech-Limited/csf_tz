@@ -66,6 +66,7 @@ frappe.ui.form.on("Purchase Invoice", {
             });
             }
         });
+        frm.trigger("add_write_off_button");
     },
     onload: function(frm){
         frm.dimensions.forEach(i => {
@@ -77,6 +78,76 @@ frappe.ui.form.on("Purchase Invoice", {
                 frm.refresh_field("items");
             });
         });
+    },
+
+    // Write-off Journal Entry Feature
+    add_write_off_button: function (frm) {
+        // Check if feature is enabled and conditions are met
+        frappe.db
+            .get_single_value("CSF TZ Settings", "enable_write_off_jv_pe")
+            .then((enable_write_off) => {
+                if (enable_write_off &&
+                    frm.doc.docstatus === 1 &&
+                    frm.doc.outstanding_amount > 0 &&
+                    !frm.doc.is_return) {
+
+                    frm.add_custom_button(__("Write Off Outstanding"), function () {
+                        // Fetch the write-off account from Company before showing the dialog
+                        frappe.db.get_value("Company", frm.doc.company, "write_off_account").then(function(r) {
+                            let write_off_account = r.message ? r.message.write_off_account : null;
+
+                            // Show dialog to select write-off account
+                            let dialog = new frappe.ui.Dialog({
+                                title: __("Write Off Outstanding Amount"),
+                                fields: [
+                                    {
+                                        fieldname: "write_off_account",
+                                        label: __("Write Off Account"),
+                                        fieldtype: "Link",
+                                        options: "Account",
+                                        "default": write_off_account,
+                                        reqd: 1,
+                                        get_query: function() {
+                                            return {
+                                                filters: {
+                                                    "report_type": "Balance Sheet",
+                                                    "is_group": 0,
+                                                    "company": frm.doc.company
+                                                }
+                                            };
+                                        }
+                                    },
+                                    {
+                                        fieldname: "outstanding_amount",
+                                        label: __("Outstanding Amount"),
+                                        fieldtype: "Currency",
+                                        default: frm.doc.outstanding_amount,
+                                        read_only: 1
+                                    }
+                                ],
+                                primary_action_label: __("Create Write Off Entry"),
+                                primary_action: function(values) {
+                                    frappe.call({
+                                        method: "csf_tz.custom_api.create_write_off_jv_pi",
+                                        args: {
+                                            purchase_invoice: frm.doc.name,
+                                            account: values.write_off_account
+                                        },
+                                        callback: function(r) {
+                                            if (r.message) {
+                                                frappe.msgprint(__("Write-off Journal Entry created: {0}", [r.message]));
+                                                frm.reload_doc();
+                                            }
+                                        }
+                                    });
+                                    dialog.hide();
+                                }
+                            });
+                            dialog.show();
+                        });
+                    }, __("Create"));
+                }
+            });
     },
 
 });
