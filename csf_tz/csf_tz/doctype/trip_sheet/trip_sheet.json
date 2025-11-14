@@ -122,7 +122,7 @@
       "fieldname": "trip_sheet_reference",
       "fieldtype": "Table",
       "label": "Trip sheet Reference",
-      "options": "Trip sheet References"
+      "options": "Trip Sheet References"
     },
     {
       "fieldname": "item_reference",
