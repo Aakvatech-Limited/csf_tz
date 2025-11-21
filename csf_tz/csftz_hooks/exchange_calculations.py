@@ -81,7 +81,7 @@ def link_lcv_to_import_tracker(doc, method):
         
         for pi_item in pi_items:
             tracker_name = frappe.db.get_value("Foreign Import Transaction", 
-                {"purchase_invoice": pi_item.purchase_invoice}, "name")
+                {"purchase_invoice": pi_item["purchase_invoice"]}, "name")
             
             if tracker_name:
                 try:
