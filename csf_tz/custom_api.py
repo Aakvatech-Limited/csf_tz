@@ -918,6 +918,9 @@ def validate_item_remaining_qty(
 
 
 def validate_items_remaining_qty(doc, method):
+    if not getattr(doc, "update_stock", False):
+        return
+
     for item in doc.items:
         if not item.allow_over_sell and not (item.so_detail and item.delivery_note):
             validate_item_remaining_qty(
