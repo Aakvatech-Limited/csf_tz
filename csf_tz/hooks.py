@@ -66,6 +66,7 @@ doctype_js = {
     "Employee Advance": "csf_tz/employee_advance.js",
     "Employee": "csf_tz/employee_contact_qr.js",
     "Material Request": "csf_tz/material_request.js",
+    "Journal Entry": "csf_tz/journal_entry.js",
 }
 doctype_list_js = {
     "Custom Field": "csf_tz/custom_field.js",
@@ -180,9 +181,19 @@ doc_events = {
             "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
         ],
         "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
+        "validate": "csf_tz.budget_check.validate_budget_on_draft",
     },
     "Purchase Order": {
-        "validate": "csf_tz.custom_api.target_warehouse_based_price_list",
+        "validate": [
+            "csf_tz.custom_api.target_warehouse_based_price_list",
+            "csf_tz.budget_check.validate_budget_on_draft",
+        ],
+    },
+    "Material Request": {
+        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+    },
+    "Journal Entry": {
+        "validate": "csf_tz.budget_check.validate_budget_on_draft",
     },
     "Fees": {
         "before_insert": "csf_tz.custom_api.set_fee_abbr",

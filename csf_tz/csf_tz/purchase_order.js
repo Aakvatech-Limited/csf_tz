@@ -21,6 +21,8 @@ frappe.ui.form.on("Purchase Order", {
             }
         });
     },
+    // Budget check for Purchase Order is now handled server-side via doc_events hooks
+    // See apps/csf_tz/csf_tz/hooks.py and apps/csf_tz/csf_tz/budget_check.py
     supplier: function (frm) {
         setTimeout(function () {
             if (!frm.doc.tax_category) {
