@@ -33,6 +33,12 @@
   "sle_gle_reposting_start_date",
   "column_break_10",
   "start_sle_gle_reporting",
+  "budget_check_settings_section",
+  "enable_budget_check_button_for_journal_entry",
+  "enable_budget_check_button_for_material_request",
+  "column_break_budget_check",
+  "enable_budget_check_button_for_purchase_order",
+  "enable_budget_check_button_for_purchase_invoice",
   "trade_in_settings_section",
   "enable_trade_in",
   "sales_invoice_qty_settings_section",
@@ -308,6 +314,44 @@
    "label": "Override Sales Invoice Qty"
   },
   {
+   "collapsible": 1,
+   "fieldname": "budget_check_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Budget Check Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable 'Check Budget' button in Journal Entry form when document is in draft status",
+   "fieldname": "enable_budget_check_button_for_journal_entry",
+   "fieldtype": "Check",
+   "label": "Enable Budget Check Button for Journal Entry"
+  },
+  {
+   "default": "0",
+   "description": "Enable 'Check Budget' button in Material Request form when document is in draft status",
+   "fieldname": "enable_budget_check_button_for_material_request",
+   "fieldtype": "Check",
+   "label": "Enable Budget Check Button for Material Request"
+  },
+  {
+   "fieldname": "column_break_budget_check",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enable 'Check Budget' button in Purchase Order form when document is in draft status",
+   "fieldname": "enable_budget_check_button_for_purchase_order",
+   "fieldtype": "Check",
+   "label": "Enable Budget Check Button for Purchase Order"
+  },
+  {
+   "default": "0",
+   "description": "Enable 'Check Budget' button in Purchase Invoice form when document is in draft status",
+   "fieldname": "enable_budget_check_button_for_purchase_invoice",
+   "fieldtype": "Check",
+   "label": "Enable Budget Check Button for Purchase Invoice"
+  },
+  {
    "fieldname": "trade_in_settings_section",
    "fieldtype": "Section Break",
    "label": "Trade In Settings"
@@ -384,7 +428,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-14 07:19:24.947494",
+ "modified": "2025-11-25 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
