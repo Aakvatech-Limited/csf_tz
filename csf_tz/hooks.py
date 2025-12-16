@@ -17,6 +17,7 @@ required_apps = ["frappe/erpnext", "frappe/hrms"]
 override_doctype_class = {
     "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
     "Additional Salary": "csf_tz.overrides.additional_salary.AdditionalSalary",
+    "Leave Encashment": "csf_tz.overrides.leave_encashment.LeaveEncashment",
 }
 
 # Includes in <head>
