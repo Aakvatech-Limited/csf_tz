@@ -181,9 +181,18 @@ doc_events = {
             "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
         ],
         "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": "csf_tz.custom_api.target_warehouse_based_price_list",
+        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
+                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
+        ],
+    },
+    "Material Request": {
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
+    },
+    "Journal Entry": {
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_journal_entry",
     },
     "Fees": {
         "before_insert": "csf_tz.custom_api.set_fee_abbr",
