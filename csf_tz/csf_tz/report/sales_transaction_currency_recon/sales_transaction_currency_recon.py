@@ -1,6 +1,3 @@
-# Copyright (c) 2025, Aakvatech and contributors
-# For license information, please see license.txt
-
 import frappe
 from frappe.utils import flt
 
@@ -15,7 +12,7 @@ def execute(filters=None):
     if filters.get("view") == "Grouped by Customer":
         rows = group_by_customer(rows)
 
-    # recompute deltas (especially after grouping)
+    # Differences MUST ALWAYS be in company currency
     for r in rows:
         r["ordered_minus_received"] = flt(r.get("ordered_amount_company")) - flt(r.get("received_amount_company"))
         r["ordered_minus_billed"] = flt(r.get("ordered_amount_company")) - flt(r.get("billed_amount_company"))
@@ -76,26 +73,28 @@ def get_columns(filters):
             "options": "company_currency",
             "width": 170,
         },
+
+        # IMPORTANT: Differences ALWAYS in company currency
         {
-            "label": "Ordered - Received (Txn)",
+            "label": "Ordered - Received (Company)",
             "fieldname": "ordered_minus_received",
             "fieldtype": "Currency",
-            "options": "currency",
-            "width": 180,
+            "options": "company_currency",
+            "width": 190,
         },
         {
-            "label": "Ordered - Billed (Txn)",
+            "label": "Ordered - Billed (Company)",
             "fieldname": "ordered_minus_billed",
             "fieldtype": "Currency",
-            "options": "currency",
-            "width": 180,
+            "options": "company_currency",
+            "width": 190,
         },
         {
-            "label": "Billed - Received (Txn)",
+            "label": "Billed - Received (Company)",
             "fieldname": "billed_minus_received",
             "fieldtype": "Currency",
-            "options": "currency",
-            "width": 180,
+            "options": "company_currency",
+            "width": 190,
         },
     ]
 
@@ -103,12 +102,13 @@ def get_columns(filters):
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
         {"label": "Doc Type", "fieldname": "doc_type", "fieldtype": "Data", "width": 130},
         {"label": "Doc No", "fieldname": "doc_no", "fieldtype": "Dynamic Link", "options": "doc_type", "width": 180},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
         {"label": "Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
         {"label": "Currency", "fieldname": "currency", "fieldtype": "Link", "options": "Currency", "width": 90},
         {"label": "Company Currency", "fieldname": "company_currency", "fieldtype": "Link", "options": "Currency", "width": 120},
         {"label": "Exchange Rate", "fieldname": "exchange_rate", "fieldtype": "Float", "width": 110},
         {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 140},
-        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
+        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 220},
         *currency_fields,
     ]
 
@@ -118,38 +118,62 @@ def get_rows(filters):
     company_currency = frappe.get_cached_value("Company", company, "default_currency")
 
     rows = []
+
+    # Sales Order lines + tax row(s)
     rows.extend(get_sales_order_rows(filters, company_currency))
+    rows.extend(get_sales_order_tax_rows(filters, company_currency))
+
+    # Sales Invoice lines + tax row(s)
     rows.extend(get_sales_invoice_rows(filters, company_currency))
+    rows.extend(get_sales_invoice_tax_rows(filters, company_currency))
+
+    # Payments
     rows.extend(get_payment_rows(filters, company_currency))
 
-    # Optional: sort by date then doc
     rows.sort(key=lambda r: (r.get("posting_date") or "", r.get("doc_type") or "", r.get("doc_no") or ""))
     return rows
 
 
 def get_sales_order_rows(filters, company_currency):
-    conditions, values = get_common_conditions(filters, date_field="so.transaction_date", customer_field="so.customer")
+    conditions, values = get_common_conditions(
+        filters,
+        date_field="so.transaction_date",
+        customer_field="so.customer",
+        company_field="so.company",
+    )
 
-    # Sales Order Item amounts:
-    # - Transaction currency: soi.net_amount
-    # - Company currency: soi.base_net_amount
     q = f"""
         SELECT
             so.customer AS customer,
             'Sales Order' AS doc_type,
             so.name AS doc_no,
+            so.status AS status,
             so.transaction_date AS posting_date,
             so.currency AS currency,
             %(company_currency)s AS company_currency,
             so.conversion_rate AS exchange_rate,
             soi.item_code AS item_code,
             soi.item_name AS item_name,
-            soi.net_amount AS ordered_amount,
-            soi.base_net_amount AS ordered_amount_company,
+
+            -- Ordered Amount (Txn)
+            CASE
+                WHEN so.status = 'Closed'
+                    THEN soi.net_amount * (IFNULL(so.per_billed, 0) / 100)
+                ELSE soi.net_amount
+            END AS ordered_amount,
+
+            -- Ordered Amount (Company)
+            CASE
+                WHEN so.status = 'Closed'
+                    THEN soi.base_net_amount * (IFNULL(so.per_billed, 0) / 100)
+                ELSE soi.base_net_amount
+            END AS ordered_amount_company,
+
             0 AS received_amount,
             0 AS received_amount_company,
             0 AS billed_amount,
             0 AS billed_amount_company
+
         FROM `tabSales Order` so
         INNER JOIN `tabSales Order Item` soi ON soi.parent = so.name
         WHERE so.docstatus = 1
@@ -159,18 +183,67 @@ def get_sales_order_rows(filters, company_currency):
     return frappe.db.sql(q, values, as_dict=True)
 
 
-def get_sales_invoice_rows(filters, company_currency):
-    conditions, values = get_common_conditions(filters, date_field="si.posting_date", customer_field="si.customer")
+def get_sales_order_tax_rows(filters, company_currency):
+    conditions, values = get_common_conditions(
+        filters,
+        date_field="so.transaction_date",
+        customer_field="so.customer",
+        company_field="so.company",
+    )
 
-    # Sales Invoice Item amounts:
-    # - Transaction currency: sii.net_amount
-    # - Company currency: sii.base_net_amount
-    # Note: returns (credit notes) are part of Sales Invoice with is_return=1; net_amount will typically be negative.
+    q = f"""
+        SELECT
+            so.customer AS customer,
+            'Sales Order' AS doc_type,
+            so.name AS doc_no,
+            so.status AS status,
+            so.transaction_date AS posting_date,
+            so.currency AS currency,
+            %(company_currency)s AS company_currency,
+            so.conversion_rate AS exchange_rate,
+            NULL AS item_code,
+            'TOTAL TAXES AND CHARGES' AS item_name,
+
+            CASE
+                WHEN so.status = 'Closed'
+                    THEN so.total_taxes_and_charges * (IFNULL(so.per_billed, 0) / 100)
+                ELSE so.total_taxes_and_charges
+            END AS ordered_amount,
+
+            CASE
+                WHEN so.status = 'Closed'
+                    THEN so.base_total_taxes_and_charges * (IFNULL(so.per_billed, 0) / 100)
+                ELSE so.base_total_taxes_and_charges
+            END AS ordered_amount_company,
+
+            0 AS received_amount,
+            0 AS received_amount_company,
+            0 AS billed_amount,
+            0 AS billed_amount_company
+
+        FROM `tabSales Order` so
+        WHERE so.docstatus = 1
+          AND IFNULL(so.total_taxes_and_charges, 0) != 0
+          AND {conditions}
+    """
+    values["company_currency"] = company_currency
+    return frappe.db.sql(q, values, as_dict=True)
+
+
+def get_sales_invoice_rows(filters, company_currency):
+    conditions, values = get_common_conditions(
+        filters,
+        date_field="si.posting_date",
+        customer_field="si.customer",
+        company_field="si.company",
+    )
+
     q = f"""
         SELECT
             si.customer AS customer,
             'Sales Invoice' AS doc_type,
             si.name AS doc_no,
+            si.status AS status,
             si.posting_date AS posting_date,
             si.currency AS currency,
             %(company_currency)s AS company_currency,
@@ -192,48 +265,78 @@ def get_sales_invoice_rows(filters, company_currency):
     return frappe.db.sql(q, values, as_dict=True)
 
 
-def get_payment_rows(filters, company_currency):
-    # We use Payment Entry Reference to relate payments to Sales Invoices (most common reconciliation use case).
-    # Sign convention requested:
-    # - received = negative value if received
-    # - received = positive value if refunded
-    #
-    # Mapping:
-    # - Payment Entry.payment_type = 'Receive' => received money => negative
-    # - Payment Entry.payment_type = 'Pay' => refund money => positive
-    #
-    # Amount selection:
-    # - per reference: `tabPayment Entry Reference`.`allocated_amount`
-    # - company currency: allocated_amount * exchange_rate (best-effort)
-    #
-    # If your setup uses multi-currency bank accounts heavily, you may want to enhance this using
-    # paid_from_account_currency/paid_to_account_currency and base_* fields.
-    conditions, values = get_common_conditions(filters, date_field="pe.posting_date", customer_field="pe.party")
+def get_sales_invoice_tax_rows(filters, company_currency):
+    """Adds tax row per Sales Invoice since payments clear debtors inclusive of tax."""
+    conditions, values = get_common_conditions(
+        filters,
+        date_field="si.posting_date",
+        customer_field="si.customer",
+        company_field="si.company",
+    )
 
+    q = f"""
+        SELECT
+            si.customer AS customer,
+            'Sales Invoice' AS doc_type,
+            si.name AS doc_no,
+            si.status AS status,
+            si.posting_date AS posting_date,
+            si.currency AS currency,
+            %(company_currency)s AS company_currency,
+            si.conversion_rate AS exchange_rate,
+            NULL AS item_code,
+            'TOTAL TAXES AND CHARGES' AS item_name,
+            0 AS ordered_amount,
+            0 AS ordered_amount_company,
+            0 AS received_amount,
+            0 AS received_amount_company,
+            si.total_taxes_and_charges AS billed_amount,
+            si.base_total_taxes_and_charges AS billed_amount_company
+        FROM `tabSales Invoice` si
+        WHERE si.docstatus = 1
+          AND IFNULL(si.total_taxes_and_charges, 0) != 0
+          AND {conditions}
+    """
+    values["company_currency"] = company_currency
+    return frappe.db.sql(q, values, as_dict=True)
+
+
+def get_payment_rows(filters, company_currency):
+    conditions, values = get_common_conditions(
+        filters,
+        date_field="pe.posting_date",
+        customer_field="pe.party",
+        company_field="pe.company",
+    )
+
+    # IMPORTANT SIGN CHANGE:
+    # - Receive -> positive
+    # - Pay (refund) -> negative
     q = f"""
         SELECT
             pe.party AS customer,
             'Payment Entry' AS doc_type,
             pe.name AS doc_no,
+            pe.status AS status,
             pe.posting_date AS posting_date,
             pe.paid_from_account_currency AS currency,
             %(company_currency)s AS company_currency,
             pe.source_exchange_rate AS exchange_rate,
             NULL AS item_code,
-            per.reference_name AS item_name,
+            NULL AS item_name,
             0 AS ordered_amount,
             0 AS ordered_amount_company,
             (
                 CASE
-                    WHEN pe.payment_type = 'Receive' THEN -per.allocated_amount
-                    WHEN pe.payment_type = 'Pay' THEN per.allocated_amount
+                    WHEN pe.payment_type = 'Receive' THEN per.allocated_amount
+                    WHEN pe.payment_type = 'Pay' THEN -per.allocated_amount
                     ELSE 0
                 END
             ) AS received_amount,
             (
                 CASE
-                    WHEN pe.payment_type = 'Receive' THEN -per.allocated_amount * IFNULL(pe.source_exchange_rate, 1)
-                    WHEN pe.payment_type = 'Pay' THEN  per.allocated_amount * IFNULL(pe.source_exchange_rate, 1)
+                    WHEN pe.payment_type = 'Receive' THEN per.allocated_amount * IFNULL(pe.source_exchange_rate, 1)
+                    WHEN pe.payment_type = 'Pay' THEN -per.allocated_amount * IFNULL(pe.source_exchange_rate, 1)
                     ELSE 0
                 END
             ) AS received_amount_company,
@@ -250,7 +353,7 @@ def get_payment_rows(filters, company_currency):
     return frappe.db.sql(q, values, as_dict=True)
 
 
-def get_common_conditions(filters, date_field, customer_field):
+def get_common_conditions(filters, date_field, customer_field, company_field):
     conditions = [f"{date_field} BETWEEN %(from_date)s AND %(to_date)s"]
     values = {
         "from_date": filters.from_date,
@@ -262,11 +365,7 @@ def get_common_conditions(filters, date_field, customer_field):
         values["customer"] = filters.customer
 
     if filters.get("company"):
-        # Each doctype uses company field name:
-        # - Sales Order: company
-        # - Sales Invoice: company
-        # - Payment Entry: company
-        conditions.append("company = %(company)s")
+        conditions.append(f"{company_field} = %(company)s")
         values["company"] = filters.company
 
     return " AND ".join(conditions), values
@@ -283,9 +382,9 @@ def group_by_customer(rows):
                 "doc_type": "Grouped",
                 "doc_no": None,
                 "posting_date": None,
-                "currency": None,          # mixed possibly; leaving blank is safest
+                "currency": None,
                 "company_currency": r.get("company_currency"),
-                "exchange_rate": None,     # mixed
+                "exchange_rate": None,
                 "item_code": None,
                 "item_name": None,
                 "ordered_amount": 0,
