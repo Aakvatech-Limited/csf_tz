@@ -48,18 +48,6 @@ class CSFTZBankCharges(Document):
             self.ref_pi = pi.name
             frappe.msgprint(f"PI {pi.name} created successfully")
 
-            self.invoices = [
-                {
-                    "invoice_type": pi.doctype,
-                    "invoice_number": pi.name,
-                    "invoice_date": pi.posting_date,
-                    "amount": pi.grand_total,
-                    "outstanding_amount": pi.outstanding_amount,
-                    "currency": pi.currency,
-                    "exchange_rate": self.exchange_rate,
-                }
-            ]
-            self.payment_reconcile()
         except Exception as e:
             frappe.throw(_("Error while creating Purchase Invoice: {0}").format(str(e)))
 
