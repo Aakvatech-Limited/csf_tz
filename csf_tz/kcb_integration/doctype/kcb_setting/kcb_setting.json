@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-11 14:36:52.985506",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "api_urls_section",
+  "token_url",
+  "file_details_submission_url",
+  "file_upload_url",
+  "file_status_check_url",
+  "section_break_knlg",
+  "api_base_url",
+  "username",
+  "password",
+  "partner_code",
+  "processor_code",
+  "subsidiary_code",
+  "template_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "api_urls_section",
+   "fieldtype": "Section Break",
+   "label": "API URL's"
+  },
+  {
+   "fieldname": "token_url",
+   "fieldtype": "Data",
+   "label": "Token URL"
+  },
+  {
+   "fieldname": "file_details_submission_url",
+   "fieldtype": "Data",
+   "label": "File Details Submission URL"
+  },
+  {
+   "fieldname": "file_upload_url",
+   "fieldtype": "Data",
+   "label": "File Upload URL"
+  },
+  {
+   "fieldname": "file_status_check_url",
+   "fieldtype": "Data",
+   "label": "File Status Check URL"
+  },
+  {
+   "fieldname": "section_break_knlg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "API Username"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "API Password"
+  },
+  {
+   "fieldname": "partner_code",
+   "fieldtype": "Data",
+   "label": "Partner Code"
+  },
+  {
+   "fieldname": "processor_code",
+   "fieldtype": "Data",
+   "label": "Processor Code"
+  },
+  {
+   "fieldname": "subsidiary_code",
+   "fieldtype": "Data",
+   "label": "Subsidiary Code"
+  },
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Template Name"
+  },
+  {
+   "fieldname": "api_base_url",
+   "fieldtype": "Data",
+   "label": "API Base URL"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-12 00:06:18.881657",
+ "modified_by": "Administrator",
+ "module": "KCB Integration",
+ "name": "KCB Setting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
