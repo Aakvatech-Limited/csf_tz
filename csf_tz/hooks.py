@@ -29,6 +29,7 @@ app_include_js = [
     "/assets/js/to_console.min.js",
     "/assets/js/jobcards.min.js",
     "/assets/csf_tz/node_modules/vuetify/dist/vuetify.js",
+    "/assets/csf_tz/js/override_link.js",
 ]
 
 app_include_css = "/assets/csf_tz/css/theme.css"
