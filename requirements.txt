@@ -9,3 +9,4 @@ PyPDF3
 qrcode
 pandas
 openai
+gnupg
