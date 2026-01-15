@@ -14,8 +14,6 @@
   "total_amount",
   "section_break_tgdt",
   "remarks",
-  "source_doctype",
-  "source_names",
   "kcb_payments_initiation_info",
   "section_break_uzpa",
   "amended_from",
@@ -95,19 +93,6 @@
    "fieldname": "remarks",
    "fieldtype": "Small Text",
    "label": "Remarks"
-  },
-  {
-   "fieldname": "source_doctype",
-   "fieldtype": "Link",
-   "label": "Source Doctype",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "source_names",
-   "fieldtype": "Small Text",
-   "label": "Source Names",
-   "read_only": 1
   },
   {
    "fieldname": "section_break_tgdt",

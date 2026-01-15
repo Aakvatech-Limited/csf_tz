@@ -57,7 +57,11 @@ doctype_js = {
     "Student Applicant": "csf_tz/student_applicant.js",
     "Bank Reconciliation": "csf_tz/bank_reconciliation.js",
     "Program Enrollment": "csf_tz/program_enrollment.js",
-    "Payroll Entry": ["csf_tz/payroll_entry.js", "stanbic/payroll_entry.js"],
+    "Payroll Entry": [
+        "csf_tz/payroll_entry.js",
+        "stanbic/payroll_entry.js",
+        "kcb/payroll_entry.js",
+    ],
     "Salary Slip": "csf_tz/salary_slip.js",
     "Landed Cost Voucher": "csf_tz/landed_cost_voucher.js",
     "Additional Salary": "csf_tz/additional_salary.js",
@@ -69,6 +73,7 @@ doctype_js = {
     "Journal Entry": "csf_tz/journal_entry.js",
 }
 doctype_list_js = {
+    "Payment Entry": "csf_tz/payment_entry_list.js",
     "Custom Field": "csf_tz/custom_field.js",
     "Property Setter": "csf_tz/property_setter.js",
 }

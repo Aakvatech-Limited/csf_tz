@@ -6,6 +6,26 @@ frappe.ui.form.on("Payment Entry", {
 	},
 	refresh: function (frm) {
 		frm.trigger("add_write_off_button");
+		frm.trigger("add_kcb_payments_initiation_button");
+	},
+	add_kcb_payments_initiation_button: function (frm) {
+		frappe.db.get_single_value("KCB Settings", "enabled").then((enabled) => {
+			if (!enabled || frm.doc.docstatus !== 1 || frm.doc.payment_type !== "Pay") {
+				frm.remove_custom_button(__("Generate KCB Payments Initiation"));
+				return;
+			}
+			frm.add_custom_button(__("Generate KCB Payments Initiation"), function () {
+				frappe.call({
+					method: "csf_tz.kcb.payments.make_kcb_payments_initiation_from_payment_entries",
+					args: { payment_entries: [frm.doc.name] },
+					callback: function (r) {
+						if (r.message) {
+							frappe.set_route("Form", "KCB Payments Initiation", r.message);
+						}
+					},
+				});
+			});
+		});
 	},
 	payment_type: function (frm) {
 		if (frm.is_new()) {
