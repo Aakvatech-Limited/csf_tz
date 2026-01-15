@@ -9,6 +9,14 @@ from erpnext.stock.doctype.material_request.material_request import update_statu
 cp = DocType("Company")
 mr = DocType("Material Request")
 
+def _auto_close_material_request_batch(material_request_names):
+    for name in material_request_names:
+        try:
+            material_request_doc = frappe.get_doc("Material Request", name)
+            material_request_doc.update_status("Stopped")
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Auto Close Material Request Error: {name}")
+
 @frappe.whitelist()
 def update_mr_status(name, status):
     if status != "Submitted":
@@ -48,13 +56,13 @@ def auto_close_material_request():
             return
 
         for records in create_batch(material_requests, 100):
-            for record in records:
-                try:
-                    material_request_doc = frappe.get_doc("Material Request", record.name)
-                    material_request_doc.update_status("Stopped")
-                
-                except Exception as e:
-                    frappe.log_error(frappe.get_traceback(), f"Auto Close Material Request Error: {record.name}")
+            enqueue(
+                _auto_close_material_request_batch,
+                queue="long",
+                timeout=1200,
+                job_name=f"auto_close_material_request_{row.name}_{records[0].name}",
+                kwargs={"material_request_names": [record.name for record in records]},
+            )
 
     company_details = (
         frappe.qb.from_(cp)
