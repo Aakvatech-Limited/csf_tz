@@ -4,7 +4,6 @@
 import frappe
 import requests
 from frappe.utils import get_url
-from csf_tz.kcb_integration.utils.crypto_utils import generate_checksum, sign_checksum_with_p12
 
 # ✅ Function to generate a token with caching
 def get_kcb_token():
@@ -20,7 +19,7 @@ def get_kcb_token():
             return token  # Return the valid token
 
     # Generate a new token if not cached or expired
-    config = frappe.get_single("KCB Settings")  # Fetch KCB settings
+    config = frappe.get_single("KCB Setting")  # Fetch KCB settings
     auth = (config.username, config.password)  # Authentication credentials
     auth_header = {
         "Authorization": f"Basic {frappe.utils.encode(auth[0] + ':' + auth[1])}",  # Basic auth header
@@ -46,7 +45,7 @@ def get_kcb_token():
 
 # ✅ Submit file details (checksum + signature) to KCB
 def submit_file_details(doc):
-    config = frappe.get_single("KCB Settings")  # Fetch KCB settings
+    config = frappe.get_single("KCB Setting")  # Fetch KCB settings
     token = get_kcb_token()  # Get the token
 
     headers = {
@@ -66,7 +65,9 @@ def submit_file_details(doc):
         "checkSumSignature": doc.checksum_signature  # Checksum signature
     }
 
-    response = requests.post(config.file_details_url, json=payload, headers=headers)  # Submit file details
+    response = requests.post(
+        config.file_details_submission_url, json=payload, headers=headers
+    )  # Submit file details
 
     if response.status_code != 200:
         frappe.throw(f"File details submission failed: {response.text}")  # Raise error if submission fails
@@ -75,7 +76,7 @@ def submit_file_details(doc):
 
 # ✅ Upload the actual .gpg file as multipart form-data
 def upload_encrypted_file(doc):
-    config = frappe.get_single("KCB Settings")  # Fetch KCB settings
+    config = frappe.get_single("KCB Setting")  # Fetch KCB settings
     token = get_kcb_token()  # Get the token
 
     file_doc = frappe.get_doc("File", {"file_url": doc.encrypted_file})  # Get the file document
