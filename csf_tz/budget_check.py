@@ -230,6 +230,12 @@ def check_budget_for_buying_document(doc):
 		if hasattr(item, 'project') and item.project:
 			args["project"] = item.project
 
+		# Calculate the item amount for budget validation
+		# This is critical - we must pass the current document's amount
+		# because ERPNext's get_ordered_amount only counts submitted POs
+		item_amount = flt(item.get("amount")) or (flt(item.get("qty")) * flt(item.get("rate")))
+
 		# Let ERPNext's validation raise exceptions naturally
-		validate_expense_against_budget(args)
+		# Pass expense_amount so it includes the current draft document's amount
+		validate_expense_against_budget(args, expense_amount=item_amount)
 
