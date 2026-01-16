@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "enabled",
   "api_urls_section",
   "token_url",
   "file_details_submission_url",
@@ -20,6 +21,12 @@
   "template_name"
  ],
  "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
   {
    "fieldname": "api_urls_section",
    "fieldtype": "Section Break",
@@ -91,8 +98,8 @@
  "links": [],
  "modified": "2025-05-12 00:06:18.881657",
  "modified_by": "Administrator",
- "module": "KCB Integration",
- "name": "KCB Setting",
+ "module": "KCB",
+ "name": "KCB Settings",
  "owner": "Administrator",
  "permissions": [
   {

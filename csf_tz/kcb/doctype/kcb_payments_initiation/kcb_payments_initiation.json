@@ -14,9 +14,7 @@
   "total_amount",
   "section_break_tgdt",
   "remarks",
-  "reference_type",
-  "reference_name",
-  "kcb_payment_item",
+  "kcb_payments_initiation_info",
   "section_break_uzpa",
   "amended_from",
   "api_details_tab",
@@ -24,8 +22,7 @@
   "checksum_signature",
   "column_break_ohxf",
   "payment_file",
-  "encrypted_file",
-  "token"
+  "encrypted_file"
  ],
  "fields": [
   {
@@ -37,7 +34,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "KCB Payment",
+   "options": "KCB Payments Initiation",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -102,23 +99,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "kcb_payment_item",
+   "fieldname": "kcb_payments_initiation_info",
    "fieldtype": "Table",
-   "label": "KCB Payment Item",
-   "options": "KCB Payment Item",
+   "label": "KCB Payments Initiation Info",
+   "options": "KCB Payments Initiation Info",
    "reqd": 1
-  },
-  {
-   "fieldname": "reference_type",
-   "fieldtype": "Link",
-   "label": "Reference Type",
-   "options": "DocType"
-  },
-  {
-   "fieldname": "reference_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Reference Name",
-   "options": "reference_type"
   },
   {
    "fieldname": "payment_file",
@@ -136,11 +121,6 @@
    "label": "API Details"
   },
   {
-   "fieldname": "token",
-   "fieldtype": "Data",
-   "label": "Token"
-  },
-  {
    "fieldname": "column_break_ohxf",
    "fieldtype": "Column Break"
   },
@@ -151,13 +131,14 @@
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-11 20:24:47.905724",
+ "modified": "2026-01-15 18:30:38.089772",
  "modified_by": "Administrator",
- "module": "KCB Integration",
- "name": "KCB Payment",
+ "module": "KCB",
+ "name": "KCB Payments Initiation",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class KCBPaymentItem(Document):
+class KCBSettings(Document):
 	pass

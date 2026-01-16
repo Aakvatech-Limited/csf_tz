@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestKCBSetting(FrappeTestCase):
+class TestKCBSettings(FrappeTestCase):
 	pass

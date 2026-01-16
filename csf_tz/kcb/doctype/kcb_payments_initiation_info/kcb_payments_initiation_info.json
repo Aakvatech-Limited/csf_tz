@@ -6,18 +6,35 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "source_doctype",
+  "source_name",
   "beneficiary_name",
   "amount",
   "beneficiary_account",
   "currency",
   "transaction_code",
   "my_ref",
+  "payment_purpose",
   "beneficiary_clearing_code",
   "beneficiary_ref",
   "cbk_code",
   "ordering_customer_physical_address"
  ],
  "fields": [
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source Doctype",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Source Name",
+   "options": "source_doctype",
+   "read_only": 1
+  },
   {
    "fieldname": "beneficiary_name",
    "fieldtype": "Data",
@@ -60,6 +77,11 @@
    "reqd": 1
   },
   {
+   "fieldname": "payment_purpose",
+   "fieldtype": "Small Text",
+   "label": "Payment Purpose"
+  },
+  {
    "fieldname": "beneficiary_clearing_code",
    "fieldtype": "Data",
    "label": "Beneficiary Clearing Code",
@@ -88,8 +110,8 @@
  "links": [],
  "modified": "2025-05-07 23:20:39.163756",
  "modified_by": "Administrator",
- "module": "KCB Integration",
- "name": "KCB Payment Item",
+ "module": "KCB",
+ "name": "KCB Payments Initiation Info",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestKCBPayment(FrappeTestCase):
+class TestKCBPaymentsInitiation(FrappeTestCase):
 	pass
