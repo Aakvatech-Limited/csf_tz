@@ -33,7 +33,7 @@ def execute():
                 "fieldname": "custom_trade_in_uom",
                 "fieldtype": "Link",
                 "insert_after": "custom_trade_in_qty",
-                "label": "UOM",
+                "label": "Trade In UOM",
                 "options": "UOM",
                 "no_copy": 1
             },
