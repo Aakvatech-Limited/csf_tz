@@ -52,8 +52,8 @@ def _get_salary_component(doc, purpose):
     if purpose == "deduction":
         doc_fields = ["deduction_salary_component", "salary_component_deduction"]
         leave_type_fields = [
-            "deduction_salary_component",
             "deduction_component",
+            "deduction_salary_component",
             "leave_encashment_deduction_component",
         ]
     else:
@@ -101,56 +101,7 @@ def _has_any_field(doc, fieldnames):
     return any(hasattr(doc, field) for field in fieldnames)
 
 
-def _get_default_salary_component(purpose):
-    """Get or create default salary component."""
-    expected_type = "Deduction" if purpose == "deduction" else "Earning"
-
-    candidates = (
-        [
-            "Leave Encashment Deduction",
-            "Leave Encashment - Deduction",
-            "Leave Encashment (Deduction)",
-        ]
-        if purpose == "deduction"
-        else ["Leave Encashment"]
-    )
-
-    for candidate in candidates:
-        if frappe.db.exists(
-            "Salary Component", {"name": candidate, "type": expected_type}
-        ):
-            return candidate
-
-    name = (
-        "Leave Encashment Deduction" if purpose == "deduction" else "Leave Encashment"
-    )
-    abbr = "LED" if purpose == "deduction" else "LE"
-    return _ensure_salary_component(name, abbr, expected_type)
-
-
-def _ensure_salary_component(name, abbr, component_type):
-    if frappe.db.exists("Salary Component", name):
-        current_type = frappe.db.get_value("Salary Component", name, "type")
-        if current_type != component_type:
-            frappe.db.set_value("Salary Component", name, "type", component_type)
-        return name
-
-    doc = frappe.get_doc(
-        {
-            "doctype": "Salary Component",
-            "salary_component": name,
-            "salary_component_abbr": abbr,
-            "type": component_type,
-            "depends_on_payment_days": 0,
-            "statistical_component": 0,
-            "do_not_include_in_total": 0,
-        }
-    )
-    doc.insert(ignore_permissions=True)
-    return doc.name
-
 _original_before_submit = HRMSLeaveEncashment.before_submit
-_original_on_submit = HRMSLeaveEncashment.on_submit
 
 
 def _custom_before_submit(self):
@@ -161,7 +112,7 @@ def _custom_before_submit(self):
     amount = flt(self.encashment_amount)
 
     if _has_flag_fields(self):
-        validate_flags(self)
+        ensure_selection_before_submit(self)
 
         if self.is_deduction and amount < 0:
             return
@@ -185,12 +136,19 @@ def _custom_before_submit(self):
 
 def _custom_on_submit(self):
     """Custom on_submit to handle deductions and earnings."""
-    # Handle custom flags if present
-    if _has_flag_fields(self):
-        _create_custom_additional_salary(self)
+    if not self.leave_allocation:
+        self.db_set("leave_allocation", self.get_leave_allocation().get("name"))
+
+    if self.pay_via_payment_entry:
+        self.create_gl_entries()
     else:
-        # Use original behavior
-        _original_on_submit(self)
+        if _has_flag_fields(self):
+            _create_custom_additional_salary(self)
+        else:
+            self.create_additional_salary()
+
+    self.set_encashed_leaves_in_allocation()
+    self.create_leave_ledger_entry()
 
 
 def _create_custom_additional_salary(doc):
@@ -201,13 +159,12 @@ def _create_custom_additional_salary(doc):
     # Get salary component
     component, source = _get_salary_component(doc, component_type)
     if not component:
-        component = _get_default_salary_component(component_type)
-        if not component:
-            frappe.throw(
-                _("Please set a Salary Component for {0} on {1}.").format(
-                    _("Deduction") if is_deduction else _("Earning"), source
-                )
-            )
+        frappe.throw(
+            _(
+                "Please set a {0} Component on Leave Type {1} "
+                "or specify it on the Leave Encashment."
+            ).format(_("Deduction") if is_deduction else _("Earning"), doc.leave_type)
+        )
 
     # Create additional salary
     additional_salary = frappe.new_doc("Additional Salary")
@@ -227,8 +184,3 @@ def _create_custom_additional_salary(doc):
 
     doc.additional_salary = additional_salary.name
     doc.db_set("additional_salary", additional_salary.name)
-
-
-# Apply monkey patches
-HRMSLeaveEncashment.before_submit = _custom_before_submit
-HRMSLeaveEncashment.on_submit = _custom_on_submit
