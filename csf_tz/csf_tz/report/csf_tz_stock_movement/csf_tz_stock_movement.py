@@ -84,27 +84,24 @@ def execute(filters=None):
             row["sold_value"] = row.stock_value_difference
 
         if row.voucher_type == "Stock Entry":
-            row["adjustment_qty"] = row.actual_qty
-            row["adjustment_value"] = row.stock_value_difference
-
             stock_entry_type = frappe.db.get_value(
                 row.voucher_type, row.voucher_no, "stock_entry_type"
             )
             if stock_entry_type == "Material Transfer for Manufacture":
                 row["consumed_qty"] = row.actual_qty
                 row["consumed_value"] = row.stock_value_difference
-
-            if stock_entry_type == "Manufacture":
+            elif stock_entry_type == "Manufacture":
                 row["produced_qty"] = row.actual_qty
                 row["produced_value"] = row.stock_value_difference
-
-            if stock_entry_type == "Material Receipt":
+            elif stock_entry_type == "Material Receipt":
                 row["received_qty"] = row.actual_qty
                 row["received_value"] = row.stock_value_difference
-
-            if stock_entry_type == "Material Issue":
+            elif stock_entry_type == "Material Issue":
                 row["issued_qty"] = row.actual_qty
                 row["issued_value"] = row.stock_value_difference
+            else:
+                row["adjustment_qty"] = row.actual_qty
+                row["adjustment_value"] = row.stock_value_difference
 
         row["closing_qty"] = (
             ((row.opening_qty or 0) + (row.purchase_qty or 0))
