@@ -169,3 +169,13 @@ frappe.ui.form.on("Purchase Invoice Item", {
         });
     }
 });
+
+frappe.ui.keys.add_shortcut({
+    shortcut: 'ctrl+q',
+    action: () => {
+        ctrlQ("Purchase Invoice Item");
+    },
+    page: this.page,
+    description: __('Select Item Warehouse'),
+    ignore_inputs: true,
+});

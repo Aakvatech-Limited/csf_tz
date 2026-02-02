@@ -150,7 +150,7 @@ frappe.ui.keys.add_shortcut({
                         width: 600
                     });
                     $(`<div class="modal-body ui-front">
-                            <h2>${item_row.item_code} : ${item_row.qty}</h2>
+                            <h2>${item_row.item_code} : ${item_row.item_name}</h2>
                             <p>Choose Warehouse and click Select :</p>
                             <table class="table table-bordered">
                             <thead>
