@@ -98,6 +98,16 @@ async function get_price_list(frm, item_code, warehouse) {
 }
 
 frappe.ui.keys.add_shortcut({
+    shortcut: 'ctrl+q',
+    action: () => {
+        ctrlQ("Purchase Order Item");
+    },
+    page: this.page,
+    description: __('Select Item Warehouse'),
+    ignore_inputs: true,
+});
+
+frappe.ui.keys.add_shortcut({
     shortcut: 'ctrl+i',
     action: () => {
         ctrlI("Purchase Order Item");
