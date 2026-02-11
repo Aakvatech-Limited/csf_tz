@@ -17,6 +17,7 @@ def execute(filters=None):
     item_details = get_item_details(items, sl_entries)
 
     opening_balance_item_wise = []
+    last_qty_by_item_warehouse = {}
     for row in sl_entries:
         item_detail = item_details[row.item_code]
         row.update(item_detail)
@@ -65,10 +66,18 @@ def execute(filters=None):
                     flt(row["opening_qty"]) * opening_row["valuation_rate"]
                 )
 
+        key = (row.item_code, row.warehouse)
+        if key not in last_qty_by_item_warehouse:
+            last_qty_by_item_warehouse[key] = row["opening_qty"] or 0
+
         if row.voucher_type == "Stock Reconciliation":
-            row["reconciliation_qty"] = row.stock_value_difference / (
-                row.valuation_rate or 1
-            )
+            if row.batch_no and not row.serial_no:
+                row["reconciliation_qty"] = row.actual_qty
+            else:
+                previous_qty = last_qty_by_item_warehouse.get(key, 0)
+                row["reconciliation_qty"] = flt(row.qty_after_transaction) - flt(
+                    previous_qty
+                )
 
             row["reconciliation_value"] = row.stock_value_difference
 
@@ -132,6 +141,13 @@ def execute(filters=None):
             )
             + (row.reconciliation_value or 0)
         )
+
+        if row.get("qty_after_transaction") is not None:
+            last_qty_by_item_warehouse[key] = row.qty_after_transaction
+        else:
+            last_qty_by_item_warehouse[key] = (last_qty_by_item_warehouse.get(key, 0) or 0) + (
+                row.actual_qty or 0
+            )
 
     prepared_data = prepare_data(sl_entries)
 
