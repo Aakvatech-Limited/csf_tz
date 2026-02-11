@@ -161,34 +161,56 @@ def link_payment_to_import_tracker(doc, method):
 
 def unlink_payment_from_import_tracker(doc, method):
     """Remove payment from Foreign Import Transaction when cancelled"""
+    tracker_names = set(
+        frappe.get_all(
+            "Foreign Import Payment Details",
+            filters={
+                "payment_entry": doc.name,
+                "parenttype": "Foreign Import Transaction",
+            },
+            pluck="parent",
+        )
+    )
+
     tracker_name = frappe.db.get_value("Payment Entry", doc.name, "foreign_import_tracker")
-    
     if tracker_name:
+        tracker_names.add(tracker_name)
+
+    for tracker_name in tracker_names:
         try:
             tracker_doc = frappe.get_doc("Foreign Import Transaction", tracker_name)
-            
-            # Remove payment rows
-            tracker_doc.payments = [row for row in tracker_doc.payments 
-                                   if row.payment_entry != doc.name]
-            
-            # Remove related exchange difference entries and cancel JEs
+
+            tracker_doc.payments = [
+                row for row in tracker_doc.payments if row.payment_entry != doc.name
+            ]
+
             for diff_row in tracker_doc.exchange_differences:
-                if diff_row.reference_type == "Payment Entry" and diff_row.reference_name == doc.name:
-                    if diff_row.journal_entry:
-                        try:
-                            je = frappe.get_doc("Journal Entry", diff_row.journal_entry)
-                            if je.docstatus == 1:
-                                je.cancel()
-                        except:
-                            pass
-            
-            tracker_doc.exchange_differences = [row for row in tracker_doc.exchange_differences 
-                                              if not (row.reference_type == "Payment Entry" and row.reference_name == doc.name)]
-            
+                if (
+                    diff_row.reference_type == "Payment Entry"
+                    and diff_row.reference_name == doc.name
+                    and diff_row.journal_entry
+                ):
+                    try:
+                        je = frappe.get_doc("Journal Entry", diff_row.journal_entry)
+                        if je.docstatus == 1:
+                            je.cancel()
+                    except Exception:
+                        pass
+
+            tracker_doc.exchange_differences = [
+                row
+                for row in tracker_doc.exchange_differences
+                if not (
+                    row.reference_type == "Payment Entry"
+                    and row.reference_name == doc.name
+                )
+            ]
+
             tracker_doc.save()
-            
         except Exception as e:
-            frappe.log_error(f"Error unlinking payment {doc.name} from tracker {tracker_name}: {str(e)}")
+            frappe.log_error(
+                f"Error unlinking payment {doc.name} from tracker {tracker_name}: {str(e)}"
+            )
 
 def calculate_payment_exchange_difference(tracker_doc, payment_doc, payment_row):
     """Calculate exchange difference for payment and create Journal Entry"""
