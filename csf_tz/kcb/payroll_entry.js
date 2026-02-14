@@ -2,7 +2,10 @@ const kcbButtonName = "Generate KCB Payments Initiation";
 
 frappe.ui.form.on("Payroll Entry", {
 	refresh: function (frm) {
-		frappe.db.get_single_value("KCB Settings", "enabled").then((enabled) => {
+		frappe.call({
+			method: "csf_tz.kcb.api.kcb_api.is_kcb_enabled",
+			callback: (r) => {
+				const enabled = !!r.message;
 			if (!enabled) {
 				frm.remove_custom_button(__(kcbButtonName));
 				return;
@@ -12,6 +15,7 @@ frappe.ui.form.on("Payroll Entry", {
 			} else {
 				frm.remove_custom_button(__(kcbButtonName));
 			}
+			},
 		});
 	},
 });

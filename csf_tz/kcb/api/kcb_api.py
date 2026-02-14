@@ -6,7 +6,16 @@ import requests
 from frappe.utils import get_url
 
 
-# ✅ Function to generate a token with caching
+@frappe.whitelist()
+def is_kcb_enabled():
+    return frappe.db.get_value(
+        "KCB Settings",
+        None,
+        "enabled",
+        ignore_permissions=True,
+    )
+
+
 def get_kcb_token():
     cache_key = "kcb_token"  # Cache key for the token
     expiry_key = "kcb_token_expiry"  # Cache key for the token expiry time
@@ -35,10 +44,16 @@ def get_kcb_token():
 
     if response.status_code == 200:
         token_data = response.json()  # Parse the response
-        token = token_data.get("access_token")  # Extract the token
+        # Support both KCB formats: access_token/expires_in or bearer_token/expires_in_seconds
+        token = token_data.get("access_token") or token_data.get("bearer_token")
         expires_in = int(
-            token_data.get("expires_in", 3600)
+            token_data.get("expires_in")
+            or token_data.get("expires_in_seconds")
+            or 3600
         )  # Extract expiry time (default 1 hour)
+
+        if not token:
+            frappe.throw(f"Token generation failed: {token_data}")
 
         from datetime import datetime, timedelta
 
@@ -55,7 +70,6 @@ def get_kcb_token():
         frappe.throw(f"Token generation failed: {response.text}")
 
 
-# ✅ Submit file details (checksum + signature) to KCB
 def submit_file_details(doc):
     config = frappe.get_single("KCB Settings")  # Fetch KCB settings
     token = get_kcb_token()  # Get the token
@@ -91,7 +105,6 @@ def submit_file_details(doc):
     return response.json()
 
 
-# ✅ Upload the actual .gpg file as multipart form-data
 def upload_encrypted_file(doc):
     config = frappe.get_single("KCB Settings")  # Fetch KCB settings
     token = get_kcb_token()  # Get the token
