@@ -7,13 +7,10 @@ from frappe.utils import get_url
 
 
 @frappe.whitelist()
+@frappe.whitelist()
 def is_kcb_enabled():
-    return frappe.db.get_value(
-        "KCB Settings",
-        None,
-        "enabled",
-        ignore_permissions=True,
-    )
+    settings = frappe.get_single("KCB Settings")
+    return settings.enabled
 
 
 def get_kcb_token():

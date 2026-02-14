@@ -35,7 +35,13 @@ class KCBPaymentsInitiation(Document):
 
         gpg = gnupg.GPG()
         passphrase = "my-secret-pass"
-        encrypted_data = gpg.encrypt(file_content, recipients=None, symmetric='AES256', passphrase=passphrase, armor=True)
+        encrypted_data = gpg.encrypt(
+            file_content,
+            recipients=[],
+            symmetric=True,
+            passphrase=passphrase,
+            armor=True,
+        )
 
         if not encrypted_data.ok:
             frappe.throw(f"Encryption failed: {encrypted_data.status}")
