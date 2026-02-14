@@ -1,6 +1,7 @@
 # kcb_payments_initiation.py
 # This file is the controller for the KCB Payments Initiation doctype where the file is generated and signed.
 
+import os
 import frappe
 from frappe.model.document import Document
 from csf_tz.kcb.utils.crypto_utils import generate_checksum, sign_checksum_with_p12
@@ -33,15 +34,26 @@ class KCBPaymentsInitiation(Document):
 
         self.checksum_signature = sign_checksum_with_p12(self.file_checksum)
 
-        gpg = gnupg.GPG()
-        passphrase = "my-secret-pass"
+        gpg_home = frappe.get_site_path("private", "kcb_gpg")
+        os.makedirs(gpg_home, exist_ok=True)
+        gpg = gnupg.GPG(gnupghome=gpg_home, options=["--pinentry-mode", "loopback"])
+        public_key_path = frappe.get_site_path("private", "files", "kcb_public_key.asc")
+        if not os.path.exists(public_key_path):
+            frappe.throw("KCB public key not found at private/files/kcb_public_key.asc")
+
+        with open(public_key_path, "r", encoding="utf-8") as key_file:
+            import_result = gpg.import_keys(key_file.read())
+
+        if not import_result.fingerprints:
+            frappe.throw("Failed to import KCB public key. Check the key file format.")
+
+        recipient = import_result.fingerprints[0]
         encrypted_data = gpg.encrypt(
-            file_content,
-            [],
-            symmetric=True,
-            passphrase=passphrase,
-            armor=True,
-        )
+			file_content,
+			[recipient],
+			always_trust=True,
+			armor=True,
+		)
 
         if not encrypted_data.ok:
             frappe.throw(f"Encryption failed: {encrypted_data.status}")
