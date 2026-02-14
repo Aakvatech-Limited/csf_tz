@@ -37,7 +37,7 @@ class KCBPaymentsInitiation(Document):
         passphrase = "my-secret-pass"
         encrypted_data = gpg.encrypt(
             file_content,
-            recipients=[],
+            [],
             symmetric=True,
             passphrase=passphrase,
             armor=True,
