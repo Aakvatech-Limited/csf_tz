@@ -10,10 +10,8 @@ import gnupg
 class KCBPaymentsInitiation(Document):
 
     def before_save(self):
-        # ✅ File Header
         header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose|Total"
 
-        # ✅ Child table loop se body build karna
         body_lines = []
         for item in self.kcb_payments_initiation_info:
             line = (
@@ -26,19 +24,15 @@ class KCBPaymentsInitiation(Document):
 
         body = "\n".join(body_lines)
 
-        # ✅ Total amount from child rows
         total_amount = sum(
             [item.amount for item in self.kcb_payments_initiation_info if item.amount]
         )
         file_content = f"{header}\n{body}\n{total_amount}"
 
-        # ✅ Checksum
         self.file_checksum = generate_checksum(file_content)
 
-        # ✅ Digital Signature
         self.checksum_signature = sign_checksum_with_p12(self.file_checksum)
 
-        # ✅ Encrypt file with GPG
         gpg = gnupg.GPG()
         passphrase = "my-secret-pass"
         encrypted_data = gpg.encrypt(file_content, recipients=None, symmetric='AES256', passphrase=passphrase, armor=True)
@@ -46,10 +40,11 @@ class KCBPaymentsInitiation(Document):
         if not encrypted_data.ok:
             frappe.throw(f"Encryption failed: {encrypted_data.status}")
 
-        # ✅ Save plaintext file
+        file_base_name = f"kcb_payment_file_{self.name}"
+
         txt_file = frappe.get_doc({
             "doctype": "File",
-            "file_name": "kcb_payment_file.txt",
+            "file_name": f"{file_base_name}.txt",
             "attached_to_doctype": "KCB Payments Initiation",
             "attached_to_name": self.name,
             "content": file_content,
@@ -57,10 +52,9 @@ class KCBPaymentsInitiation(Document):
         })
         txt_file.save()
 
-        # ✅ Save encrypted file
         gpg_file = frappe.get_doc({
             "doctype": "File",
-            "file_name": "kcb_payment_file.txt.gpg",
+            "file_name": f"{file_base_name}.txt.gpg",
             "attached_to_doctype": "KCB Payments Initiation",
             "attached_to_name": self.name,
             "content": str(encrypted_data),
@@ -68,11 +62,9 @@ class KCBPaymentsInitiation(Document):
         })
         gpg_file.save()
 
-        # ✅ File URL store in parent
         self.payment_file = txt_file.file_url
         self.encrypted_file = gpg_file.file_url
 
     def on_submit(self):
-        # ✅ Submit file metadata + encrypted file
         submit_file_details(self)
         upload_encrypted_file(self)

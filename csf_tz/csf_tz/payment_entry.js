@@ -9,7 +9,10 @@ frappe.ui.form.on("Payment Entry", {
 		frm.trigger("add_kcb_payments_initiation_button");
 	},
 	add_kcb_payments_initiation_button: function (frm) {
-		frappe.db.get_single_value("KCB Settings", "enabled").then((enabled) => {
+		frappe.call({
+			method: "csf_tz.kcb.api.kcb_api.is_kcb_enabled",
+			callback: (r) => {
+				const enabled = !!r.message;
 			if (!enabled || frm.doc.docstatus !== 1 || frm.doc.payment_type !== "Pay") {
 				frm.remove_custom_button(__("Generate KCB Payments Initiation"));
 				return;
@@ -25,6 +28,7 @@ frappe.ui.form.on("Payment Entry", {
 					},
 				});
 			});
+			},
 		});
 	},
 	payment_type: function (frm) {
