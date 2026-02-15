@@ -121,13 +121,17 @@ def upload_encrypted_file(doc):
     )  # Get the file document
     file_content = get_file(file_doc.file_url)[1]  # Retrieve the file content
 
+    originator_id = getattr(doc, "originator_conversation_id", None) or doc.name
+
     files = {
-        "file": (
+        # Bulk Receiver expects "files" (can be multiple). Keep as single file list.
+        "files": (
             file_doc.file_name,
             file_content,
             "application/octet-stream",
-        ),  # File data
-        "SystemCode": (None, config.processor_code),  # System code
+        ),
+        # Include originatorConversationID as form-data
+        "originatorConversationID": (None, originator_id),
     }
 
     headers = {"Authorization": f"Bearer {token}"}  # Bearer token for authorization
