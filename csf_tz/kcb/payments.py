@@ -41,6 +41,21 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     if not payment_entries:
         frappe.throw(_("Please select at least one Payment Entry."))
 
+    existing = frappe.get_all(
+        "KCB Payments Initiation Info",
+        filters={
+            "source_doctype": "Payment Entry",
+            "source_name": ["in", payment_entries],
+            "docstatus": ["!=", 2],
+        },
+        fields=["parent", "source_name"],
+    )
+    if existing:
+        names = ", ".join(sorted({row.source_name for row in existing}))
+        frappe.throw(
+            _("KCB Payments Initiation already exists for: {0}").format(names)
+        )
+
     pe_docs = [frappe.get_doc("Payment Entry", name) for name in payment_entries]
 
     invalid = [pe.name for pe in pe_docs if pe.docstatus != 1 or pe.payment_type != "Pay"]
