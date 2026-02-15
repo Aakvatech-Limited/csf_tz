@@ -49,7 +49,7 @@ class KCBPaymentsInitiation(Document):
         if not encrypted_data:
             frappe.throw("Encryption failed: empty result")
 
-        file_base_name = f"kcb_payment_file_{self.name}"
+        file_base_name = self.name
 
         txt_file = frappe.get_doc({
             "doctype": "File",
