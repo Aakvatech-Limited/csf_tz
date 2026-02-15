@@ -8,6 +8,7 @@
   "posting_date",
   "payment_type",
   "status",
+  "originator_conversation_id",
   "column_break_erfa",
   "debit_account",
   "currency",
@@ -59,6 +60,12 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "Draft\nSubmitted\nSent\nFailed"
+  },
+  {
+   "fieldname": "originator_conversation_id",
+   "fieldtype": "Data",
+   "label": "Originator Conversation ID",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_erfa",

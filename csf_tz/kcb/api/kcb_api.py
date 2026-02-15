@@ -81,8 +81,13 @@ def submit_file_details(doc):
         "Content-Type": "application/json",
     }
 
+    originator_id = getattr(doc, "originator_conversation_id", None)
+    if not originator_id:
+        originator_id = frappe.generate_hash(length=20)
+        doc.db_set("originator_conversation_id", originator_id, update_modified=False)
+
     payload = {
-        "originatorConversationID": doc.name,  # Unique ID for the conversation
+        "originatorConversationID": originator_id,  # Unique ID for the conversation
         "fileName": doc.encrypted_file.split("/")[
             -1
         ],  # Extract file name from the file path
