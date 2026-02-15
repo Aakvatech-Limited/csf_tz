@@ -4,6 +4,7 @@
 import frappe
 import requests
 from frappe.utils import get_url
+from frappe.utils.file_manager import get_file
 
 
 @frappe.whitelist()
@@ -113,7 +114,7 @@ def upload_encrypted_file(doc):
     file_doc = frappe.get_doc(
         "File", {"file_url": doc.encrypted_file}
     )  # Get the file document
-    file_content = frappe.get_file(file_doc.file_url)[1]  # Retrieve the file content
+    file_content = get_file(file_doc.file_url)[1]  # Retrieve the file content
 
     files = {
         "file": (
