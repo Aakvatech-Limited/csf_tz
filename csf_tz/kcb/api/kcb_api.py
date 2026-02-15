@@ -28,7 +28,10 @@ def get_kcb_token():
 
     # Generate a new token if not cached or expired
     config = frappe.get_single("KCB Settings")  # Fetch KCB settings
-    auth = (config.username, config.password)  # Authentication credentials
+    password = config.get_password("password")
+    if not config.username or not password:
+        frappe.throw("KCB Settings username/password is missing.")
+    auth = (config.username, password)  # Authentication credentials
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
