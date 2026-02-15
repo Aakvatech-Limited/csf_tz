@@ -37,7 +37,7 @@ class KCBPaymentsInitiation(Document):
         gpg_home = frappe.get_site_path("private", "kcb_gpg")
         os.makedirs(gpg_home, exist_ok=True)
         os.environ["GNUPGHOME"] = gpg_home
-        gpg = gnupg.GPG(gpgbinary="/usr/bin/gpg", options=["--pinentry-mode", "loopback"])
+        gpg = gnupg.GPG(options=["--pinentry-mode", "loopback"])
         public_key_path = frappe.get_site_path("private", "files", "kcb_public_key.asc")
         if not os.path.exists(public_key_path):
             frappe.throw("KCB public key not found at private/files/kcb_public_key.asc")
