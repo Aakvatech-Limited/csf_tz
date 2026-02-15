@@ -29,14 +29,13 @@ def get_kcb_token():
     # Generate a new token if not cached or expired
     config = frappe.get_single("KCB Settings")  # Fetch KCB settings
     auth = (config.username, config.password)  # Authentication credentials
-    auth_header = {
-        "Authorization": f"Basic {frappe.utils.encode(auth[0] + ':' + auth[1])}",  # Basic auth header
+    headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
 
     response = requests.post(
-        config.token_url, headers=auth_header
+        config.token_url, headers=headers, auth=auth, timeout=30
     )  # Request a new token
 
     if response.status_code == 200:
@@ -64,7 +63,9 @@ def get_kcb_token():
 
         return token
     else:
-        frappe.throw(f"Token generation failed: {response.text}")
+        frappe.throw(
+            f"Token generation failed ({response.status_code}) from {config.token_url}: {response.text}"
+        )
 
 
 def submit_file_details(doc):
