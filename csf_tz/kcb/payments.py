@@ -35,6 +35,7 @@ def _validate_single_value(values, label):
 @frappe.whitelist()
 def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     _require_kcb_enabled()
+    settings = frappe.get_single("KCB Settings")
     if isinstance(payment_entries, str):
         payment_entries = frappe.parse_json(payment_entries)
 
@@ -67,10 +68,15 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
         )
 
     paid_from_currencies = [pe.paid_from_account_currency for pe in pe_docs]
-    debit_accounts = [pe.bank_account for pe in pe_docs]
 
     currency = _validate_single_value(paid_from_currencies, _("Currency"))
-    company_bank_account = _validate_single_value(debit_accounts, _("Company Bank Account"))
+    company_bank_account = settings.default_bank_account
+    if not company_bank_account:
+        frappe.throw(
+            _(
+                "Company bank account is missing. Configure Default Bank Account in KCB Settings."
+            )
+        )
 
     debit_account_details = _get_bank_account_details(company_bank_account)
     debit_account_no = debit_account_details.get("bank_account_no")
@@ -133,6 +139,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
 @frappe.whitelist()
 def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     _require_kcb_enabled()
+    settings = frappe.get_single("KCB Settings")
     payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry_name)
 
     slips = frappe.get_all(
@@ -147,7 +154,13 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     currencies = [slip.currency for slip in slips]
     currency = _validate_single_value(currencies, _("Currency"))
 
-    company_bank_account = payroll_entry.bank_account_for_transfer
+    company_bank_account = settings.default_bank_account
+    if not company_bank_account:
+        frappe.throw(
+            _(
+                "Payroll Entry missing bank account. Configure Default Bank Account in KCB Settings."
+            )
+        )
     debit_account_details = _get_bank_account_details(company_bank_account)
     debit_account_no = debit_account_details.get("bank_account_no")
     if not debit_account_no:

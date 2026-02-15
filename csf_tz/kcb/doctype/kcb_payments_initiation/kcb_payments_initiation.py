@@ -1,7 +1,6 @@
 # kcb_payments_initiation.py
 # This file is the controller for the KCB Payments Initiation doctype where the file is generated and signed.
 
-import os
 import frappe
 from frappe.model.document import Document
 from csf_tz.kcb.utils.crypto_utils import generate_checksum, sign_checksum_with_p12
@@ -37,13 +36,7 @@ class KCBPaymentsInitiation(Document):
         settings = frappe.get_single("KCB Settings")
         public_key = getattr(settings, "pgp_public_key", None)
         if not public_key:
-            public_key_path = frappe.get_site_path("private", "files", "kcb_public_key.asc")
-            if not os.path.exists(public_key_path):
-                frappe.throw(
-                    "KCB public key not found. Add it in KCB Settings or private/files/kcb_public_key.asc"
-                )
-            with open(public_key_path, "r", encoding="utf-8") as key_file:
-                public_key = key_file.read()
+            frappe.throw("KCB Settings PGP public key is missing.")
 
         encrypted_data = encrypt_pgp(file_content, public_key)
         if not encrypted_data:

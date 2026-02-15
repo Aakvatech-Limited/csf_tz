@@ -18,7 +18,13 @@
   "partner_code",
   "processor_code",
   "subsidiary_code",
-  "template_name"
+  "template_name",
+  "pgp_public_key",
+  "bank_details_section",
+  "default_bank_account",
+  "security_section",
+  "p12_file",
+  "p12_password"
  ],
  "fields": [
   {
@@ -85,6 +91,37 @@
    "fieldname": "template_name",
    "fieldtype": "Data",
    "label": "Template Name"
+  },
+  {
+   "fieldname": "pgp_public_key",
+   "fieldtype": "Small Text",
+   "label": "Bank PGP Public Key"
+  },
+  {
+   "fieldname": "bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Details"
+  },
+  {
+   "fieldname": "default_bank_account",
+   "fieldtype": "Link",
+   "label": "Default Bank Account",
+   "options": "Bank Account"
+  },
+  {
+   "fieldname": "security_section",
+   "fieldtype": "Section Break",
+   "label": "Security"
+  },
+  {
+   "fieldname": "p12_file",
+   "fieldtype": "Attach",
+   "label": "P12 Keystore File"
+  },
+  {
+   "fieldname": "p12_password",
+   "fieldtype": "Password",
+   "label": "P12 Keystore Password"
   },
   {
    "fieldname": "api_base_url",
