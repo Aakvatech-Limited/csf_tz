@@ -7,7 +7,6 @@
  "field_order": [
   "posting_date",
   "payment_type",
-  "status",
   "originator_conversation_id",
   "column_break_erfa",
   "debit_account",
@@ -54,12 +53,6 @@
    "label": "Payment Type",
    "options": "\nSupplier\nSalary",
    "reqd": 1
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "Draft\nSubmitted\nSent\nFailed"
   },
   {
    "fieldname": "originator_conversation_id",
