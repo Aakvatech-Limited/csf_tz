@@ -36,11 +36,11 @@ def sign_checksum_with_p12(checksum: str) -> str:
     if not private_key:
         frappe.throw("Private key not found in P12 file.")
 
-    # Checksum ko sign kar rahe hain SHA1withRSA algorithm se
+    # Checksum ko sign kar rahe hain SHA256withRSA algorithm se
     signature = private_key.sign(
         checksum.encode(),
         padding.PKCS1v15(),
-        hashes.SHA1()
+        hashes.SHA256()
     )
 
     # Signature ko base64 string me convert kar rahe hain (KCB API requirement)
