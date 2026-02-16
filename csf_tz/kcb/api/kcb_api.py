@@ -3,6 +3,7 @@
 
 import frappe
 import requests
+import os
 from frappe.utils import get_url
 from frappe.utils.file_manager import get_file
 
@@ -144,5 +145,40 @@ def upload_encrypted_file(doc):
         frappe.throw(
             f"File upload failed: {response.text}"
         )  # Raise error if upload fails
+
+    return response.json()
+
+
+@frappe.whitelist()
+def check_file_status(docname: str):
+    doc = frappe.get_doc("KCB Payments Initiation", docname)
+    config = frappe.get_single("KCB Settings")
+    token = get_kcb_token()
+
+    originator_id = getattr(doc, "originator_conversation_id", None)
+    if not originator_id:
+        frappe.throw("Originator Conversation ID is missing on this document.")
+
+    if not doc.encrypted_file:
+        frappe.throw("Encrypted file is missing on this document.")
+
+    file_name = os.path.basename(doc.encrypted_file)
+
+    payload = {
+        "fileName": file_name,
+        "partnerCode": config.partner_code,
+        "originatorConversationID": originator_id,
+    }
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+    response = requests.post(
+        config.file_status_check_url, json=payload, headers=headers, timeout=30
+    )
+
+    if response.status_code != 200:
+        frappe.throw(f"File status check failed: {response.text}")
 
     return response.json()
