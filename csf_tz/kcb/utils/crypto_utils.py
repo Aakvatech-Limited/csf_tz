@@ -10,8 +10,10 @@ from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_cer
 from cryptography.hazmat.backends import default_backend
 from frappe.utils.file_manager import get_file
 
-def generate_checksum(file_content: str) -> str:
-    return hashlib.sha256(file_content.encode("utf-8")).hexdigest()
+def generate_checksum(file_content: str | bytes) -> str:
+    if isinstance(file_content, str):
+        file_content = file_content.encode("utf-8")
+    return hashlib.sha256(file_content).hexdigest()
 
 def sign_checksum_with_p12(checksum: str) -> str:
     settings = frappe.get_single("KCB Settings")

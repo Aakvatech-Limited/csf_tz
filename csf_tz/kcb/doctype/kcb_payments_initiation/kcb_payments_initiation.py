@@ -28,8 +28,9 @@ class KCBPaymentsInitiation(Document):
             [item.amount for item in self.kcb_payments_initiation_info if item.amount]
         )
         file_content = f"{header}\n{body}\n{total_amount}"
+        file_bytes = file_content.encode("utf-8")
 
-        self.file_checksum = generate_checksum(file_content)
+        self.file_checksum = generate_checksum(file_bytes)
 
         self.checksum_signature = sign_checksum_with_p12(self.file_checksum)
 
@@ -38,7 +39,7 @@ class KCBPaymentsInitiation(Document):
         if not public_key:
             frappe.throw("KCB Settings PGP public key is missing.")
 
-        encrypted_data = encrypt_pgp(file_content, public_key)
+        encrypted_data = encrypt_pgp(file_bytes, public_key)
         if not encrypted_data:
             frappe.throw("Encryption failed: empty result")
 
