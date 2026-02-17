@@ -111,7 +111,8 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
-        row.transaction_code = "FT"
+        # KCB transaction codes: 59 Supplier, 58 Salaries, 487 RTGS, 75 SWIFT, 79 EAPS
+        row.transaction_code = "59"
         row.my_ref = pe.name
         row.beneficiary_ref = pe.name
         row.payment_purpose = pe.remarks or _("Supplier Payment")
@@ -194,7 +195,8 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
-        row.transaction_code = "FT"
+        # KCB transaction codes: 58 Salaries
+        row.transaction_code = "58"
         row.my_ref = slip.name
         row.beneficiary_ref = slip.name
         row.payment_purpose = _("Salary")
