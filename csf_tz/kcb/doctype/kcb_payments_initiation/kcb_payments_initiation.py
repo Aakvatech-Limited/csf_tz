@@ -10,7 +10,7 @@ from csf_tz.kcb.pgp import encrypt_pgp
 class KCBPaymentsInitiation(Document):
 
     def before_save(self):
-        header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose|Total"
+        header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose"
 
         body_lines = []
         for item in self.kcb_payments_initiation_info:
@@ -27,6 +27,7 @@ class KCBPaymentsInitiation(Document):
         total_amount = sum(
             [item.amount for item in self.kcb_payments_initiation_info if item.amount]
         )
+        # Total is a trailer line (not a field per record)
         file_content = f"{header}\n{body}\n{total_amount}"
         file_bytes = file_content.encode("utf-8")
 
