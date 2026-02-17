@@ -9,16 +9,28 @@
   "api_urls_section",
   "token_url",
   "file_details_submission_url",
+  "column_break_api",
   "file_upload_url",
   "file_status_check_url",
-  "section_break_knlg",
   "api_base_url",
+  "section_break_knlg",
   "username",
   "password",
+  "column_break_auth",
   "partner_code",
   "processor_code",
   "subsidiary_code",
-  "template_name"
+  "template_name",
+  "bank_details_section",
+  "default_bank_account",
+  "default_bank_account_no",
+  "default_branch_code",
+  "column_break_bank",
+  "pgp_public_key",
+  "security_section",
+  "p12_file",
+  "p12_password",
+  "column_break_security"
  ],
  "fields": [
   {
@@ -43,6 +55,10 @@
    "label": "File Details Submission URL"
   },
   {
+   "fieldname": "column_break_api",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "file_upload_url",
    "fieldtype": "Data",
    "label": "File Upload URL"
@@ -51,6 +67,11 @@
    "fieldname": "file_status_check_url",
    "fieldtype": "Data",
    "label": "File Status Check URL"
+  },
+  {
+   "fieldname": "api_base_url",
+   "fieldtype": "Data",
+   "label": "API Base URL"
   },
   {
    "fieldname": "section_break_knlg",
@@ -65,6 +86,10 @@
    "fieldname": "password",
    "fieldtype": "Password",
    "label": "API Password"
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "partner_code",
@@ -87,9 +112,57 @@
    "label": "Template Name"
   },
   {
-   "fieldname": "api_base_url",
+   "fieldname": "bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Bank Details"
+  },
+  {
+   "fieldname": "default_bank_account",
+   "fieldtype": "Link",
+   "label": "Default Bank Account",
+   "options": "Bank Account"
+  },
+  {
+   "fetch_from": "default_bank_account.bank_account_no",
+   "fieldname": "default_bank_account_no",
    "fieldtype": "Data",
-   "label": "API Base URL"
+   "label": "Default Bank Account No",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "default_bank_account.branch_code",
+   "fieldname": "default_branch_code",
+   "fieldtype": "Data",
+   "label": "Default Branch Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bank",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pgp_public_key",
+   "fieldtype": "Small Text",
+   "label": "Bank PGP Public Key"
+  },
+  {
+   "fieldname": "security_section",
+   "fieldtype": "Section Break",
+   "label": "Security"
+  },
+  {
+   "fieldname": "p12_file",
+   "fieldtype": "Attach",
+   "label": "P12 Keystore File"
+  },
+  {
+   "fieldname": "p12_password",
+   "fieldtype": "Password",
+   "label": "P12 Keystore Password"
+  },
+  {
+   "fieldname": "column_break_security",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,

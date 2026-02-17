@@ -5,7 +5,7 @@ import frappe
 from frappe.model.document import Document
 from csf_tz.kcb.utils.crypto_utils import generate_checksum, sign_checksum_with_p12
 from csf_tz.kcb.api.kcb_api import submit_file_details, upload_encrypted_file
-import gnupg
+from csf_tz.kcb.pgp import encrypt_pgp
 
 class KCBPaymentsInitiation(Document):
 
@@ -28,19 +28,22 @@ class KCBPaymentsInitiation(Document):
             [item.amount for item in self.kcb_payments_initiation_info if item.amount]
         )
         file_content = f"{header}\n{body}\n{total_amount}"
+        file_bytes = file_content.encode("utf-8")
 
-        self.file_checksum = generate_checksum(file_content)
+        self.file_checksum = generate_checksum(file_bytes)
 
         self.checksum_signature = sign_checksum_with_p12(self.file_checksum)
 
-        gpg = gnupg.GPG()
-        passphrase = "my-secret-pass"
-        encrypted_data = gpg.encrypt(file_content, recipients=None, symmetric='AES256', passphrase=passphrase, armor=True)
+        settings = frappe.get_single("KCB Settings")
+        public_key = getattr(settings, "pgp_public_key", None)
+        if not public_key:
+            frappe.throw("KCB Settings PGP public key is missing.")
 
-        if not encrypted_data.ok:
-            frappe.throw(f"Encryption failed: {encrypted_data.status}")
+        encrypted_data = encrypt_pgp(file_bytes, public_key)
+        if not encrypted_data:
+            frappe.throw("Encryption failed: empty result")
 
-        file_base_name = f"kcb_payment_file_{self.name}"
+        file_base_name = self.name
 
         txt_file = frappe.get_doc({
             "doctype": "File",
@@ -57,7 +60,7 @@ class KCBPaymentsInitiation(Document):
             "file_name": f"{file_base_name}.txt.gpg",
             "attached_to_doctype": "KCB Payments Initiation",
             "attached_to_name": self.name,
-            "content": str(encrypted_data),
+            "content": encrypted_data,
             "folder": "Home"
         })
         gpg_file.save()
