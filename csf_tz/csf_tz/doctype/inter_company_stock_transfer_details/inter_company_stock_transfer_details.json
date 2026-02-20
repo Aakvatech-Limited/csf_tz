@@ -7,10 +7,11 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_name",
   "item_code",
   "uom",
+  "basic_rate",
   "qty",
+  "batch_no",
   "bom_no",
   "transfer_qty",
   "s_warehouse",
@@ -24,9 +25,9 @@
    "label": "Item Code",
    "options": "Item"
   },
-  
   {
    "fetch_from": "item_code.stock_uom",
+   "fetch_if_empty": 1,
    "fieldname": "uom",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -43,6 +44,13 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "QTY"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Batch No",
+   "options": "Batch"
   },
   {
    "fieldname": "bom_no",
