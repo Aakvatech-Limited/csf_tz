@@ -120,7 +120,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
         row.transaction_code = "59"
         row.my_ref = pe.name
         row.beneficiary_ref = pe.name
-        row.payment_purpose = pe.remarks or _("Supplier Payment")
+        row.payment_purpose = "Supplier Payment"
 
         total_amount += pe.paid_amount or 0
 
