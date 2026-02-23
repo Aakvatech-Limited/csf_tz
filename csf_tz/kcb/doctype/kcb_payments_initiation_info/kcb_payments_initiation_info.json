@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-07 23:09:51.843284",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "source_doctype",
+  "source_name",
+  "beneficiary_name",
+  "amount",
+  "beneficiary_account",
+  "currency",
+  "transaction_code",
+  "my_ref",
+  "payment_purpose",
+  "beneficiary_clearing_code",
+  "beneficiary_ref",
+  "cbk_code",
+  "ordering_customer_physical_address"
+ ],
+ "fields": [
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source Doctype",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Source Name",
+   "options": "source_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "beneficiary_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "beneficiary_account",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Beneficiary Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "transaction_code",
+   "fieldtype": "Data",
+   "label": "Transaction Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "my_ref",
+   "fieldtype": "Small Text",
+   "label": "My Ref",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_purpose",
+   "fieldtype": "Small Text",
+   "label": "Payment Purpose"
+  },
+  {
+   "fieldname": "beneficiary_clearing_code",
+   "fieldtype": "Data",
+   "label": "Beneficiary Clearing Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "beneficiary_ref",
+   "fieldtype": "Small Text",
+   "label": "Beneficiary Ref",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cbk_code",
+   "fieldtype": "Data",
+   "label": "CBK Code"
+  },
+  {
+   "fieldname": "ordering_customer_physical_address",
+   "fieldtype": "Small Text",
+   "label": "Ordering Customer Physical Address"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-07 23:20:39.163756",
+ "modified_by": "Administrator",
+ "module": "KCB",
+ "name": "KCB Payments Initiation Info",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
