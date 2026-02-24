@@ -15,6 +15,8 @@
   "role_to_reopen_po",
   "allow_reopen_of_material_request_based_on_role",
   "role_to_reopen_material_request",
+  "disable_get_outstanding_functionality",
+  "allow_inter_company_stock_transfer",
   "column_break_3",
   "auto_pos_for_role",
   "is_manufacture",
@@ -23,10 +25,24 @@
   "item_qty_poppup_message",
   "validate_grand_total_vs_payment_amount_on_sales_invoice",
   "target_warehouse_based_price_list",
+  "enable_write_off_jv_si",
+  "auto_stock_reconciliation",
+  "enable_write_off_jv_pi",
+  "enable_write_off_jv_pe",
   "section_break_8",
   "sle_gle_reposting_start_date",
   "column_break_10",
   "start_sle_gle_reporting",
+  "budget_settings_section",
+  "check_budget_in_po",
+  "check_budget_in_pi",
+  "column_break_wdzp",
+  "check_budget_in_mr",
+  "check_budget_in_je",
+  "trade_in_settings_section",
+  "enable_trade_in",
+  "sales_invoice_qty_settings_section",
+  "override_sales_invoice_qty",
   "payroll_overrides_section",
   "enable_payroll_approval",
   "override_salary_slip_email_message",
@@ -44,7 +60,11 @@
   "working_hours_per_month",
   "default_account_for_additional_component_cash_journal",
   "column_break_bhc2q",
-  "ot_module"
+  "ot_module",
+  "tz_regions_section",
+  "populate_tz_regions",
+  "column_break_tz_regions",
+  "tz_regions_populated"
  ],
  "fields": [
   {
@@ -281,12 +301,133 @@
    "label": "Role to Reopen Material Request",
    "mandatory_depends_on": "eval: doc.allow_reopen_of_material_request_based_on_role == 1",
    "options": "Role"
+  },
+  {
+   "fieldname": "sales_invoice_qty_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Invoice Qty Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "override_sales_invoice_qty",
+   "fieldtype": "Check",
+   "label": "Override Sales Invoice Qty"
+  },
+  {
+   "fieldname": "trade_in_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Trade In Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle trade-in items directly within Sales Invoices.",
+   "fieldname": "enable_trade_in",
+   "fieldtype": "Check",
+   "label": "Enable Trade In"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_get_outstanding_functionality",
+   "fieldtype": "Check",
+   "label": "Disable Automatic Get Outstanding Documents"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "tz_regions_section",
+   "fieldtype": "Section Break",
+   "label": "TZ Regions Data"
+  },
+  {
+   "default": "0",
+   "description": "Check this box to populate TZ Regions, Districts, Wards and Villages from JSON data. This is a one-time operation that may take several minutes.",
+   "fieldname": "populate_tz_regions",
+   "fieldtype": "Check",
+   "label": "Populate TZ Regions Data"
+  },
+  {
+   "fieldname": "column_break_tz_regions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "This field shows whether TZ Regions data has been successfully populated.",
+   "fieldname": "tz_regions_populated",
+   "fieldtype": "Check",
+   "label": "TZ Regions Data Populated",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_inter_company_stock_transfer",
+   "fieldtype": "Check",
+   "label": "Allow Inter company stock transfer"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_si",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Journal Entry Sales Invoice"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_stock_reconciliation",
+   "fieldtype": "Check",
+   "label": "Allow auto creation of stock reconciliation from material request"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_pi",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Journal Entry Purchase Invoice"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_write_off_jv_pe",
+   "fieldtype": "Check",
+   "label": "Enable Write Off Journal Entry Payment Entry"
+  },
+  {
+   "fieldname": "budget_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Budget Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Purchase Order",
+   "fieldname": "check_budget_in_po",
+   "fieldtype": "Check",
+   "label": "Check Budget in PO"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Purchase Invoice",
+   "fieldname": "check_budget_in_pi",
+   "fieldtype": "Check",
+   "label": "Check Budget in PI"
+  },
+  {
+   "fieldname": "column_break_wdzp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Material Request",
+   "fieldname": "check_budget_in_mr",
+   "fieldtype": "Check",
+   "label": "Check Budget in MR"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Journal Entry",
+   "fieldname": "check_budget_in_je",
+   "fieldtype": "Check",
+   "label": "Check Budget in JE"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-08-14 10:53:56.231838",
+ "modified": "2025-12-22 17:32:01.784671",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
@@ -311,6 +452,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

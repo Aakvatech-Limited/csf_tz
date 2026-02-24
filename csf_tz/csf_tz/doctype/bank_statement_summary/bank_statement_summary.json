@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2025-07-18 10:04:23.811854",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "bank_account",
+  "end_of_month",
+  "column_break_ozsh",
+  "bank_account_currency",
+  "section_break_mmro",
+  "count_of_transaction",
+  "column_break_abtd",
+  "deposit",
+  "column_break_gegh",
+  "withdrawal",
+  "section_break_qsux",
+  "closing_balance"
+ ],
+ "fields": [
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Bank Account",
+   "link_filters": "[[\"Bank Account\",\"is_company_account\",\"=\",1]]",
+   "options": "Bank Account"
+  },
+  {
+   "fieldname": "end_of_month",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "End of Month"
+  },
+  {
+   "fieldname": "column_break_ozsh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "bank_account.company_account_currency",
+   "fieldname": "bank_account_currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bank Account Currency",
+   "options": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_mmro",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "count_of_transaction",
+   "fieldtype": "Int",
+   "label": "Count of Transaction"
+  },
+  {
+   "fieldname": "column_break_abtd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deposit",
+   "fieldtype": "Currency",
+   "label": "Deposit",
+   "options": "bank_account_currency"
+  },
+  {
+   "fieldname": "column_break_gegh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "withdrawal",
+   "fieldtype": "Currency",
+   "label": "Withdrawal",
+   "options": "bank_account_currency"
+  },
+  {
+   "fieldname": "section_break_qsux",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "closing_balance",
+   "fieldtype": "Currency",
+   "label": "Closing Balance",
+   "options": "bank_account_currency"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-23 12:55:41.154068",
+ "modified_by": "Administrator",
+ "module": "csf_tz",
+ "name": "Bank Statement Summary",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "bank_account"
+}

@@ -3,6 +3,8 @@ from frappe import _
 from frappe.utils.csvutils import getlink
 from frappe.model import core_doctypes_list
 
+# List of excluded doctypes
+excluded_doctype_list = ["Address", "Contact"]
 
 def grant_dependant_access(doc, method):
     if frappe.flags.in_install or frappe.flags.in_migrate:
@@ -20,7 +22,6 @@ def grant_dependant_access(doc, method):
         )
         return
     fields = frappe.get_meta(doc.parent).fields
-    # console(fields)
     doctypes_granted_access = []
     for field in fields:
         if field.get("fieldtype") in ["Link"]:
@@ -41,8 +42,11 @@ def grant_dependant_access(doc, method):
             )
         )
 
-
 def create_custom_docperm(doctype, role, parent):
+    # Return if doctype is in the excluded list
+    if doctype in excluded_doctype_list:
+        return
+    
     if doctype == parent or doctype in core_doctypes_list:
         return
     is_permission_exists = frappe.get_all(

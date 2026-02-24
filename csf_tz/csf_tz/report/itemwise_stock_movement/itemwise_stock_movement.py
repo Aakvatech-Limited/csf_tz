@@ -112,19 +112,34 @@ def get_opening_balance_entries(filters, items):
 		), filters, as_dict = 1)
 
 def get_items(filters):
-	conditions = []
-	if filters.get("item_code"):
-		conditions.append("item.name=%(item_code)s")
-	else:
-		if filters.get("brand"):
-			conditions.append("item.brand=%(brand)s")
-		if filters.get("item_group"):
-			conditions.append(get_item_group_condition(filters.get("item_group")))
-
+	"""Get items based on filters."""
 	items = []
-	if conditions:
-		items = frappe.db.sql_list("""select name from `tabItem` item where {}"""
-			.format(" and ".join(conditions)), filters)
+	
+	# Case 1: Filter by specific item_code
+	if filters.get("item_code"):
+		items = [filters.get("item_code")]
+	
+	# Case 2: Filter by brand or item_group
+	elif filters.get("brand") or filters.get("item_group"):
+		query = "SELECT name FROM `tabItem` WHERE "
+		conditions = []
+		
+		if filters.get("brand"):
+			conditions.append("brand = %(brand)s")
+		
+		if filters.get("item_group"):
+			item_group_condition = get_item_group_condition(filters.get("item_group"))
+			if item_group_condition:
+				conditions.append(item_group_condition)
+		
+		if conditions:
+			query += " AND ".join(conditions)
+			items = frappe.db.sql_list(query, filters)
+	
+	# Case 3: No filters, get all items
+	else:
+		items = frappe.db.sql_list("SELECT name FROM `tabItem`")
+	
 	return items
 
 def get_sle_conditions(filters):

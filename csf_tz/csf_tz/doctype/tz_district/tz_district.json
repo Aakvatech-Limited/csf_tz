@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": "field:district",
+ "autoname": "format:D-{#######}",
  "creation": "2021-12-27 15:50:17.401363",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -28,12 +27,14 @@
    "reqd": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-12-27 15:50:25.791120",
+ "modified": "2025-06-06 15:23:39.386379",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "TZ District",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -49,6 +50,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
+ "search_fields": "district",
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

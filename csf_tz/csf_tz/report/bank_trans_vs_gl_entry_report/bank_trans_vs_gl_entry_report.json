@@ -1,0 +1,58 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-07-10 11:17:27.219676",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "mandatory": 1,
+   "options": "Bank Account",
+   "wildcard_filter": 0
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2025-07-10 11:39:25.929703",
+ "modified_by": "Administrator",
+ "module": "csf_tz",
+ "name": "Bank Trans vs GL Entry Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT \n  dt.date AS \"Date:Date:\",\n  IFNULL(bank.bank_txn_count, 0) AS \"Bank Trans Count:Int:\",\n  IFNULL(gl.gl_txn_count, 0) AS \"GL Trans Count:Int:\",\n  (IFNULL(bank.bank_txn_count, 0) - IFNULL(gl.gl_txn_count, 0)) AS \"Count Difference:Int:\",\n  IFNULL(bank.bank_total, 0) AS \"Bank Total:Float:\",\n  IFNULL(gl.gl_total, 0) AS \"GL Total:Float:\",\n  (IFNULL(bank.bank_total, 0) - IFNULL(gl.gl_total, 0)) AS \"Total Difference:Float:\",\n  IFNULL(bank.bank_deposit, 0) AS \"Bank Deposit:Float:\",\n  IFNULL(gl.gl_deposit, 0) AS \"GL Deposit:Float:\",\n  (IFNULL(bank.bank_deposit, 0) - IFNULL(gl.gl_deposit, 0)) AS \"Deposit Difference:Float:\",\n  IFNULL(bank.bank_withdrawal, 0) AS \"Bank Withdrawal:Float:\",\n  IFNULL(gl.gl_withdrawal, 0) AS \"GL Withdrawal:Float:\",\n  (IFNULL(bank.bank_withdrawal, 0) - IFNULL(gl.gl_withdrawal, 0)) AS \"Withdrawal Difference:Float:\"\nFROM (\n  SELECT DISTINCT bt.date as date FROM `tabBank Transaction` bt WHERE bt.date BETWEEN %(from_date)s AND %(to_date)s AND docstatus = 1 AND bt.bank_account = %(bank_account)s\n  UNION\n  SELECT DISTINCT gli.posting_date as date\n      FROM `tabGL Entry` gli\n      INNER JOIN `tabBank Account` ba ON gli.account = ba.account\n      WHERE gli.posting_date BETWEEN %(from_date)s AND %(to_date)s\n        AND ba.name = %(bank_account)s\n        AND gli.is_cancelled = 0\n  ) AS dt\nLEFT OUTER JOIN (\n  -- Bank query\n  SELECT \n    bt.date AS txn_date,\n    COUNT(*) AS bank_txn_count,\n    SUM(bt.deposit - bt.withdrawal) AS bank_total,\n    SUM(bt.deposit) AS bank_deposit,\n    SUM(bt.withdrawal) AS bank_withdrawal\n  FROM `tabBank Transaction` bt\n  WHERE bt.date BETWEEN %(from_date)s AND %(to_date)s\n    AND bt.bank_account = %(bank_account)s\n    AND bt.docstatus = 1\n  GROUP BY bt.date\n) AS bank ON dt.date = bank.txn_date\nLEFT OUTER JOIN (\n  -- GL query\n  SELECT \n    gl.posting_date AS txn_date,\n    COUNT(*) AS gl_txn_count,\n    SUM(gl.debit_in_account_currency - gl.credit_in_account_currency) AS gl_total,\n    SUM(gl.debit_in_account_currency) AS gl_deposit,\n    SUM(gl.credit_in_account_currency) AS gl_withdrawal\n  FROM `tabGL Entry` gl\n  INNER JOIN `tabBank Account` ba ON gl.account = ba.account\n  WHERE gl.posting_date BETWEEN %(from_date)s AND %(to_date)s\n    AND ba.name = %(bank_account)s\n    AND gl.is_cancelled = 0\n  GROUP BY gl.posting_date\n) AS gl\nON dt.date = gl.txn_date\nORDER BY 1\n",
+ "ref_doctype": "Bank Transaction",
+ "report_name": "Bank Trans vs GL Entry Report",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  }
+ ],
+ "timeout": 0
+}

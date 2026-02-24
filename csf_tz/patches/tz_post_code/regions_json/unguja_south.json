@@ -1,0 +1,429 @@
+[
+  {
+    "Location": "Bambi",
+    "Ward": "Bambi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72205"
+  },
+  {
+    "Location": "Binguni",
+    "Ward": "Jumbi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72208"
+  },
+  {
+    "Location": "Bungi",
+    "Ward": "Unguja Ukuu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72209"
+  },
+  {
+    "Location": "Bwejuu",
+    "Ward": "Bwejuu",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72111"
+  },
+  {
+    "Location": "Charawe",
+    "Ward": "Michamvi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72211"
+  },
+  {
+    "Location": "Cheju",
+    "Ward": "Ndijani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72206"
+  },
+  {
+    "Location": "Chwaka",
+    "Ward": "Chwaka",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72207"
+  },
+  {
+    "Location": "Dongwe",
+    "Ward": "Bwejuu",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72111"
+  },
+  {
+    "Location": "Dunga Bweni",
+    "Ward": "Dunga",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72201"
+  },
+  {
+    "Location": "Dunga Kiembeni",
+    "Ward": "Dunga",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72201"
+  },
+  {
+    "Location": "Ghana",
+    "Ward": "Kibojeu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72203"
+  },
+  {
+    "Location": "Jambiani Kibigija",
+    "Ward": "Kibigija",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72108"
+  },
+  {
+    "Location": "Jambiani Kikadini",
+    "Ward": "Kikadini",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72107"
+  },
+  {
+    "Location": "Jendele",
+    "Ward": "Ndijani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72206"
+  },
+  {
+    "Location": "Jumbi",
+    "Ward": "Jumbi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72208"
+  },
+  {
+    "Location": "Kajengwa",
+    "Ward": "Kajengwa",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72105"
+  },
+  {
+    "Location": "Kiboje Mkwajuni",
+    "Ward": "Kibojeu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72203"
+  },
+  {
+    "Location": "Kiboje Mwembeshauri",
+    "Ward": "Kibojeu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72203"
+  },
+  {
+    "Location": "Kibuteni",
+    "Ward": "Kizimkazi",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72104"
+  },
+  {
+    "Location": "Kidimni",
+    "Ward": "Koani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72202"
+  },
+  {
+    "Location": "Kijini",
+    "Ward": "Mtegani",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72103"
+  },
+  {
+    "Location": "Kikungwi",
+    "Ward": "Unguja Ukuu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72209"
+  },
+  {
+    "Location": "Kiongoni",
+    "Ward": "Mtegani",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72103"
+  },
+  {
+    "Location": "Kitogani",
+    "Ward": "Muungoni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72109"
+  },
+  {
+    "Location": "Kizimkazi Dimbani",
+    "Ward": "Kizimkazi",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72104"
+  },
+  {
+    "Location": "Kizimkazi Mkunguni",
+    "Ward": "Kizimkazi",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72104"
+  },
+  {
+    "Location": "Koani",
+    "Ward": "Koani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72202"
+  },
+  {
+    "Location": "Machui",
+    "Ward": "Koani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72202"
+  },
+  {
+    "Location": "Marumbi",
+    "Ward": "Chwaka",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72207"
+  },
+  {
+    "Location": "Mchangani",
+    "Ward": "Uzini",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72204"
+  },
+  {
+    "Location": "Mgenihaji",
+    "Ward": "Uzini",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72204"
+  },
+  {
+    "Location": "Michamvi",
+    "Ward": "Michamvi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72211"
+  },
+  {
+    "Location": "Mitakawani",
+    "Ward": "Uzini",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72204"
+  },
+  {
+    "Location": "Miwani",
+    "Ward": "Kibojeu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72203"
+  },
+  {
+    "Location": "Mpapa",
+    "Ward": "Bambi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72205"
+  },
+  {
+    "Location": "Mtende",
+    "Ward": "Mtende",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72101"
+  },
+  {
+    "Location": "Muungoni",
+    "Ward": "Muungoni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72109"
+  },
+  {
+    "Location": "Muyuni A",
+    "Ward": "Muyuni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72106"
+  },
+  {
+    "Location": "Muyuni B",
+    "Ward": "Muyuni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72106"
+  },
+  {
+    "Location": "Muyuni C",
+    "Ward": "Muyuni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72106"
+  },
+  {
+    "Location": "Mzuri",
+    "Ward": "Mzuri",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72102"
+  },
+  {
+    "Location": "Ndijani Mseweni",
+    "Ward": "Ndijani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72206"
+  },
+  {
+    "Location": "Ndijani Mwembepunda",
+    "Ward": "Ndijani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72206"
+  },
+  {
+    "Location": "Ng'ambwa",
+    "Ward": "Uzi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72210"
+  },
+  {
+    "Location": "Nganani",
+    "Ward": "Kajengwa",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72105"
+  },
+  {
+    "Location": "Pagali",
+    "Ward": "Bambi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72205"
+  },
+  {
+    "Location": "Paje",
+    "Ward": "Paje",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72110"
+  },
+  {
+    "Location": "Pete",
+    "Ward": "Muungoni",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72109"
+  },
+  {
+    "Location": "Pongwe",
+    "Ward": "Chwaka",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72207"
+  },
+  {
+    "Location": "Tasani",
+    "Ward": "Mzuri",
+    "District": "Kusini",
+    "Region": "Unguja South",
+    "Postcode": "72102"
+  },
+  {
+    "Location": "Tindini",
+    "Ward": "Uzi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72210"
+  },
+  {
+    "Location": "Tunduni",
+    "Ward": "Uzini",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72204"
+  },
+  {
+    "Location": "Tunguu",
+    "Ward": "Jumbi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72208"
+  },
+  {
+    "Location": "Ubago",
+    "Ward": "Koani",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72202"
+  },
+  {
+    "Location": "Ukongoroni",
+    "Ward": "Michamvi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72211"
+  },
+  {
+    "Location": "Umbuji",
+    "Ward": "Bambi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72205"
+  },
+  {
+    "Location": "Unguja Ukuu Kaebona",
+    "Ward": "Unguja Ukuu",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72209"
+  },
+  {
+    "Location": "Unguja Ukuu Kaepwani",
+    "Ward": "Uzi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72210"
+  },
+  {
+    "Location": "Uroa",
+    "Ward": "Chwaka",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72207"
+  },
+  {
+    "Location": "Uzi",
+    "Ward": "Uzi",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72210"
+  },
+  {
+    "Location": "Uzini",
+    "Ward": "Uzini",
+    "District": "Kati",
+    "Region": "Unguja South",
+    "Postcode": "72204"
+  }
+]

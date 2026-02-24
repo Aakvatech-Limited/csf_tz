@@ -1,0 +1,436 @@
+[
+  {
+    "Location": "Bopwe",
+    "Ward": "Bopwe",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75102"
+  },
+  {
+    "Location": "Chimba",
+    "Ward": "Kinowe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75203"
+  },
+  {
+    "Location": "Chwale",
+    "Ward": "Mchanga Mdogo",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75111"
+  },
+  {
+    "Location": "Finya",
+    "Ward": "Mgogoni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75208"
+  },
+  {
+    "Location": "Fundo",
+    "Ward": "Fundo",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75117"
+  },
+  {
+    "Location": "Gando",
+    "Ward": "Gando",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75116"
+  },
+  {
+    "Location": "Jadida",
+    "Ward": "Jadida",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75104"
+  },
+  {
+    "Location": "Junguni",
+    "Ward": "Gando",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75116"
+  },
+  {
+    "Location": "Kambini",
+    "Ward": "Kangagani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75113"
+  },
+  {
+    "Location": "Kangagani",
+    "Ward": "Kangagani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75113"
+  },
+  {
+    "Location": "Kifundi",
+    "Ward": "Konde",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75209"
+  },
+  {
+    "Location": "Kinowe",
+    "Ward": "Kinowe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75203"
+  },
+  {
+    "Location": "Kinyasini",
+    "Ward": "Mgogoni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75208"
+  },
+  {
+    "Location": "Kinyikani",
+    "Ward": "Mchanga Mdogo",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75111"
+  },
+  {
+    "Location": "Kipangani",
+    "Ward": "Kipangani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75101"
+  },
+  {
+    "Location": "Kisiwani",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Kisiwani",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Kiungoni",
+    "Ward": "Shengejuu",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75115"
+  },
+  {
+    "Location": "Kiuyu Kigongoni",
+    "Ward": "Kangagani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75113"
+  },
+  {
+    "Location": "Kiuyu Mbuyuni",
+    "Ward": "Kiuyu Maziwang'ombe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75205"
+  },
+  {
+    "Location": "Kiuyu Minungwini",
+    "Ward": "Kangagani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75113"
+  },
+  {
+    "Location": "Kizimbani",
+    "Ward": "Kizimbani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75105"
+  },
+  {
+    "Location": "Kojani",
+    "Ward": "Kojani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75114"
+  },
+  {
+    "Location": "Konde",
+    "Ward": "Konde",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75209"
+  },
+  {
+    "Location": "Limbani",
+    "Ward": "Limbani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75106"
+  },
+  {
+    "Location": "Majenzi",
+    "Ward": "Micheweni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75201"
+  },
+  {
+    "Location": "Makangale",
+    "Ward": "Konde",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75209"
+  },
+  {
+    "Location": "Maziwang'Ombe",
+    "Ward": "Kiuyu Maziwang'ombe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75205"
+  },
+  {
+    "Location": "Maziwani",
+    "Ward": "Shengejuu",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75115"
+  },
+  {
+    "Location": "Mchanga Mdogo",
+    "Ward": "Mchanga Mdogo",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75111"
+  },
+  {
+    "Location": "Mgogoni",
+    "Ward": "Mgogoni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75208"
+  },
+  {
+    "Location": "Micheweni",
+    "Ward": "Micheweni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75201"
+  },
+  {
+    "Location": "Mihogoni",
+    "Ward": "Shumba Viamboni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75207"
+  },
+  {
+    "Location": "Mjananza",
+    "Ward": "Wingwi Njuguni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75206"
+  },
+  {
+    "Location": "Mjini Ole",
+    "Ward": "Ole",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75112"
+  },
+  {
+    "Location": "Mjini Wingwi",
+    "Ward": "Micheweni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75201"
+  },
+  {
+    "Location": "Mlindo",
+    "Ward": "Wingwi Njuguni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75206"
+  },
+  {
+    "Location": "Mpambani",
+    "Ward": "Kojani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75114"
+  },
+  {
+    "Location": "Msuka Magharibi",
+    "Ward": "Msuka",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75210"
+  },
+  {
+    "Location": "Msuka Mashariki",
+    "Ward": "Msuka",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75210"
+  },
+  {
+    "Location": "Mtambwe Kaskazini",
+    "Ward": "Mtambwe",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75109"
+  },
+  {
+    "Location": "Mtambwe Kusini",
+    "Ward": "Mtambwe",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75109"
+  },
+  {
+    "Location": "Mtemani",
+    "Ward": "Wingwi Njuguni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75206"
+  },
+  {
+    "Location": "Mzambarauni Takao",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Mzambarauni Takao",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Njuguni",
+    "Ward": "Wingwi Njuguni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75206"
+  },
+  {
+    "Location": "Ole",
+    "Ward": "Ole",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75112"
+  },
+  {
+    "Location": "Pandani",
+    "Ward": "Pandani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75108"
+  },
+  {
+    "Location": "Pembeni",
+    "Ward": "Shengejuu",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75115"
+  },
+  {
+    "Location": "Piki",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Piki",
+    "Ward": "Kisiwani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75110"
+  },
+  {
+    "Location": "Selemu",
+    "Ward": "Selemu",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75107"
+  },
+  {
+    "Location": "Shengejuu",
+    "Ward": "Shengejuu",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75115"
+  },
+  {
+    "Location": "Shumba Mjini",
+    "Ward": "Micheweni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75201"
+  },
+  {
+    "Location": "Shumba Viamboni",
+    "Ward": "Shumba Viamboni",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75207"
+  },
+  {
+    "Location": "Sizini",
+    "Ward": "Tumbe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75202"
+  },
+  {
+    "Location": "Tondooni",
+    "Ward": "Konde",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75209"
+  },
+  {
+    "Location": "Tumbe Magharibi",
+    "Ward": "Tumbe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75202"
+  },
+  {
+    "Location": "Tumbe Mashariki",
+    "Ward": "Tumbe",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75202"
+  },
+  {
+    "Location": "Ukunjwi",
+    "Ward": "Gando",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75116"
+  },
+  {
+    "Location": "Utaani",
+    "Ward": "Utaani",
+    "District": "Wete",
+    "Region": "Pemba North",
+    "Postcode": "75103"
+  },
+  {
+    "Location": "Wingwi Mapofu",
+    "Ward": "Wingwi Mapofu",
+    "District": "Micheweni",
+    "Region": "Pemba North",
+    "Postcode": "75204"
+  }
+]

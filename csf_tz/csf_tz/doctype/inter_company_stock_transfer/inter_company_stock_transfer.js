@@ -17,6 +17,14 @@ frappe.ui.form.on('Inter Company Stock Transfer', {
                 }
             };
         });
+        frm.fields_dict['items_child'].grid.get_field('batch_no').get_query = function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+            return {
+                filters: {
+                    item_name: row.item_name
+                }
+            };
+        };
     }
 });
 

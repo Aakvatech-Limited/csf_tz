@@ -32,9 +32,6 @@ def create_additional_salary_journal(doc, method):
         if method == "on_submit":
             dr_account = component_account
             cr_account = cash_account
-        elif method == "on_cancel":
-            dr_account = cash_account
-            cr_account = component_account
         else:
             frappe.msgprint("Unknown method on create_additional_salary_journal")
             return
@@ -173,7 +170,7 @@ def get_employee_base_salary_in_hours(employee, payroll_date):
     """
     last_salary_assignment = frappe.get_all(
         "Salary Structure Assignment",
-        filters={"employee": employee, "from_date": ["<=", payroll_date]},
+        filters={"employee": employee, "from_date": ["<=", payroll_date], "docstatus": 1},
         fields=["name", "base"],
         order_by="`from_date` DESC",
         limit=1,

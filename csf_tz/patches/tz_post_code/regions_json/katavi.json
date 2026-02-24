@@ -1,0 +1,7198 @@
+[
+  {
+    "Location": "Achatuone",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Airtel",
+    "Ward": "Uwanja Wa\nNdege",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50111"
+  },
+  {
+    "Location": "Alfa",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Amani",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Amani",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Amani",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Azimio",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Azimio",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Banane",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Barabara 1",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Barabara 3",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Barabara 4",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Barabara 5",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Barabara ya 1",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 1",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 1",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 1",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 10",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 10",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 11",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 11",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 12",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 2",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 2",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 2",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 2",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 2 'a'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 2'b'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 3",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 3",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 3",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 3",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 3 'a'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 3 'b'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 4",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 4",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 4",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 4",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 4",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 5",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 5",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 5",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 5",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 5",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 6",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 6",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Barabara ya 6",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 6",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 6",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 7",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 7",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 7",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 8",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 8",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Barabara ya 8",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 9",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Barabara ya 9",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Barabara ya 9",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Barabara ya 9",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Beringi",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Bhula",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Bockfarm",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Bombani",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Bondeni",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Bubanda",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Bugwe",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Bugwe A",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Bugwe B",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Bugwe C",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Buhoro",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Bujombe",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Bujombe",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Bulakuko",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Bulamata",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Bulangwa",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Bulembo",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Bulima",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Bunyolwe",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Burunga",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Busongola",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Busongola A",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Busongola B",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Butiki",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Buzogwe",
+    "Ward": "Kashaulili",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50106"
+  },
+  {
+    "Location": "Center",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Chamalendi",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Chamalendi A",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Chamalendi B",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Changi",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Chang’ombe",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Chemchem",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Chemchem",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Chemchemi",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Chemichemi",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Chemka",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Chifunda",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Chongwe",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Dirifu",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Filimule",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Finga",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Forodhani.",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Gezaulole",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Gezaulole",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Ibambye",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Ibenga",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Ibindi A",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Ibindi B",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Ibindi Kusini",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Ibulamasi Magharibi",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Ibulamasi Mashariki",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Ifukutwa",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Ifukutwa A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Ifukutwa B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Ifumbula",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Ifume",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Igagala",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Igagala A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Igagala B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Igagala C",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Igalukilo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Igalukilo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Igalukilo",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Igalukilo A",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Igalukilo A",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Igalukilo B",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Igalukilo B",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Igalukilo C",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Igalula",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Igalula",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Igalula",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Igogwe",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Igoma",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Igombe A",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Igombe B",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Igonda",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Igongwe",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Igulungu",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Ijenda A",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Ijenda B",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Ijenje",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Ikaka",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Ikaka",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Ikaka Gengeni",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Ikaka ‘B’",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Ikola",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Ikola Stoo",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Ikolongo 'A'",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Ikolongo `B‘",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Ikombasogo",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Ikondamoyo",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Ikuba",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Ikulo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Ikulu",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Ikulu",
+    "Ward": "Kawajense",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50101"
+  },
+  {
+    "Location": "Ikulu",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Ikulu",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Ikulu",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Ilalangulu",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Ilambwe",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Ilanga",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Ilangasika",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Ilangu",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Ilebula B",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Ilebula ‘A’",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Ilela",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Ilelanda",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Ilembo",
+    "Ward": "Ilembo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50102"
+  },
+  {
+    "Location": "Ilingamila",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Iloba",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Iloba A",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Iloba B",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Ilulwe",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Ilulwe A",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Ilulwe B",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Ilunda",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Ilunde",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Ilwanga",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Imalauduki",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Imalaupina A",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Imalaupina B",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Imalausinga",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Imilamate A",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Imilamate B",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Inyantambo",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Inyonga",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Ipakomatana’B'",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Ipililo",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Ipole",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Ipota",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Ipwaga",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Ipwaga",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Ipwaga",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Isagala",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Isamvu",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Isanjandugu",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Iseka",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Isenga",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Isenga",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Isengenezya",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Isengo A",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Isengo B",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Isengula Magharibi",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Isengule",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Isengule",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Isengule",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Isengule Mashariki",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Isigo",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Isimba",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Isimwa",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Isinde",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Isubangala",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Isumbwe",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Itenka Kati",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Itenka ‘A’",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Itenka ‘B’",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Itetemya",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Itobanilo A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Itobanilo B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Itofu",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Itula",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Itumba A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Itumba B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Itunya",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Ivungwe",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Ivungwe",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Ivungwe A",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Ivungwe A",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Ivungwe B",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Ivungwe B",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Iwimbi",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Iziwakasha",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Iziwasungu",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Izugumulole",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Jazanatwende",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Jeramanga A",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Jeramanga B",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Jeramanga C",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Jeramanga D",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Jeramanga E",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Jilabela",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Jilabela A",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Jilabela B",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Jilabela Kati",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Jitegemee",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Jitegemee",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Juhudi",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kabage",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Kabage A",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Kabage B",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Kabage Mashariki",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Kabanga",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kabatini",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Kabatini",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Kabatini",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kabatini",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Kabeba",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kabenga",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Kaboroge \"A\"",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kabuga",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kabuga Kijiweni",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kabunde",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kabungu",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kaburonge \"B\"",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kabwika",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kachoma",
+    "Ward": "Makanyagio",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50108"
+  },
+  {
+    "Location": "Kade",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kadelema",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Kafisha",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Kafisha Kati",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Kafulesi \"A\"",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kafulesi \"B\"",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kafulu",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kafunzuru",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Kagala",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kagera",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Kagera",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Kagunga",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kagunga ‘A’",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kagunga ‘B’",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kagwila",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kahelele",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kajeje 'A'",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kajeje 'B'",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kajinga",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Kakese",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kakongolo",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kakuni",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Kakunku",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kalangali",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Kalenge",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kalilangwena",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Kaloleni",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kalovya",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kalovya A",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kalovya B",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kalovya C",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kalumbi",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Kalungu",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Kalungu A",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kalungu B",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kalyakoo",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kamakuka",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kamakuka \"A\"",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kamakuka \"B\"",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kamalamansa",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Kamalampaka",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kamalampaka A",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kamalampaka B",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kamanonge",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Kamazile",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kambanga",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Kambula",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Kambuzi 'A'",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kambuzi 'B'",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kambuzi Halt",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kambuzi Kusini",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kambuzi Magharibi",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kambuzi Mashariki",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kamilala",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kamini A",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kamini B",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "kaminula",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Kamitobo",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Kamjela",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Kamkola",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kamlenga",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Kamlenga",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kamnembe",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kampemba",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kampuni",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Kamsanga",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Kamsanga B",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Kamsemkwa",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Kamsisi",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Kamsofu",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Kamtambike",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Kamtimbo",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Kamuhama",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Kamulongwe",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kamuluguju",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kanembela A",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kanembela B",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kanindi",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kanindi A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kanindi B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kaninka",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Kankosha",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kanoge",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Kanoge",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Kanoge A",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Kanoge B",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Kanoge Center",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kanoge Laini",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kanondo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Kansenga",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Kantonga",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Kanyawasoga",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kanyumbu",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Kapalala",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Kapalala A",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Kapalala B",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Kapalala C",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Kapalamsenga",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Kapalangao",
+    "Ward": "Kazima",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50112"
+  },
+  {
+    "Location": "Kapanda",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Kapanda chini",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Kapanda Maweni",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Kapanda Wenyeji",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Kapanga",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kapele",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kapele A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kapele B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kapemba",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Karema",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kasanga",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Kasangantongwe",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Kasangasi",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kaseganyama",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kaseganyama A",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kaseganyama B",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kaseganyama C",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kasekese",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kasekese A",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kasekese B",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Kasenga",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kashamkulo",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Kashaulili",
+    "Ward": "Kashaulili",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50106"
+  },
+  {
+    "Location": "Kashelami",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Kashelami A.",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Kashelami B.",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Kashishi",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Kashishi Kaskazini",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Kashishi Kati",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Kashishi Kusini",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Kasimba",
+    "Ward": "Ilembo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50102"
+  },
+  {
+    "Location": "Kasinde",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Kasisi",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kasisi",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Kasisi",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kasisi A",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kasisi B",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kasisiwe",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Kaskazini A",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kaskazini B",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kasokola",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasokola Kati",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasokola Magharibi A",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasokola Magharibi B",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasokola Mashariki A",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasokola Mashariki B",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasolwa A",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasolwa B",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Kasongwa",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Kasulamnyaga",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Kasulu",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kasunga",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Katambike",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Katambo",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Katandala",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Kategile",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Katente",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Katete",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Katinda",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Katisunga",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Katisunga A",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Katisunga B",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Katobo",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Katobo A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Katobo B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Katonyaga",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Katuma",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Katumba",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Katyasho A",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Katyasho B",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Katyasho C",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Kaulolo",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Kaumba",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Kaunyala",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Kauye",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Kavikonge A",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Kavikonge B",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Kavuu",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kawajense",
+    "Ward": "Kawajense",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50101"
+  },
+  {
+    "Location": "Kawanga",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kawanzige A",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kawazinge",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Kawe",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Kayamba A",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kayamba B",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Kayawe",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Kayenze A",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kayenze B",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Kazamwendo",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kazaroho",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kazaroho",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kazaroho",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Kazima",
+    "Ward": "Kazima",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50112"
+  },
+  {
+    "Location": "Kazima",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "kazimoto",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kazimoto",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Kenfungwa",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Kenswa Mtoni",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Keranda",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kesenga A",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kesenga B",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kibaoni",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Kibaoni",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Kiboko",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Kichangani",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kichangani",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Kigamboni",
+    "Ward": "Shanwe",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50105"
+  },
+  {
+    "Location": "Kigoma",
+    "Ward": "Makanyagio",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50108"
+  },
+  {
+    "Location": "Kigwa",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Kijiweni",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kikonko",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikonko A",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikonko B",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikonko C",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikonko D",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikonko E",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kikulwe",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Kileleni",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kilida",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kilida A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Kilimahewa",
+    "Ward": "Shanwe",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50105"
+  },
+  {
+    "Location": "Kilimahewa",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kilimahewa",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kilimahewa",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kilimani",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Kiloleni",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Kiloleni A",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Kiloleni B",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Kilosa",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Kilosa",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Kimwaga",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "King’anda",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "King’anda A",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "King’anda A",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "King’anda B",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Kisiwani",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Kitongoji Na. 4A",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 4B",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 4C",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 4D",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 4E",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 5A",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitongoji Na. 5B",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Kitumba",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Kitupa",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kitupa barabarani",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kitupa Mlimani",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kivukoni",
+    "Ward": "Shanwe",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50105"
+  },
+  {
+    "Location": "Kivukoni",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Kivukoni",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Kiwanjani",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kiwanjani A",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Koledya",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Kondamoyo",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Kondamoyo A",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Kondamoyo B",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Kondamoyo C",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Kotazi",
+    "Ward": "Kashaulili",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50106"
+  },
+  {
+    "Location": "Kumekucha",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Kusa",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Kusi",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Kusini A",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Kusini B",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Laela",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Laini",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Laini B",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Laini Kati",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "lalanayo",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Lebanoni",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Legezamwendo",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Legezamwendo A",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Legezamwendo B",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Lembeli A",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Litapunga",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Litapunga 'A'",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Litapunga 'B\"",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Luchima",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Luchima A",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Lugonesi",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Lugufu",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Lukama",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Lumuka B",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Lunguya",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Lunguya A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Lunguya B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Lunguya C",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Lusanga",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Lusiha",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Lusinga",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Lwega",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Lyogelo",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mabambasi",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mabambasi A",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Mabambasi B",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Mabanini Mashariki",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mabwensofu",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Madulu",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Madulu A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Madulu B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Maendeleo",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Maendeleo",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Maendeleo",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Mafuanguo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mafya",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Magamba",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mageuzi",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Magogo",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Magomamoto",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Magomeni",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Magu",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Magula",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Magunga A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Magunga B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Maguruwe",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Mahameni",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mahimba",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Mailikumi",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Majalila",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Majengo",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Majengo A",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Majengo B",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Majengo Mapya",
+    "Ward": "Kawajense",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50101"
+  },
+  {
+    "Location": "Majimoto",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Makambu",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Makanisani",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Makanyagio",
+    "Ward": "Makanyagio",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50108"
+  },
+  {
+    "Location": "Makao",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Makongolo",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Makongoro",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Makutanio",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Makuyugu A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Makuyugu B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Malibomba",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Malidadi",
+    "Ward": "Majengo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50110"
+  },
+  {
+    "Location": "Maluja",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mamba",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mamba B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mamba Magharibi",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mamba shuleni",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mamba Sokoni",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mandela",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mandela",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Manela A",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Manela B",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Manelo",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Manemba A",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Manemba B",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Manga",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Manga Barabarani",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Manga Kati",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Manga Magharibi",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Manga Mashariki",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Mantena",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Manzishe",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Mapambano",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Mapambano",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Mapambano",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mapambano",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Mapambazuko",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mapili",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mapinduzi",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Mapinduzi",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Mapinduzi",
+    "Ward": "Ilembo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50102"
+  },
+  {
+    "Location": "Masanga",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Masangano",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Masanja",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Masanso",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Masemba",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Masewela",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Masha",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mashineni",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Masingo",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Masongwa",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Matandalani",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Matimba",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Mawemale.",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Mazwe",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Mbagala",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Mbede",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mbede A",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mbede B",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mbede C",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mbogwe",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Mbozi",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mbugani",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Mbugani \"A\" Mashariki",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mbugani ‘B’ Magharibi",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mbugani ‘B’ Mashariki",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mbuyuni",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Mchakamchaka",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Mchakamchaka",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Mchangani",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Mchangani",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Mfilisi",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mgansa",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mgoloka",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Mgolokani",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mgombe",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Mguu wa Tembo",
+    "Ward": "Ibindi",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50120"
+  },
+  {
+    "Location": "Mhagama",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Migazini",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Migazini",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Migombani",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Migombani",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Migunda",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Migunga",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Migunga A",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Migunga B",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Migunga C",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Migungani",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Mikocheni",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Milala",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Milangale",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Milundumo",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Ming’ong’oni",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Mino",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Minyoso",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mirumba",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Misanga",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Misheni A",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Misheni B",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Misisi.",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Misunkumilo",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Misunkumilo A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Misunkumilo B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Mji mwema",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Mji mwema",
+    "Ward": "Majengo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50110"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Mjimwema",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mkokwa",
+    "Ward": "Mwamkulu",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50113"
+  },
+  {
+    "Location": "Mkumbi",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Mkuswe",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mkuyuni",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Mkuyuni",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Mkuyuni",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mkwajuni",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Mkwajuni",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mkwajuni",
+    "Ward": "Mwamkulu",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50113"
+  },
+  {
+    "Location": "Mkwakwa",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Mkwepu",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mlango mmoja",
+    "Ward": "Kasekese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50211"
+  },
+  {
+    "Location": "Mlenga",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Mlibansi",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Mlibansi",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Mlimani",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mlimani A",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Mlimani B",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Mlinda",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Mlogolo",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mnarani",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mnazi Mmoja",
+    "Ward": "Uwanja Wa\nNdege",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50111"
+  },
+  {
+    "Location": "Mnyagala",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Mnyagala A",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Mnyagala B",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Mnyakasi",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Mnyaki 'A'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mnyaki 'B\"",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mnyaki A. Center",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mnyaki B. Center",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mnyamandi",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mnyamasi",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Mnyamasi",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mnyamasi A",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Mnyamasi A",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mnyamasi B",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mnyamasi B.",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Mnyundwe",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Moba",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Moronko",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Motomoto",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mpadeco",
+    "Ward": "Makanyagio",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50108"
+  },
+  {
+    "Location": "Mpalamawe A",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Mpalamawe B",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Mpalang'ombe B",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Mpalang'ombe C",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Mpalang’ombe A",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Mpanda Hotel",
+    "Ward": "Mpanda Hotel",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50107"
+  },
+  {
+    "Location": "Mpandandogo",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Mpembe",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Mpilipili A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mpilipili B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mpinga",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Msadya",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Msadya A",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Msadya A",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Msadya B",
+    "Ward": "Chamalendi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50326"
+  },
+  {
+    "Location": "Msadya B",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Msangama",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Msasani",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Msasani",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Msasani",
+    "Ward": "Mpanda Hotel",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50107"
+  },
+  {
+    "Location": "Msasani 'A'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Msasani 'B'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Msawala",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Msebesa",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Msenga",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Mshikamano",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mshikamano",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Msikitini",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Msikitini",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Msisi",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Msombwe",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Msufini",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Msufini",
+    "Ward": "Uwanja Wa\nNdege",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50111"
+  },
+  {
+    "Location": "Mtakata",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Mtakuja",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mtakumbuka",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakumbuka kaskazini",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakumbuka kati",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakumbuka Kusini",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakumbuka Mashariki",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtakumbukwa",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mtambalala",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Mtambo",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Mtambuka Igonda",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Mtapenda",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mtapenda",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Mtapenda",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Mtapenda A",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Mtapenda B",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Mtapenda C",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Mtapenda kati A",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Mtemi Beda",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Mtisi",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mtisi A",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mtisi B",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mtukula",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Muungano",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Mwalu",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Mwamapuli",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Mwamapuli A",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Mwamapuli A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Mwamapuli B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Mwamapuli B",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Mwamatiga",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mwamatiga A",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mwamatiga B",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mwamatiga C",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Mwangaza",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Mwangaza",
+    "Ward": "Makanyagio",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50108"
+  },
+  {
+    "Location": "Mwangoye",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mwembeni",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mwembeni",
+    "Ward": "Kakese",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50109"
+  },
+  {
+    "Location": "Mwenge",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Mwenge",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mwenge",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Mwenge",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Mwenge",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mwese",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Mweta",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mwezya",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Mwikang’ombe",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Mwitunde",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mwongozo",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Mwongozo",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Mzabwela",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Mzalendo",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mzambarauni",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Mzizima",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Mzizima",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Mzoga wa Fisi",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Namanyere",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Namba 2",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 3A",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 3B",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 3C",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 3D",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 7A",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 7B",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 8A",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Namba 8B",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Ndemanilwa",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Ndurumo",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Ndurumo 'B'",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Ndurumo `A‘",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Nduwi Station",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Nduwi stesheni",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "New Camp",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Ng'ambo B",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Ngala",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Ngomalusambo",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Ngomeni",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Ngulu",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Nguvumali",
+    "Ward": "Mwamkulu",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50113"
+  },
+  {
+    "Location": "Ngwilo",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Ng’ambo A",
+    "Ward": "Mpanda Ndogo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50208"
+  },
+  {
+    "Location": "Ng’ongo",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Njia panda",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Nkamba",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Nkungwi",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Nkuswe",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Nkwende",
+    "Ward": "Mwese",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50206"
+  },
+  {
+    "Location": "Nsanda",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Nsanda",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Nsango",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Nsekwa",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Nsemulwa",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Nseso",
+    "Ward": "Mwamkulu",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50113"
+  },
+  {
+    "Location": "Nsimbo",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Nsimbo",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Nsimbo",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Ntaswa A",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Ntaswa B",
+    "Ward": "Mamba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50316"
+  },
+  {
+    "Location": "Ntatua",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Ntibili",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Ntibili B",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Ntibili C",
+    "Ward": "Kasansa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50321"
+  },
+  {
+    "Location": "Ntinti",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Ntopola",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Ntumba",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Nyambwe",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyambwe A",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyambwe B",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyambwe C",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyambwe D",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyambwe E",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Nyaruka",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Nyerere",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Nzaga",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Paradize",
+    "Ward": "Majengo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50110"
+  },
+  {
+    "Location": "Relini",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Rozi kona",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Rungwa",
+    "Ward": "Kazima",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50112"
+  },
+  {
+    "Location": "Rutuba",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Rutumbe",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Senta Maria",
+    "Ward": "Mwamkulu",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50113"
+  },
+  {
+    "Location": "Shakoma",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Shama",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Shama A",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Shama B",
+    "Ward": "Ilunde",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50324"
+  },
+  {
+    "Location": "Shamandume",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Shamara",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Shankala",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Shankala wafugaji",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Shanwe",
+    "Ward": "Shanwe",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50105"
+  },
+  {
+    "Location": "Shelesi",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Shikajembe A",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "SHikajembe B",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Shongomabanini",
+    "Ward": "Misunkumilo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50103"
+  },
+  {
+    "Location": "Shukula",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Shukurani",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Shuleni",
+    "Ward": "Katuma",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50204"
+  },
+  {
+    "Location": "Sibwesa",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Sibwesa Magharibi",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Sibwesa Mashariki",
+    "Ward": "Sibwesa",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50205"
+  },
+  {
+    "Location": "Sijonga",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Sikitiko A",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Sikitiko B",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Sikolomo",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Sikwisi",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Sitalike",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Situbwike",
+    "Ward": "Sitalike",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50122"
+  },
+  {
+    "Location": "Society",
+    "Ward": "Magamba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50114"
+  },
+  {
+    "Location": "Sokoine",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Sokoni",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Sombo",
+    "Ward": "Majimoto",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50320"
+  },
+  {
+    "Location": "Somgambele",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Ipwaga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50216"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Ilela",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50311"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Kapalamsenga",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50202"
+  },
+  {
+    "Location": "Songambele",
+    "Ward": "Kamsisi",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50325"
+  },
+  {
+    "Location": "Songambele A",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Songambele B",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Songambele Kaskazini.",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Songambele Kati",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Songambele Magharibi.",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Songambele Mashariki.",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Songotupendane",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Stamiko",
+    "Ward": "Machimboni",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50119"
+  },
+  {
+    "Location": "Sumbwa",
+    "Ward": "Karema",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50201"
+  },
+  {
+    "Location": "Sumbwa",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Sungamila",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Sungamila Kati",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Sungamila Magharibi",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Sungamila Mashariki",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Sungamila Ng'ambo",
+    "Ward": "Kasokola",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50115"
+  },
+  {
+    "Location": "Sungusungu",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Tambaza 'A'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Tambaza 'B'",
+    "Ward": "Katumba",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50127"
+  },
+  {
+    "Location": "Tambukareli",
+    "Ward": "Mpanda Hotel",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50107"
+  },
+  {
+    "Location": "Tankini",
+    "Ward": "Kapalala",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50117"
+  },
+  {
+    "Location": "Tankini",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Tazara",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Tazara Kati",
+    "Ward": "Kanoge",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50126"
+  },
+  {
+    "Location": "Tukoma",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Tulieni",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Tulieni",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Tumaini",
+    "Ward": "Itenka",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50121"
+  },
+  {
+    "Location": "Tupendane",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  },
+  {
+    "Location": "Tupindo",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Tupindo",
+    "Ward": "Nsimbo",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50116"
+  },
+  {
+    "Location": "Tupindo A",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Tupindo B",
+    "Ward": "Mbede",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50315"
+  },
+  {
+    "Location": "Tupondogolo",
+    "Ward": "Isengule",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50210"
+  },
+  {
+    "Location": "Turieni",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Ufugajini",
+    "Ward": "Litapunga",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50125"
+  },
+  {
+    "Location": "Uhuru",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Uhuru",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Ukingwaminzi",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Ukingwaminzi A",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Ukingwaminzi B",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Ukingwaminzi C",
+    "Ward": "Mwamapuli",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50322"
+  },
+  {
+    "Location": "Umoja",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Unyonyi A",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Unyonyi B",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Upendo",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "Urwira",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Usalama",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Usense",
+    "Ward": "Urwila",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50123"
+  },
+  {
+    "Location": "Usevya",
+    "Ward": "Usevya",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50317"
+  },
+  {
+    "Location": "Ushirika",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Usukuma",
+    "Ward": "Bulamata",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50215"
+  },
+  {
+    "Location": "utegama",
+    "Ward": "Ilangu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50214"
+  },
+  {
+    "Location": "Utende",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Utinta A.",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Utinta B",
+    "Ward": "Ikola",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50203"
+  },
+  {
+    "Location": "Uvuvini A",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Uvuvini B",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Uwanja wa Ndege",
+    "Ward": "Inyonga",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50301"
+  },
+  {
+    "Location": "Uzega",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Uzumbula",
+    "Ward": "Ikuba",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50319"
+  },
+  {
+    "Location": "Uzunguni",
+    "Ward": "Mishamo",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50209"
+  },
+  {
+    "Location": "Vigaeni",
+    "Ward": "Ugalla",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50124"
+  },
+  {
+    "Location": "Vikonge",
+    "Ward": "Tongwe",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50213"
+  },
+  {
+    "Location": "Vumilia",
+    "Ward": "Mnyagala",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50212"
+  },
+  {
+    "Location": "Wachawaseme",
+    "Ward": "Utende",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50312"
+  },
+  {
+    "Location": "Wachawaseme",
+    "Ward": "Mtapenda",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50118"
+  },
+  {
+    "Location": "Wachawaseme",
+    "Ward": "Nsemulwa",
+    "District": "Mpanda CBD",
+    "Region": "Katavi",
+    "Postcode": "50104"
+  },
+  {
+    "Location": "Wakereketwa A",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Wakereketwa B",
+    "Ward": "Nsenkwa",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50310"
+  },
+  {
+    "Location": "Wampembe",
+    "Ward": "Kibaoni",
+    "District": "Mlele",
+    "Region": "Katavi",
+    "Postcode": "50318"
+  },
+  {
+    "Location": "Wazo jema",
+    "Ward": "Kabungu",
+    "District": "Tanganyika",
+    "Region": "Katavi",
+    "Postcode": "50207"
+  }
+]

@@ -5,7 +5,8 @@ import frappe
 import os
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.pdf import get_pdf, cleanup
-from PyPDF2 import PdfFileWriter
+from io import BytesIO
+from PyPDF3 import PdfFileReader, PdfFileWriter
 from csf_tz import console
 from frappe.model.workflow import apply_workflow
 from frappe.utils import cint, flt
@@ -142,7 +143,7 @@ def enqueue_print_slips(kwargs):
             }
         )
         ret.save(ignore_permissions=1)
-        console("Printing Finished", "The PDF file is ready in attatchments")
+        console("Printing Finished", "The PDF file is ready in attachments")
         return ret
 
 
@@ -153,28 +154,37 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
             for doc_name in doctype[doctype_name]:
                 try:
                     console(doc_name)
-                    output = frappe.get_print(
+                    pdf_data = frappe.get_print(
                         doctype_name,
                         doc_name,
                         format,
                         as_pdf=True,
-                        output=output,
+                        output=None,
                         no_letterhead=no_letterhead,
                     )
+
+                    # Convert the PDF bytes into a file-like object
+                    pdf_file = BytesIO(pdf_data)
+
+                    # Create a PdfFileReader from the byte stream (file-like object)
+                    reader = PdfFileReader(pdf_file)
+
+                    # Add each page from the reader to the writer
+                    for page_num in range(reader.getNumPages()):
+                        output.addPage(reader.getPage(page_num))
+
                 except Exception:
                     frappe.log_error(
-                        "Permission Error on doc {} of doctype {}".format(
-                            doc_name, doctype_name
-                        )
+                        f"Permission Error on doc {doc_name} of doctype {doctype_name}"
                     )
-        frappe.local.response.filename = "{}.pdf".format(name)
-
+        frappe.local.response.filename = f"{name}.pdf"
     return read_multi_pdf(output)
 
 
 def read_multi_pdf(output):
     fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
-    output.write(open(fname, "wb"))
+    with open(fname, "wb") as f:
+        output.write(f)
 
     with open(fname, "rb") as fileobj:
         filedata = fileobj.read()
@@ -197,7 +207,8 @@ def create_journal_entry(payroll_entry):
     if draft_slips_count > 0:
         frappe.throw(_("Salary Slips are not submitted"))
     else:
-        jv_name = payroll_entry_doc.make_accrual_jv_entry()
+        submitted_ss = payroll_entry_doc.get_sal_slip_list(ss_status=1, as_dict=True)
+        jv_name = payroll_entry_doc.make_accrual_jv_entry(submitted_ss)
         jv_url = frappe.utils.get_url_to_form("Journal Entry", jv_name)
         si_msgprint = _("Journal Entry Created <a href='{0}'>{1}</a>").format(
             jv_url, jv_name
@@ -285,7 +296,7 @@ def generate_component_in_salary_slip_update(doc, method):
                 base = component.amount / doc.payment_days * doc.total_working_days
                 list.append(component)
         if base == 0:
-                f"Basic Component not Found on this Salary Slip: <b>{doc.name}</b>"
+            f"Basic Component not Found on this Salary Slip: <b>{doc.name}</b>"
 
         for component in doc.salary_slip_ot_component:
             earning_dict = frappe.new_doc("Salary Detail")
@@ -359,3 +370,60 @@ def calculate_amount(base, no_of_hours, salary_component):
         frappe.throw(
             f"Hourly Rate not set on this Salary Component: <b>{salary_component}</b>, Please set it and try again."
         )
+
+
+@frappe.whitelist()
+def get_amounts_summary(payroll_entry):
+    summary = {
+        "gross_pay": 0.0,
+        "net_pay": 0.0,
+        "components": [],
+    }
+
+    salary_slips = frappe.get_all(
+        "Salary Slip",
+        filters={
+            "payroll_entry": payroll_entry,
+            "docstatus": ["!=", 2],
+        },
+        fields=["name", "gross_pay", "net_pay"],
+    )
+
+    slip_names = []
+    for slip in salary_slips:
+        summary["gross_pay"] += flt(slip.gross_pay)
+        summary["net_pay"] += flt(slip.net_pay)
+        slip_names.append(slip.name)
+
+    tracked_components = frappe.get_all(
+        "Salary Component",
+        filters={"include_in_payroll_summary": 1},
+        fields=["name"],
+        order_by="name asc",
+    )
+
+    component_names = [component.name for component in tracked_components]
+    totals_map = {}
+
+    if slip_names and component_names:
+        component_totals = frappe.get_all(
+            "Salary Detail",
+            filters={
+                "parent": ("in", slip_names),
+                "salary_component": ("in", component_names),
+            },
+            fields=["salary_component", "sum(amount) as total"],
+            group_by="salary_component",
+        )
+        totals_map = {row.salary_component: flt(row.total) for row in component_totals}
+
+    for component in tracked_components:
+        summary["components"].append(
+            {
+                "component": component.name,
+                "label": component.name,
+                "amount": totals_map.get(component.name, 0.0),
+            }
+        )
+
+    return summary

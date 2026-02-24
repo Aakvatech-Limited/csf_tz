@@ -28,6 +28,7 @@ import csf_tz
 from csf_tz import console
 import json
 from frappe.query_builder import DocType
+from frappe.query_builder.functions import Sum
 from frappe.utils.background_jobs import enqueue
 
 
@@ -221,13 +222,13 @@ def get_stock_ledger_entries(item_code):
         select sle.batch_no, sle.item_code, sle.warehouse, sle.qty_after_transaction as actual_qty
             from `tabStock Ledger Entry` sle
             inner join (
-            SELECT IF(batch_no IS NULL, '', batch_no) as batch_no, item_code, warehouse, max(TIMESTAMP(posting_date, posting_time)) as timestamp
+            SELECT IF(batch_no IS NULL, '', batch_no) as batch_no, item_code, warehouse, max(posting_datetime) as posting_datetime
                 from `tabStock Ledger Entry`
                 group by IF(batch_no IS NULL, '', batch_no), item_code, warehouse) as sle_max
-            on sle.batch_no = sle_max.batch_no
+            on if(sle.batch_no IS NULL, '', sle.batch_no) = sle_max.batch_no
                 and sle.item_code = sle_max.item_code
                 and sle.warehouse = sle_max.warehouse
-                and TIMESTAMP(sle.posting_date, sle.posting_time) = sle_max.timestamp
+                and sle.posting_datetime = sle_max.posting_datetime
         where sle.docstatus = 1 %s
         order by sle.warehouse, sle.item_code, sle.batch_no"""
         % conditions,
@@ -350,24 +351,28 @@ def get_item_prices(item_code, currency, customer=None, company=None):
             prices_list.append(item_dict)
     return prices_list
 
-
 @frappe.whitelist()
-def get_item_prices_custom(*args):
-    filters = args[5]
-    start = args[3]
-    limit = args[4]
+def get_item_prices_custom(filters=None, start=0, limit=20):
+    if isinstance(filters, str):  # If filters is a string, deserialize it
+        import json
+        try:
+            filters = json.loads(filters)
+        except json.JSONDecodeError:
+            frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
+
+    if not filters:  # Default to an empty dictionary if filters is None or invalid
+        filters = {}
+
     unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
-    if "customer" in filters:
-        customer = filters["customer"]
-    else:
-        customer = ""
-    company = filters["company"]
-    item_code = "'{0}'".format(filters["item_code"])
-    currency = "'{0}'".format(filters["currency"])
+    customer = filters.get("customer", "")
+    company = filters.get("company", "")
+    item_code = "'{0}'".format(filters.get("item_code", ""))
+    currency = "'{0}'".format(filters.get("currency", ""))
     prices_list = []
     unique_price_list = []
     max_records = int(start) + int(limit)
     conditions = ""
+    
     if "posting_date" in filters:
         posting_date = filters["posting_date"]
         from_date = "'{from_date}'".format(from_date=posting_date[1][0])
@@ -379,17 +384,17 @@ def get_item_prices_custom(*args):
         conditions += " AND SI.customer = '%s'" % customer
 
     query = """ SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty,  SIT.rate
-            FROM `tabSales Invoice` AS SI 
-            INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-            WHERE 
-                SIT.item_code = {0} 
-                AND SIT.parent = SI.name
-                AND SI.docstatus= 1
-                AND SI.currency = {2}
-                AND SI.is_return != 1
-                AND SI.company = '{3}'
-                {1}
-            ORDER by SI.posting_date DESC""".format(
+                FROM `tabSales Invoice` AS SI 
+                INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
+                WHERE 
+                    SIT.item_code = {0} 
+                    AND SIT.parent = SI.name
+                    AND SI.docstatus= 1
+                    AND SI.currency = {2}
+                    AND SI.is_return != 1
+                    AND SI.company = '{3}'
+                    {1}
+                ORDER by SI.posting_date DESC""".format(
         item_code, conditions, currency, company
     )
 
@@ -1224,9 +1229,11 @@ def get_stock_balance_for(
 
 @frappe.whitelist()
 def make_stock_reconciliation_for_all_pending_material_request(*args):
+    auto_stock_reconciliation = frappe.db.get_value("CSF TZ Settings", "CSF TZ Settings", "auto_stock_reconciliation") or 0
+    if auto_stock_reconciliation != 1:
+        return
     mat_req_list = get_pending_material_request()
     data = {}
-
     for i in mat_req_list:
         mat_req_doc = frappe.get_doc("Material Request", i["name"])
 
@@ -1863,33 +1870,33 @@ def get_item_duplicates(source_doc):
 def get_batch_per_item(item_code, posting_date, warehouse):
     """ "fetch batch details for item code and warehouse"""
 
-    conditions = ""
-    if warehouse:
-        conditions = (
-            "sle.item_code = '%s' and sle.is_cancelled = 0 and sle.batch_no != '' and sle.warehouse = '%s' "
-            % (item_code, warehouse)
-        )
-    else:
-        conditions = (
-            "sle.item_code = '%s' and sle.is_cancelled = 0 and sle.batch_no != '' "
-            % (item_code)
-        )
+    sle = DocType("Stock Ledger Entry")
+    ba = DocType("Batch")
 
-    batch_records = frappe.db.sql(
-        """
-        select sle.batch_no, sle.warehouse, sum(sle.actual_qty) as qty, ba.stock_uom, ba.expiry_date
-        from `tabStock Ledger Entry` sle 
-        inner join `tabBatch` ba on sle.batch_no = ba.batch_id
-        where {conditions}
-        AND ba.expiry_date >= %s
-        group by sle.batch_no, sle.warehouse
-        order by ba.expiry_date
-        """.format(
-            conditions=conditions
-        ),
-        posting_date,
-        as_dict=True,
+    batch_query = (
+        frappe.qb.from_(sle)
+        .inner_join(ba)
+        .on(sle.batch_no == ba.batch_id)
+        .select(
+            sle.batch_no,
+            sle.warehouse,
+            Sum(sle.actual_qty).as_("qty"),
+            ba.stock_uom,
+            ba.expiry_date,
+        )
+        .where(
+            (sle.item_code == item_code) &
+            (sle.is_cancelled == 0) &
+            (sle.batch_no != "") &
+            (ba.expiry_date >= posting_date)
+        )
     )
+
+    if warehouse:
+        batch_query = batch_query.where(sle.warehouse == warehouse)
+    
+    batch_records = batch_query.run(as_dict=True)
+    
     return batch_records
 
 
@@ -2754,3 +2761,479 @@ def target_warehouse_based_price_list(doc, method):
             item.price_list_rate = rate
             item.rate = rate
             item.amount = item.qty * rate
+
+@frappe.whitelist()
+def get_item_prices_custom_po(filters=None, start=0, limit=20):
+    if isinstance(filters, str):  # If filters is a string, deserialize it
+        import json
+        try:
+            filters = json.loads(filters)
+        except json.JSONDecodeError:
+            frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
+
+    if not filters:  # Default to an empty dictionary if filters is None or invalid
+        filters = {}
+
+    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+    customer = filters.get("customer", "")
+    company = filters.get("company", "")
+    item_code = "'{0}'".format(filters.get("item_code", ""))
+    currency = "'{0}'".format(filters.get("currency", ""))
+    prices_list = []
+    unique_price_list = []
+    max_records = int(start) + int(limit)
+    conditions = ""
+    
+    if "posting_date" in filters:
+        posting_date = filters["posting_date"]
+        from_date = "'{from_date}'".format(from_date=posting_date[1][0])
+        to_date = "'{to_date}'".format(to_date=posting_date[1][1])
+        conditions += "AND DATE(PI.posting_date) BETWEEN {start} AND {end}".format(
+            start=from_date, end=to_date
+        )
+    if customer:
+        conditions += " AND PI.supplier = '%s'" % customer
+
+    query = """ SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty,  PIT.rate
+                FROM `tabPurchase Invoice` AS PI 
+                INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
+                WHERE 
+                    PIT.item_code = {0} 
+                    AND PIT.parent = PI.name
+                    AND PI.docstatus= 1
+                    AND PI.currency = {2}
+                    AND PI.is_return != 1
+                    AND PI.company = '{3}'
+                    {1}
+                ORDER by PI.posting_date DESC""".format(
+        item_code, conditions, currency, company
+    )
+
+    items = frappe.db.sql(query, as_dict=True)
+    for item in items:
+        item_dict = {
+            "name": item.item_code,
+            "item_code": item.item_code,
+            "rate": item.rate,
+            "posting_date": item.posting_date,
+            "invoice": item.name,
+            "customer": item.customer,
+            "qty": item.qty,
+        }
+        if (
+            unique_records == 1
+            and item.rate not in unique_price_list
+            and len(prices_list) <= max_records
+        ):
+            unique_price_list.append(item.rate)
+            prices_list.append(item_dict)
+        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+            prices_list.append(item_dict)
+    return prices_list
+
+@frappe.whitelist()
+def get_item_prices_po(item_code, currency, customer=None, company=None):
+    item_code = "'{0}'".format(item_code)
+    currency = "'{0}'".format(currency)
+    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+    prices_list = []
+    unique_price_list = []
+    max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
+    if customer:
+        conditions = " and PI.supplier = '%s'" % customer
+    else:
+        conditions = ""
+
+    query = """ SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty, PIT.rate
+            FROM `tabPurchase Invoice` AS PI 
+            INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
+            WHERE 
+                PIT.item_code = {0} 
+                AND PIT.parent = PI.name
+                AND PI.docstatus=%s 
+                AND PI.currency = {2}
+                AND PI.is_return != 1
+                AND PI.company = '{3}'
+                {1}
+            ORDER by PI.posting_date DESC""".format(
+        item_code, conditions, currency, company
+    ) % (
+        1
+    )
+
+    items = frappe.db.sql(query, as_dict=True)
+    for item in items:
+        item_dict = {
+            "name": item.item_code,
+            "item_code": item.item_code,
+            "price": item.rate,
+            "date": item.posting_date,
+            "invoice": item.name,
+            "customer": item.customer,
+            "qty": item.qty,
+        }
+        if (
+            unique_records == 1
+            and item.rate not in unique_price_list
+            and len(prices_list) <= max_records
+        ):
+            unique_price_list.append(item.rate)
+            prices_list.append(item_dict)
+        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+            prices_list.append(item_dict)
+    # frappe.throw(str(prices_list))
+    return prices_list
+
+def trade_in_flag_check(func):
+    def wrapper(doc, method=None, *args, **kwargs):
+        if not getattr(doc, "custom_is_trade_in", False):
+            return  # Skip validation if trade-in is not applicable
+        return func(doc, method, *args, **kwargs)  # Call the original function if validation is needed
+    return wrapper
+
+@trade_in_flag_check
+def validate_trade_in_serial_no_and_batch(doc, method):
+    error_messages = []
+    for row in doc.items:
+        if row.item_code == "Trade In" and row.custom_trade_in_item:
+            has_batch_no = frappe.db.get_value("Item", row.custom_trade_in_item, "has_batch_no")
+            if has_batch_no and not row.custom_trade_in_batch_no:
+                error_messages.append(f"Batch No. is mandatory for Item {row.custom_trade_in_item} in row {row.idx}.")
+            
+            has_serial_no = frappe.db.get_value("Item", row.custom_trade_in_item, "has_serial_no")
+            if has_serial_no:
+                if not row.custom_trade_in_serial_no:
+                    error_messages.append(f"Serial Numbers are mandatory for Item {row.custom_trade_in_item} in row {row.idx}.")
+                else:
+                    serial_numbers = row.custom_trade_in_serial_no.split("\n")
+                    if len(serial_numbers) != row.custom_trade_in_qty:
+                        error_messages.append(
+                            f"Serial Numbers count ({len(serial_numbers)}) does not match "
+                            f"the Trade-In Quantity ({row.custom_trade_in_qty}) for Item {row.custom_trade_in_item} in row {row.idx}."
+                        )
+    if error_messages:
+        frappe.throw(
+            title="Validation Errors",
+            msg="<br>".join(error_messages),
+        )
+
+@trade_in_flag_check
+def validate_trade_in_sales_percentage(doc, method):
+    # Calculate the total trade-in value from the child table where item_code = "Trade In"
+    total_trade_in_value = sum(
+        row.custom_total_trade_in_value for row in doc.items if row.item_code == "Trade In"
+    )
+
+    # If there are no trade-in items, skip validation
+    if total_trade_in_value == 0:
+        return  # No validation needed
+
+    # Calculate the total for items in the child table where item_code != "Trade In" using the "amount" field
+    non_trade_in_total = sum(
+        row.amount for row in doc.items if row.item_code != "Trade In"
+    )
+
+    # Fetch allowed percentage from the Company doctype
+    trade_in_percentage = frappe.db.get_value("Company", doc.company, "custom_trade_in_sales_percentage") or 0
+
+    # Calculate the allowed trade-in value based on the percentage of non-trade-in total
+    allowed_trade_in_value = (trade_in_percentage / 100) * non_trade_in_total
+
+    # Validate total trade-in value
+    if total_trade_in_value > allowed_trade_in_value:
+        # Throw error if child table total exceeds the allowed limit
+       frappe.throw(
+    title="Trade-In Value Validation Error",
+    msg=f"""
+        <h4>Trade-In Value Validation Error</h4>
+        <p>The Total Trade-In Value exceeds the allowed limit. Please review the details below:</p>
+        <table style="border-collapse: collapse; width: 100%; text-align: left; border: 1px solid #ddd;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="border: 1px solid #ddd; padding: 8px;">Description</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Total Trade-In Value</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{frappe.format_value(total_trade_in_value)}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Allowed Trade-In Percentage</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{trade_in_percentage}%</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Maximum Allowed Trade-In Value</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{frappe.format_value(allowed_trade_in_value)}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>Please adjust the trade-in value or reduce the quantity of trade-in items.</p>
+    """
+)
+
+@trade_in_flag_check
+def create_trade_in_stock_entry(doc, method):
+    # Initialize an empty list to store items
+    items_list = []
+
+    # Fetch Company's Trade_in_control_account
+    company_details = frappe.db.get_value(
+        "Company",
+        doc.company,
+        ["custom_trade_in_control_account"],
+        as_dict=True,
+    )
+    if not company_details:
+        frappe.throw(f"Company details not found for {doc.company}. Please check the Company configuration.")
+        return
+
+    trade_in_control_account = company_details.get("custom_trade_in_control_account")
+
+    if not trade_in_control_account:
+        frappe.throw(
+            f"Trade-In Control Account not configured for {doc.company}. "
+            f"Please set it in the <a href='/app/company/{doc.company}'>Company settings</a>."
+        )
+        return
+
+    # Iterate through the items in the document
+    for item in doc.items:
+        if item.get("custom_trade_in_item") and item.get("custom_trade_in_qty"):
+            # Check if custom_trade_in_batch_no exists
+            custom_batch_no = item.get("custom_trade_in_batch_no")
+
+            if custom_batch_no:
+                # Check if a Batch with this ID already exists
+                batch_exists = frappe.db.exists("Batch", {"batch_id": custom_batch_no})
+                if not batch_exists:
+                    try:
+                        # Create a new batch with the given custom_trade_in_batch_no
+                        batch_doc = frappe.new_doc("Batch")
+                        batch_doc.item = item.get("custom_trade_in_item")
+                        batch_doc.batch_id = custom_batch_no  # Use the provided custom batch number
+                        batch_doc.save()
+                    except Exception as e:
+                        frappe.throw(f"Error creating Batch: {str(e)}")
+
+            # Append each item's details to the items_list
+            items_list.append(
+                {
+                    "item_code": item.get("custom_trade_in_item"),
+                    "qty": item.get("custom_trade_in_qty"),
+                    "uom": item.get("uom") or "Nos",  # Default to "Nos" if UOM is not provided
+                    "basic_rate": item.get("custom_trade_in_incoming_rate"),
+                    "batch_no": custom_batch_no,  # Use the custom batch number here
+                    "serial_no": item.get("custom_trade_in_serial_no"),  # Get custom serial number value
+                    "expense_account": trade_in_control_account,
+                    "t_warehouse": item.get("warehouse"),  # Use the warehouse from the Sales Invoice child table
+                    "use_serial_batch_fields": 1,
+                }
+            )
+
+    # Create a single stock entry if there are items to add
+    if items_list:
+        try:
+            stock_entry = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "items": items_list,  # Use the populated list here
+                    "custom_sales_invoice": doc.name,  # Link to the parent Sales Invoice
+                }
+            )
+
+            # Insert and submit the Stock Entry
+            stock_entry.insert()
+            stock_entry.submit()
+
+            # Notify the user
+            frappe.msgprint(
+                f"Stock Entry <a href='/app/stock-entry/{stock_entry.name}' target='_blank'>{stock_entry.name}</a> created successfully!"
+            )
+        except Exception as e:
+            frappe.throw(f"Error during Stock Entry creation: {str(e)}")
+    else:
+        frappe.msgprint("No valid items found for stock entry.")
+@frappe.whitelist()
+def create_write_off_jv_si(sales_invoice, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_si", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    si = frappe.get_doc("Sales Invoice", sales_invoice)
+
+    if not si.outstanding_amount or si.outstanding_amount <= 0:
+        frappe.throw("No outstanding amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = si.company
+    jv.posting_date = si.posting_date
+
+    # Handle exchange rate
+    exchange_rate = flt(si.conversion_rate or 1)
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # CREDIT - Debtors account
+    jv.append("accounts", {
+        "account": si.debit_to,
+        "credit_in_account_currency": flt(si.outstanding_amount),
+        "party_type": "Customer",
+        "party": si.customer,
+        "reference_type": "Sales Invoice",
+        "reference_name": si.name,
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    # DEBIT - Write Off account (no reference!)
+    jv.append("accounts", {
+        "account": account,
+        "debit_in_account_currency": flt(si.outstanding_amount),
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
+
+    return jv.name
+
+
+@frappe.whitelist()
+def create_write_off_jv_pi(purchase_invoice, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_pi", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    pi = frappe.get_doc("Purchase Invoice", purchase_invoice)
+
+    if not pi.outstanding_amount or pi.outstanding_amount <= 0:
+        frappe.throw("No outstanding amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = pi.company
+    jv.posting_date = pi.posting_date
+
+    # Handle exchange rate
+    exchange_rate = flt(pi.conversion_rate or 1)
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # DEBIT - Creditors account
+    jv.append("accounts", {
+        "account": pi.credit_to,
+        "debit_in_account_currency": flt(pi.outstanding_amount),
+        "party_type": "Supplier",
+        "party": pi.supplier,
+        "reference_type": "Purchase Invoice",
+        "reference_name": pi.name,
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    # CREDIT - Write Off account (no reference!)
+    jv.append("accounts", {
+        "account": account,
+        "credit_in_account_currency": flt(pi.outstanding_amount),
+        "exchange_rate": exchange_rate if exchange_rate != 1 else None
+    })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Purchase Invoice", pi.name, "outstanding_amount", 0)
+
+    return jv.name
+
+
+@frappe.whitelist()
+def create_write_off_jv_pe(payment_entry, account):
+    settings = frappe.get_single("CSF TZ Settings")
+
+    # Feature flag check
+    if not getattr(settings, "enable_write_off_jv_pe", False):
+        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+        return
+
+    pe = frappe.get_doc("Payment Entry", payment_entry)
+
+    if not pe.unallocated_amount or pe.unallocated_amount <= 0:
+        frappe.throw("No unallocated amount to write off")
+
+    jv = frappe.new_doc("Journal Entry")
+    jv.voucher_type = "Journal Entry"
+    jv.company = pe.company
+    jv.posting_date = pe.posting_date
+
+    # Handle exchange rate - Payment Entry uses paid_from_account_currency or paid_to_account_currency
+    exchange_rate = 1
+    if pe.payment_type == "Receive":
+        exchange_rate = flt(pe.source_exchange_rate or 1)
+    else:
+        exchange_rate = flt(pe.target_exchange_rate or 1)
+
+    if exchange_rate != 1:
+        jv.multi_currency = 1
+
+    # Determine the party account based on payment type
+    if pe.payment_type == "Receive":
+        party_account = pe.paid_from
+        party_type = "Customer"
+        party = pe.party if pe.party_type == "Customer" else None
+    else:  # Pay
+        party_account = pe.paid_to
+        party_type = "Supplier"
+        party = pe.party if pe.party_type == "Supplier" else None
+
+    # DEBIT - Party account (if Receive) or CREDIT - Party account (if Pay)
+    if pe.payment_type == "Receive":
+        jv.append("accounts", {
+            "account": party_account,
+            "debit_in_account_currency": flt(pe.unallocated_amount),
+            "party_type": party_type,
+            "party": party,
+            "reference_type": "Payment Entry",
+            "reference_name": pe.name,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+    else:
+        jv.append("accounts", {
+            "account": party_account,
+            "credit_in_account_currency": flt(pe.unallocated_amount),
+            "party_type": party_type,
+            "party": party,
+            "reference_type": "Payment Entry",
+            "reference_name": pe.name,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+
+    # CREDIT - Write Off account (if Receive) or DEBIT - Write Off account (if Pay)
+    if pe.payment_type == "Receive":
+        jv.append("accounts", {
+            "account": account,
+            "credit_in_account_currency": flt(pe.unallocated_amount),
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+    else:
+        jv.append("accounts", {
+            "account": account,
+            "debit_in_account_currency": flt(pe.unallocated_amount),
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+        })
+
+    jv.save(ignore_permissions=True)
+    # jv.submit()
+
+    frappe.db.set_value("Payment Entry", pe.name, "unallocated_amount", 0)
+
+    return jv.name

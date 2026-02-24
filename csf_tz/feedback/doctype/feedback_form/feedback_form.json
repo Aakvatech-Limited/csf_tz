@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:Feedback-{DD}-{MM}-{YY}-{####}",
+ "creation": "2025-07-07 21:41:09.616396",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "template",
+  "section_break_gfnv",
+  "participant_name",
+  "column_break_wncp",
+  "designation",
+  "column_break_ldsy",
+  "contact_no",
+  "section_break_itfe",
+  "responses",
+  "dynamic_questions",
+  "dynamic_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "template",
+   "fieldtype": "Link",
+   "label": "Template",
+   "options": "Feedback Template"
+  },
+  {
+   "fieldname": "participant_name",
+   "fieldtype": "Data",
+   "label": "Participant Name"
+  },
+  {
+   "fieldname": "responses",
+   "fieldtype": "Table",
+   "label": "Responses",
+   "options": "Feedback Response"
+  },
+  {
+   "fieldname": "dynamic_questions",
+   "fieldtype": "HTML",
+   "label": "Dynamic Questions"
+  },
+  {
+   "fieldname": "section_break_gfnv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation"
+  },
+  {
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "label": "Contact No"
+  },
+  {
+   "fieldname": "section_break_itfe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wncp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ldsy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dynamic_html",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Dynamic HTML"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-19 16:41:16.429427",
+ "modified_by": "Administrator",
+ "module": "Feedback",
+ "name": "Feedback Form",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

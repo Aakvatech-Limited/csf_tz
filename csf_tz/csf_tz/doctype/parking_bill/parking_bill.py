@@ -16,18 +16,30 @@ class ParkingBill(Document):
 
 @frappe.whitelist()
 def check_bills_all_vehicles():
-    plate_list = frappe.get_all("Vehicle",fields=['name','number_plate','license_plate'])
+    plate_list = frappe.get_all("Vehicle", fields=['name', 'number_plate', 'license_plate'])
+    
     for vehicle in plate_list:
         number_plate = vehicle.get("number_plate") or vehicle.get("license_plate")
         vehicle_name = vehicle.get("name")
+        
         if number_plate:
             try:
                 bill = get_bills(number_plate)
+                
+                # If bills are found (code 6000)
                 if bill and bill.code == 6000:
                     update_bill(vehicle_name, bill)
+                
+                # If all bills are paid or no record found (code 6004)
+                elif bill and bill.code == 6004:
+                    mark_all_bills_as_paid(vehicle_name)
+                    frappe.log_error(f"Vehicle {vehicle_name} ({number_plate}) has no unpaid bills. Marked as paid.")
+                    
             except Exception as e:
                 frappe.log_error(frappe.get_traceback(), str(e))
+    
     frappe.db.commit()
+
 
 def get_bills(number_plate):
     headers = {
@@ -40,6 +52,7 @@ def get_bills(number_plate):
     )
     try:
         response = requests.get(url=url, headers=headers, timeout=5)
+        
         if response.status_code == 200:
             return frappe._dict(json.loads(response.text))
         else:
@@ -49,12 +62,14 @@ def get_bills(number_plate):
             except:
                 res = response.text
             frappe.log_error(res)
-            return
+            return None
 
     except Timeout:
         frappe.log_error(_("Timeout error for plate {0}").format(number_plate))
+        return None
     except Exception as e:
         frappe.log_error(e)
+        return None
 
 
 def update_bill(name, bills):
@@ -69,6 +84,7 @@ def update_bill(name, bills):
         else:
             doc = frappe.new_doc("Parking Bill")
             doc.billreference = data.billReference
+        
         doc.vehicle = name
         doc.billstatus = row.billStatus
         doc.billid = data.billId
@@ -100,7 +116,7 @@ def update_bill(name, bills):
         doc.bilitems = []
         for item in data.billItems:
             item = frappe._dict(item)
-            bill_item = doc.append("bilitems",{})
+            bill_item = doc.append("bilitems", {})
             bill_item.billitemrefid = item.billItemRefId
             bill_item.billitemref = item.billItemRef
             bill_item.billitemamount = item.billItemAmount
@@ -115,7 +131,7 @@ def update_bill(name, bills):
         doc.parkingdetails = []
         for det in row.parkingDetails:
             det = frappe._dict(det)
-            detail = doc.append("parkingdetails",{})
+            detail = doc.append("parkingdetails", {})
             detail.id = det.id
             detail.collectorid = det.icollectorIdd
             detail.councilcode = det.councilCode
@@ -124,4 +140,16 @@ def update_bill(name, bills):
             detail.detailinsertionstatus = det.detailInsertionStatus.get("description")
             detail.coordinates = det.coordinates
 
+        doc.save(ignore_permissions=True)
+
+
+def mark_all_bills_as_paid(vehicle_name):
+    """
+    Marks all unpaid bills for the given vehicle as paid when the API response indicates all bills are cleared.
+    """
+    unpaid_bills = frappe.get_all("Parking Bill", filters={'vehicle': vehicle_name, 'billpayed': 0})
+    
+    for bill in unpaid_bills:
+        doc = frappe.get_doc("Parking Bill", bill['name'])
+        doc.billpayed = 1  # Mark the bill as paid
         doc.save(ignore_permissions=True)

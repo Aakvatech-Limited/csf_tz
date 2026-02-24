@@ -22,38 +22,68 @@ def execute(filters=None):
     data = []
     checkin_records = get_checkin_data(conditions, filters, chift_type_details)
     checkout_records = get_checkout_data(conditions, filters, chift_type_details)
-    
-    if (checkin_records and checkout_records):
+
+    if checkin_records and checkout_records:
+        # Create dataframes for merging
         checkin_colnames = [key for key in checkin_records[0].keys()]
         checkin_data = pd.DataFrame.from_records(
             checkin_records, columns=checkin_colnames
         )
-        
+
         checkout_colnames = [key for key in checkout_records[0].keys()]
         checkout_data = pd.DataFrame.from_records(
             checkout_records, columns=checkout_colnames
         )
-        
+
+        # Merge the check-in and check-out data on common columns
         df = checkin_data.merge(
             checkout_data,
             how="outer",
             on=["employee", "employee_name", "department", "shift", "date", "week_day"]
         )
         df.fillna("", inplace=True)
-        
+
+        # Calculate Total Hours Spent
+        def calc_total_hours(row):
+            try:
+                if row["checkin_time"] and row["checkout_time"]:
+                    t1 = datetime.strptime(row["checkin_time"], "%H:%M:%S")
+                    t2 = datetime.strptime(row["checkout_time"], "%H:%M:%S")
+                    delta = t2 - t1
+                    if delta.days < 0:
+                        delta = timedelta(days=0, seconds=delta.seconds, microseconds=delta.microseconds)
+                    return str(delta)
+                else:
+                    return ""
+            except Exception:
+                return ""
+        df["total_hours_spent"] = df.apply(calc_total_hours, axis=1)
+
+        # Sort the dataframe by date first, then by employee
+        df = df.sort_values(by=["date", "employee"])
+
+        # Add the sorted data to the result
         data += df.values.tolist()
-    
-    elif (checkin_records or checkout_records):
+
+    elif checkin_records or checkout_records:
+        # Handle cases where only one of check-in or check-out data exists
         if checkin_records:
-            data += checkin_records
-        
+            checkin_data = pd.DataFrame.from_records(checkin_records)
+            checkin_data["total_hours_spent"] = ""
+            checkin_data = checkin_data.sort_values(by=["date", "employee"])
+            data += checkin_data.values.tolist()
+
         if checkout_records:
-            data += checkout_records
-    
+            checkout_data = pd.DataFrame.from_records(checkout_records)
+            checkout_data["total_hours_spent"] = ""
+            checkout_data = checkout_data.sort_values(by=["date", "employee"])
+            data += checkout_data.values.tolist()
+
     else:
+        # No records found for the filters
         msgprint(
-            "No Record found for the filters From Date: {0},To Date: {1}, Company: {2}, Department: {3} and Employee: {4}\
-			you specified...!!!, Please set different filters and Try again..!!!".format(
+            "No Record found for the filters From Date: {0}, To Date: {1}, Company: {2}, Department: {3}, and Employee: {4}\
+            you specified...!!! Please set different filters and Try again..!!!".format(
                 frappe.bold(filters.from_date),
                 frappe.bold(filters.to_date),
                 frappe.bold(filters.company),
@@ -66,10 +96,10 @@ def execute(filters=None):
 
 def get_columns(filters):
     columns = [
-        {"fieldname": "employee", "label": _("Employee No"), "fieldtype": "Data"},
+        {"fieldname": "employee", "label": _("Employee No"), "fieldtype": "Link", "options": "Employee", "width": 155},
         {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
-        {"fieldname": "department", "label": _("Department"), "fieldtype": "Data"},
-        {"fieldname": "shift", "label": _("Shift"), "fieldtype": "Data"},
+        {"fieldname": "department", "label": _("Department"), "fieldtype": "Link", "options": "Department"},
+        {"fieldname": "shift", "label": _("Shift"), "fieldtype": "Link", "options": "Shift Type"},
         {"fieldname": "date", "label": _("Date"), "fieldtype": "Date"},
         {"fieldname": "week_day", "label": _("Week Day "), "fieldtype": "Data"},
 
@@ -84,6 +114,8 @@ def get_columns(filters):
         {"fieldname": "checkout_time", "label": _("Checkout Time"), "fieldtype": "Time"},
         {"fieldname": "early_exit_grace_time", "label": _("Early Exit Grace Period"), "fieldtype": "Time"},
         {"fieldname": "checkout_status", "label": _("Checkout Status"), "fieldtype": "Data"},
+        # Add Total Hours Spent as the last column
+        {"fieldname": "total_hours_spent", "label": _("Total Hours Spent"), "fieldtype": "Data", "width": 120},
     ]
     return columns
 
@@ -252,16 +284,18 @@ def get_checkin_details(conditions, filters):
             emp.default_shift AS default_shift,
             sha.shift_type AS shift_type,
             DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            DATE_FORMAT(chec.time, '%%T') AS checkin_time
+            MIN(DATE_FORMAT(chec.time, '%%T')) AS checkin_time
         FROM `tabEmployee Checkin` chec
             INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
             LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
             AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND  DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
+            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
         WHERE chec.log_type = "IN" {conditions}
-        ORDER BY chec.time ASC
+        GROUP BY chec.employee, DATE(chec.time)
+        ORDER BY DATE(chec.time) ASC, chec.employee ASC
     """.format(conditions=conditions), filters, as_dict=1)
     return data
+
 
 def get_checkout_details(conditions, filters):
     data = frappe.db.sql("""
@@ -272,13 +306,32 @@ def get_checkout_details(conditions, filters):
             emp.default_shift AS default_shift,
             sha.shift_type AS shift_type,
             DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            DATE_FORMAT(chec.time, '%%T') AS checkout_time
+            MAX(DATE_FORMAT(chec.time, '%%T')) AS checkout_time
         FROM `tabEmployee Checkin` chec
             INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
             LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
             AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND  DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
+            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
         WHERE chec.log_type = "OUT" {conditions}
-        ORDER BY chec.time ASC
+        GROUP BY chec.employee, DATE(chec.time)
+        ORDER BY DATE(chec.time) ASC, chec.employee ASC
     """.format(conditions=conditions), filters, as_dict=1)
     return data
+
+def get_today_summary():
+    today = frappe.utils.today()
+    in_count = frappe.db.sql(
+        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='IN' AND DATE(time)=%s", (today,)
+    )[0][0]
+    out_count = frappe.db.sql(
+        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='OUT' AND DATE(time)=%s", (today,)
+    )[0][0]
+    return {
+        "date": today,
+        "in_count": in_count,
+        "out_count": out_count
+    }
+
+@frappe.whitelist()
+def get_employee_checkin_summary():
+    return get_today_summary()

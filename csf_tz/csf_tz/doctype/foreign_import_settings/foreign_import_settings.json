@@ -1,0 +1,150 @@
+{
+    "actions": [],
+    "creation": "2025-08-19 10:20:00.000000",
+    "default_view": "List",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "section_break_general",
+     "company",
+     "exchange_difference_threshold",
+     "column_break_general",
+     "auto_create_journal_entries",
+     "enable_lcv_exchange_tracking",
+     "section_break_accounts",
+     "default_exchange_gain_account",
+     "column_break_accounts",
+     "default_exchange_loss_account",
+     "section_break_notifications",
+     "notification_on_large_differences",
+     "column_break_notifications",
+     "large_difference_threshold",
+     "section_break_other",
+     "is_default"
+    ],
+    "fields": [
+     {
+      "fieldname": "section_break_general",
+      "fieldtype": "Section Break",
+      "label": "General Settings"
+     },
+     {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1
+     },
+     {
+      "default": "0.01",
+      "description": "Minimum amount to record exchange differences",
+      "fieldname": "exchange_difference_threshold",
+      "fieldtype": "Float",
+      "label": "Exchange Difference Threshold",
+      "precision": "2"
+     },
+     {
+      "fieldname": "column_break_general",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "1",
+      "description": "Automatically create Journal Entries for exchange differences",
+      "fieldname": "auto_create_journal_entries",
+      "fieldtype": "Check",
+      "label": "Auto Create Journal Entries"
+     },
+     {
+      "default": "1",
+      "description": "Track exchange differences on Landed Cost Vouchers",
+      "fieldname": "enable_lcv_exchange_tracking",
+      "fieldtype": "Check",
+      "label": "Enable LCV Exchange Tracking"
+     },
+     {
+      "fieldname": "section_break_accounts",
+      "fieldtype": "Section Break",
+      "label": "Default Accounts"
+     },
+     {
+      "fieldname": "default_exchange_gain_account",
+      "fieldtype": "Link",
+      "label": "Default Exchange Gain Account",
+      "options": "Account"
+     },
+     {
+      "fieldname": "column_break_accounts",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "default_exchange_loss_account",
+      "fieldtype": "Link",
+      "label": "Default Exchange Loss Account",
+      "options": "Account"
+     },
+     {
+      "fieldname": "section_break_notifications",
+      "fieldtype": "Section Break",
+      "label": "Notifications"
+     },
+     {
+      "default": "0",
+      "description": "Send notification when exchange differences exceed threshold",
+      "fieldname": "notification_on_large_differences",
+      "fieldtype": "Check",
+      "label": "Notification on Large Differences"
+     },
+     {
+      "fieldname": "column_break_notifications",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "1000",
+      "description": "Amount above which to send notifications",
+      "fieldname": "large_difference_threshold",
+      "fieldtype": "Currency",
+      "label": "Large Difference Threshold"
+     },
+     {
+      "fieldname": "section_break_other",
+      "fieldtype": "Section Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "is_default",
+      "fieldtype": "Check",
+      "label": "Is Default"
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "modified": "2025-08-19 10:20:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "Foreign Import Settings",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "read": 1,
+      "role": "Accounts Manager",
+      "write": 1
+     }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+   }

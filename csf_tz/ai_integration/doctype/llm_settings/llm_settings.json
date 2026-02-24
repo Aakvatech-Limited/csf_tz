@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-17 16:50:08.937740",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "openai_api_key",
+  "column_break_ywwg",
+  "default_model"
+ ],
+ "fields": [
+  {
+   "description": "Enter your OpenAI secret key (starts with sk-...)",
+   "fieldname": "openai_api_key",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "OpenAI API Key",
+   "length": 199,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ywwg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "gpt-4",
+   "description": "OpenAI model to use (e.g., gpt-3.5-turbo, gpt-4)",
+   "fieldname": "default_model",
+   "fieldtype": "Data",
+   "label": "Default Model"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-07-21 10:38:31.128227",
+ "modified_by": "Administrator",
+ "module": "AI Integration",
+ "name": "LLM Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

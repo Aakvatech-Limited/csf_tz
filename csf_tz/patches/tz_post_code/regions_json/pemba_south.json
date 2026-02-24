@@ -1,0 +1,436 @@
+[
+  {
+    "Location": "Chachani",
+    "Ward": "Chachani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74203"
+  },
+  {
+    "Location": "Chambani",
+    "Ward": "Chambani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74117"
+  },
+  {
+    "Location": "Changaweni",
+    "Ward": "Changaweni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74107"
+  },
+  {
+    "Location": "Chanjaani",
+    "Ward": "Chanjaani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74201"
+  },
+  {
+    "Location": "Chokocho",
+    "Ward": "Chokocho",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74110"
+  },
+  {
+    "Location": "Chonga",
+    "Ward": "Chonga",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74217"
+  },
+  {
+    "Location": "Chumbageni",
+    "Ward": "Wambaa",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74108"
+  },
+  {
+    "Location": "Dodo",
+    "Ward": "Pujini",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74216"
+  },
+  {
+    "Location": "Jombwe",
+    "Ward": "Muambe",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74113"
+  },
+  {
+    "Location": "Kangani",
+    "Ward": "Kangani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74115"
+  },
+  {
+    "Location": "Kendwa",
+    "Ward": "Kiwani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74116"
+  },
+  {
+    "Location": "Kengeja",
+    "Ward": "Kengeja",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74114"
+  },
+  {
+    "Location": "Kibokoni",
+    "Ward": "Vitongoji",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74212"
+  },
+  {
+    "Location": "Kichungwani",
+    "Ward": "Kichungwani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74205"
+  },
+  {
+    "Location": "Kilindi",
+    "Ward": "Kilindi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74208"
+  },
+  {
+    "Location": "Kisiwa Panza",
+    "Ward": "Kisiwa Panza",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74111"
+  },
+  {
+    "Location": "Kiwani",
+    "Ward": "Kiwani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74116"
+  },
+  {
+    "Location": "Kuukuu",
+    "Ward": "Kangani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74115"
+  },
+  {
+    "Location": "Kwale",
+    "Ward": "Kwale",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74213"
+  },
+  {
+    "Location": "Madungu",
+    "Ward": "Chanjaani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74201"
+  },
+  {
+    "Location": "Makombeni",
+    "Ward": "Makombeni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74103"
+  },
+  {
+    "Location": "Makoongwe",
+    "Ward": "Makoongwe",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74105"
+  },
+  {
+    "Location": "Matale",
+    "Ward": "Pujini",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74216"
+  },
+  {
+    "Location": "Mbuguani",
+    "Ward": "Mbuguani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74104"
+  },
+  {
+    "Location": "Mbuyuni",
+    "Ward": "Mbuyuni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74106"
+  },
+  {
+    "Location": "Mbuzini",
+    "Ward": "Ziwani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74210"
+  },
+  {
+    "Location": "Mfikiwa",
+    "Ward": "Wawi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74209"
+  },
+  {
+    "Location": "Mgagadu",
+    "Ward": "Mizingani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74118"
+  },
+  {
+    "Location": "Mgelema",
+    "Ward": "Chonga",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74217"
+  },
+  {
+    "Location": "Mgogoni",
+    "Ward": "Wawi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74209"
+  },
+  {
+    "Location": "Michenzani",
+    "Ward": "Mkanyageni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74109"
+  },
+  {
+    "Location": "Michungwani",
+    "Ward": "Kwale",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74213"
+  },
+  {
+    "Location": "Minazini",
+    "Ward": "Mtambile",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74112"
+  },
+  {
+    "Location": "Mizingani",
+    "Ward": "Mizingani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74118"
+  },
+  {
+    "Location": "Mjimbini",
+    "Ward": "Kangani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74115"
+  },
+  {
+    "Location": "Mkanyageni",
+    "Ward": "Mkanyageni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74109"
+  },
+  {
+    "Location": "Mkoroshoni",
+    "Ward": "Mkoroshoni",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74207"
+  },
+  {
+    "Location": "Mkungu",
+    "Ward": "Kengeja",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74114"
+  },
+  {
+    "Location": "Msingini",
+    "Ward": "Msingini",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74202"
+  },
+  {
+    "Location": "Mtambile",
+    "Ward": "Mtambile",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74112"
+  },
+  {
+    "Location": "Mtangani",
+    "Ward": "Kiwani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74116"
+  },
+  {
+    "Location": "Muambe",
+    "Ward": "Muambe",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74113"
+  },
+  {
+    "Location": "Mvumoni",
+    "Ward": "Wawi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74209"
+  },
+  {
+    "Location": "Ndagoni",
+    "Ward": "Ndagoni",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74215"
+  },
+  {
+    "Location": "Ng'ambwa",
+    "Ward": "Ng'ambwa",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74211"
+  },
+  {
+    "Location": "Ng'ombeni",
+    "Ward": "Ng'ombeni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74101"
+  },
+  {
+    "Location": "Ngwachani",
+    "Ward": "Mizingani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74118"
+  },
+  {
+    "Location": "Pujini",
+    "Ward": "Pujini",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74216"
+  },
+  {
+    "Location": "Shamiani",
+    "Ward": "Muambe",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74113"
+  },
+  {
+    "Location": "Shidi",
+    "Ward": "Mkanyageni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74109"
+  },
+  {
+    "Location": "Shungi",
+    "Ward": "Shungi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74214"
+  },
+  {
+    "Location": "Stahabu",
+    "Ward": "Mkanyageni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74109"
+  },
+  {
+    "Location": "Tibirinzi",
+    "Ward": "Tibirinzi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74204"
+  },
+  {
+    "Location": "Ukutini",
+    "Ward": "Chambani",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74117"
+  },
+  {
+    "Location": "Uwandani",
+    "Ward": "Ng'ambwa",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74211"
+  },
+  {
+    "Location": "Uweleni",
+    "Ward": "Uweleni",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74102"
+  },
+  {
+    "Location": "Vitongoji",
+    "Ward": "Vitongoji",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74212"
+  },
+  {
+    "Location": "Wambaa",
+    "Ward": "Wambaa",
+    "District": "Mkoani",
+    "Region": "Pemba South",
+    "Postcode": "74108"
+  },
+  {
+    "Location": "Wara",
+    "Ward": "Wara",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74206"
+  },
+  {
+    "Location": "Wawi",
+    "Ward": "Wawi",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74209"
+  },
+  {
+    "Location": "Wesha",
+    "Ward": "Ndagoni",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74215"
+  },
+  {
+    "Location": "Ziwani",
+    "Ward": "Ziwani",
+    "District": "Chake Chake",
+    "Region": "Pemba South",
+    "Postcode": "74210"
+  }
+]

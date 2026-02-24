@@ -72,19 +72,8 @@ def set_old_price(item):
         ["name", "item_code", "price_list_rate"],
         order_by="valid_from desc",
     )
-    if len(items) > 1:
-        msg = f"""Multiple Item Prices found for Item: <b>{item.item_code}</b> Price List: <b>{item.price_list}</b>"""
-        if item.valid_from:
-            msg += f" Valid From: <b>{item.valid_from}</b>"
-        if item.valid_to:
-            msg += f" Valid To: <b>{item.valid_to}</b>"
-
-        frappe.throw(
-            f"{msg}<br> Please delete one of them or set valid from and valid to date correctly"
-        )
-
-    elif len(items) == 1:
-        return items[0].price_list_rate
+    if items:
+       return items[0].price_list_rate
 
 
 def validate_zero_prices(row):

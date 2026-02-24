@@ -1,12 +1,12 @@
 frappe.require([
-    '/assets/csf_tz/js/csfUtlis.js',
-    '/assets/csf_tz/js/shortcuts.js'
+    '/assets/csf_tz/js/shortcuts.js',
+    '/assets/csf_tz/js/po_shortcuts.js'
 ]);
 
 frappe.ui.form.on("Purchase Order", {
     refresh: (frm) => {
-        const limit_uom_as_item_uom = getValue("CSF TZ Settings", "CSF TZ Settings", "limit_uom_as_item_uom");
-        if (limit_uom_as_item_uom == 1) {
+        frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
+            if (limit_uom_as_item_uom == 1) {
             frm.set_query("uom", "items", function (frm, cdt, cdn) {
                 let row = locals[cdt][cdn];
                 return {
@@ -18,7 +18,8 @@ frappe.ui.form.on("Purchase Order", {
                     },
                 };
             });
-        }
+            }
+        });
     },
     supplier: function (frm) {
         setTimeout(function () {
@@ -89,4 +90,25 @@ async function get_price_list(frm, item_code, warehouse) {
         frappe.throw("Price List not found. Please create one in Dynamic Price List Assignment for " + frm.doc.supplier + " and " + warehouse);
     }
 }
+
+frappe.ui.keys.add_shortcut({
+    shortcut: 'ctrl+i',
+    action: () => {
+        ctrlI("Purchase Order Item");
+    },
+    page: this.page,
+    description: __('Select Customer Item Price'),
+    ignore_inputs: true,
+});
+
+
+frappe.ui.keys.add_shortcut({
+    shortcut: 'ctrl+u',
+    action: () => {
+        ctrlU("Purchase Order Item");
+    },
+    page: this.page,
+    description: __('Select Item Price'),
+    ignore_inputs: true,
+});
 

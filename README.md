@@ -94,7 +94,7 @@ For support and assistance, please create a github issue.
 
 ## **Licence**
 
-This project is licensed under the GNU General Public License (GPL). See the LICENCE file for more details.
+This project is licensed under the GNU General Public License (GPL). See the license.txt file for more details.
 
 ---
 

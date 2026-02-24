@@ -80,14 +80,14 @@
   {
    "fieldname": "ref_doctype",
    "fieldtype": "Select",
-   "label": "Refference Doctype",
+   "label": "Reference Doctype",
    "options": "Sales Invoice\nDelivery Note"
   },
   {
    "fieldname": "ref_docname",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
-   "label": "Refference Docname",
+   "label": "Reference Docname",
    "options": "ref_doctype",
    "reqd": 1
   }
@@ -95,7 +95,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-10 18:20:41.055091",
+ "modified": "2024-09-23 12:38:40.465860",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Delivery Exchange Item",

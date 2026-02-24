@@ -1,0 +1,19 @@
+
+<div class="my-5 p-4 border rounded shadow-sm">
+	<h3 class="text-center mb-2">{{ doc.job_title }}</h3>
+	<p >{{ doc.description }}</p>
+	{%- if doc.publish_salary_range -%}
+	<p><b>{{_("Salary range per month")}}: </b>{{ frappe.format_value(frappe.utils.flt(doc.lower_range), currency=doc.currency) }} - {{ frappe.format_value(frappe.utils.flt(doc.upper_range), currency=doc.currency) }}</p>
+	{% endif %}
+	<div class="text-right" style='margin-top: 30px'>
+		{%- if doc.job_application_route -%}
+		<a class='btn btn-primary'
+		href='/{{doc.job_application_route}}/new?job_title={{ doc.name }}'>
+		{{ _("Apply Now") }}</a>
+		{% else %}
+		<a class='btn btn-primary'
+		href='/job_application/new?job_title={{ doc.name }}'>
+		{{ _("Apply Now") }}</a>
+		{% endif %}
+	</div>
+</div>

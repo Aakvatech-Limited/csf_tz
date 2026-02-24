@@ -1,0 +1,95 @@
+{
+    "actions": [],
+    "creation": "2025-08-19 10:15:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "reference_type",
+     "reference_name",
+     "column_break_1",
+     "difference_type",
+     "amount",
+     "section_break_je",
+     "journal_entry",
+     "posting_date",
+     "column_break_2",
+     "remarks"
+    ],
+    "fields": [
+     {
+      "fieldname": "reference_type",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Reference Type",
+      "options": "Purchase Invoice\nLanded Cost Voucher\nPayment Entry",
+      "reqd": 1
+     },
+     {
+      "fieldname": "reference_name",
+      "fieldtype": "Dynamic Link",
+      "in_list_view": 1,
+      "label": "Reference Name",
+      "options": "reference_type",
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "difference_type",
+      "fieldtype": "Select",
+      "in_list_view": 1,
+      "label": "Difference Type",
+      "options": "Gain\nLoss",
+      "reqd": 1
+     },
+     {
+      "fieldname": "amount",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Amount",
+      "precision": "2",
+      "reqd": 1
+     },
+     {
+      "fieldname": "section_break_je",
+      "fieldtype": "Section Break",
+      "label": "Journal Entry Details"
+     },
+     {
+      "fieldname": "journal_entry",
+      "fieldtype": "Link",
+      "label": "Journal Entry",
+      "options": "Journal Entry",
+      "read_only": 1
+     },
+     {
+      "fieldname": "posting_date",
+      "fieldtype": "Date",
+      "label": "Posting Date",
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "remarks",
+      "fieldtype": "Text",
+      "label": "Remarks"
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "modified": "2025-08-19 10:15:00.000000",
+    "modified_by": "Administrator",
+    "module": "CSF TZ",
+    "name": "Foreign Import Exchange Difference Details",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+   }

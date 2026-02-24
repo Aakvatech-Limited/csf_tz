@@ -1,0 +1,340 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "field:vir_no",
+  "creation": "2025-09-01 23:06:46.649431",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "vir_no",
+    "inspection_id",
+    "vid",
+    "noplate",
+    "licence",
+    "vehicle_doc",
+    "section_break_1",
+    "inspection_date",
+    "valid_until",
+    "final_result",
+    "section_break_2",
+    "inspector",
+    "inspector_id",
+    "email",
+    "column_break_1",
+    "region",
+    "district",
+    "section_break_3",
+    "driver_name",
+    "driver_address",
+    "vehicle_passed_for",
+    "column_break_2",
+    "weight",
+    "prohibition_on_use",
+    "originates",
+    "section_break_4",
+    "speed_test",
+    "electrical_system",
+    "fitting_equipment",
+    "braking_system",
+    "column_break_3",
+    "wheels",
+    "suspension",
+    "steering",
+    "engine",
+    "section_break_5",
+    "exhaust",
+    "transmission",
+    "instruments_panel",
+    "dimensions",
+    "radiation",
+    "section_break_6",
+    "remarks",
+    "created_at",
+    "updated_at"
+  ],
+  "fields": [
+    {
+      "fieldname": "vir_no",
+      "fieldtype": "Data",
+      "label": "VIR Number",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "inspection_id",
+      "fieldtype": "Int",
+      "label": "Inspection ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "vid",
+      "fieldtype": "Int",
+      "label": "Vehicle ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "noplate",
+      "fieldtype": "Data",
+      "label": "Vehicle Plate",
+      "in_list_view": 1,
+      "in_standard_filter": 1
+    },
+    {
+      "fieldname": "licence",
+      "fieldtype": "Data",
+      "label": "License Number"
+    },
+    {
+      "fieldname": "vehicle_doc",
+      "fieldtype": "Link",
+      "label": "Vehicle",
+      "options": "Vehicle"
+    },
+    {
+      "fieldname": "section_break_1",
+      "fieldtype": "Section Break",
+      "label": "Inspection Details"
+    },
+    {
+      "fieldname": "inspection_date",
+      "fieldtype": "Date",
+      "label": "Inspection Date",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "valid_until",
+      "fieldtype": "Date",
+      "label": "Valid Until",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "final_result",
+      "fieldtype": "Select",
+      "label": "Final Result",
+      "options": "\nPass\nFail",
+      "in_list_view": 1,
+      "in_standard_filter": 1
+    },
+    {
+      "fieldname": "section_break_2",
+      "fieldtype": "Section Break",
+      "label": "Inspector Information"
+    },
+    {
+      "fieldname": "inspector",
+      "fieldtype": "Data",
+      "label": "Inspector Name"
+    },
+    {
+      "fieldname": "inspector_id",
+      "fieldtype": "Data",
+      "label": "Inspector ID"
+    },
+    {
+      "fieldname": "email",
+      "fieldtype": "Data",
+      "label": "Inspector Email"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "region",
+      "fieldtype": "Data",
+      "label": "Region",
+      "in_standard_filter": 1
+    },
+    {
+      "fieldname": "district",
+      "fieldtype": "Data",
+      "label": "District",
+      "in_standard_filter": 1
+    },
+    {
+      "fieldname": "section_break_3",
+      "fieldtype": "Section Break",
+      "label": "Vehicle & Driver Information"
+    },
+    {
+      "fieldname": "driver_name",
+      "fieldtype": "Data",
+      "label": "Driver Name"
+    },
+    {
+      "fieldname": "driver_address",
+      "fieldtype": "Text",
+      "label": "Driver Address"
+    },
+    {
+      "fieldname": "vehicle_passed_for",
+      "fieldtype": "Data",
+      "label": "Vehicle Passed For"
+    },
+    {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "weight",
+      "fieldtype": "Data",
+      "label": "Weight Category"
+    },
+    {
+      "fieldname": "prohibition_on_use",
+      "fieldtype": "Select",
+      "label": "Prohibition on Use",
+      "options": "\nYes\nNo"
+    },
+    {
+      "fieldname": "originates",
+      "fieldtype": "Data",
+      "label": "Originates"
+    },
+    {
+      "fieldname": "section_break_4",
+      "fieldtype": "Section Break",
+      "label": "Test Results - Part 1"
+    },
+    {
+      "fieldname": "speed_test",
+      "fieldtype": "Select",
+      "label": "Speed Test",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "electrical_system",
+      "fieldtype": "Select",
+      "label": "Electrical System",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "fitting_equipment",
+      "fieldtype": "Select",
+      "label": "Fitting Equipment",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "braking_system",
+      "fieldtype": "Select",
+      "label": "Braking System",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "column_break_3",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "wheels",
+      "fieldtype": "Select",
+      "label": "Wheels",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "suspension",
+      "fieldtype": "Select",
+      "label": "Suspension",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "steering",
+      "fieldtype": "Select",
+      "label": "Steering",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "engine",
+      "fieldtype": "Select",
+      "label": "Engine",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "section_break_5",
+      "fieldtype": "Section Break",
+      "label": "Test Results - Part 2"
+    },
+    {
+      "fieldname": "exhaust",
+      "fieldtype": "Select",
+      "label": "Exhaust",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "transmission",
+      "fieldtype": "Select",
+      "label": "Transmission",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "instruments_panel",
+      "fieldtype": "Select",
+      "label": "Instruments Panel",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "dimensions",
+      "fieldtype": "Select",
+      "label": "Dimensions",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "radiation",
+      "fieldtype": "Select",
+      "label": "Radiation",
+      "options": "\nPass\nFail"
+    },
+    {
+      "fieldname": "section_break_6",
+      "fieldtype": "Section Break",
+      "label": "Additional Information"
+    },
+    {
+      "fieldname": "remarks",
+      "fieldtype": "Long Text",
+      "label": "Remarks"
+    },
+    {
+      "fieldname": "created_at",
+      "fieldtype": "Datetime",
+      "label": "Created At",
+      "read_only": 1
+    },
+    {
+      "fieldname": "updated_at",
+      "fieldtype": "Datetime",
+      "label": "Updated At",
+      "read_only": 1
+    }
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2025-09-01 23:07:31.734846",
+  "modified_by": "Administrator",
+  "module": "CSF TZ",
+  "name": "Vehicle Inspection Record",
+  "naming_rule": "By fieldname",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "inspection_date",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "noplate",
+  "track_changes": 1
+}
