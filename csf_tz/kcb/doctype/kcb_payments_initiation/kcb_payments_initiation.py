@@ -7,18 +7,31 @@ from csf_tz.kcb.utils.crypto_utils import generate_checksum, sign_checksum_with_
 from csf_tz.kcb.api.kcb_api import submit_file_details, upload_encrypted_file
 from csf_tz.kcb.pgp import encrypt_pgp
 
+
+def _clean(value) -> str:
+    if value is None:
+        return ""
+    text = str(value)
+    text = text.replace("|", " ").replace("\r", " ").replace("\n", " ")
+    return " ".join(text.split())
+
+
+def _purpose(value) -> str:
+    return _clean(value)[:25]
+
+
 class KCBPaymentsInitiation(Document):
 
     def before_save(self):
-        header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose|Total"
+        header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose"
 
         body_lines = []
         for item in self.kcb_payments_initiation_info:
             line = (
-                f"{self.debit_account}|{item.beneficiary_name}|{item.transaction_code}|{item.amount}|"
-                f"{item.currency}|{item.beneficiary_account}|{item.beneficiary_clearing_code}|"
-                f"{item.my_ref}|{item.beneficiary_ref}|{item.cbk_code}|"
-                f"{item.ordering_customer_physical_address}|{item.payment_purpose}"
+                f"{_clean(self.debit_account)}|{_clean(item.beneficiary_name)}|{_clean(item.transaction_code)}|{_clean(item.amount)}|"
+                f"{_clean(item.currency)}|{_clean(item.beneficiary_account)}|{_clean(item.beneficiary_clearing_code)}|"
+                f"{_clean(item.my_ref)}|{_clean(item.beneficiary_ref)}|{_clean(item.cbk_code)}|"
+                f"{_clean(item.ordering_customer_physical_address)}|{_purpose(item.payment_purpose)}"
             )
             body_lines.append(line)
 
@@ -27,6 +40,7 @@ class KCBPaymentsInitiation(Document):
         total_amount = sum(
             [item.amount for item in self.kcb_payments_initiation_info if item.amount]
         )
+        # Total is a trailer line (not a field per record)
         file_content = f"{header}\n{body}\n{total_amount}"
         file_bytes = file_content.encode("utf-8")
 
