@@ -17,6 +17,7 @@ required_apps = ["frappe/erpnext", "frappe/hrms"]
 override_doctype_class = {
     "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
     "Additional Salary": "csf_tz.overrides.additional_salary.AdditionalSalary",
+    "Leave Encashment": "csf_tz.overrides.leave_encashment.LeaveEncashment",
 }
 
 # Includes in <head>
@@ -57,11 +58,7 @@ doctype_js = {
     "Student Applicant": "csf_tz/student_applicant.js",
     "Bank Reconciliation": "csf_tz/bank_reconciliation.js",
     "Program Enrollment": "csf_tz/program_enrollment.js",
-    "Payroll Entry": [
-        "csf_tz/payroll_entry.js",
-        "stanbic/payroll_entry.js",
-        "kcb/payroll_entry.js",
-    ],
+    "Payroll Entry": ["csf_tz/payroll_entry.js", "stanbic/payroll_entry.js"],
     "Salary Slip": "csf_tz/salary_slip.js",
     "Landed Cost Voucher": "csf_tz/landed_cost_voucher.js",
     "Additional Salary": "csf_tz/additional_salary.js",
@@ -70,10 +67,8 @@ doctype_js = {
     "Employee Advance": "csf_tz/employee_advance.js",
     "Employee": "csf_tz/employee_contact_qr.js",
     "Material Request": "csf_tz/material_request.js",
-    "Journal Entry": "csf_tz/journal_entry.js",
 }
 doctype_list_js = {
-    "Payment Entry": "csf_tz/payment_entry_list.js",
     "Custom Field": "csf_tz/custom_field.js",
     "Property Setter": "csf_tz/property_setter.js",
 }
@@ -186,19 +181,18 @@ doc_events = {
             "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
         ],
         "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": [
-            "csf_tz.custom_api.target_warehouse_based_price_list",
-            "csf_tz.budget_check.validate_budget_on_draft",
+        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
+                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
         ],
     },
     "Material Request": {
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
     },
     "Journal Entry": {
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_journal_entry",
     },
     "Fees": {
         "before_insert": "csf_tz.custom_api.set_fee_abbr",
