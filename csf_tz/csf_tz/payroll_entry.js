@@ -1,22 +1,19 @@
 frappe.ui.form.on("Payroll Entry", {
   setup: function(frm) {
       frm.trigger("control_action_buttons");
-      
+
   },
   refresh:function(frm) {
       frm.trigger("control_action_buttons");
 
       if (frm.doc.docstatus === 1) {
             frm.add_custom_button(__('Opening Salary Register'), function () {
-                // Ask for confirmation
-                frappe.confirm(__('Open the Salary Register report for this Payroll Entry?'), function () {
-                    // Redirect with filter
-                    const report_name = "Salary Register";
-                    
-                    let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
-                    
-                    window.open(report_url, "_blank");
-                });
+                // Redirect with filter
+				const report_name = "Salary Register";
+
+				let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
+
+				window.open(report_url, "_blank");
             }).addClass('btn-primary');
         }
 
