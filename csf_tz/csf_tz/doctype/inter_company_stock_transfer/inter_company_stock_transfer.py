@@ -14,27 +14,16 @@ class InterCompanyStockTransfer(Document):
             frappe.throw("<b><h4>Inter Company Stock Transfer is not enabled, please contact system administrator</h4></b>")
         if self.from_company == self.to_company:
             frappe.throw("From and To Company cannot be same")
-<<<<<<< csf_tz-fix
         self._set_missing_basic_rates()
-=======
->>>>>>> version-15-hotfix
 
 
     def before_submit(self,warehouse=None):
         item_list_from, item_list_to = [], []
-<<<<<<< csf_tz-fix
         self._set_missing_basic_rates(throw_if_missing=True)
 
         for item in self.items_child:
             valuation_rate = flt(item.get("basic_rate"))
             if not valuation_rate:
-=======
-
-        for item in self.items_child:
-            
-            valuation_rate_data = get_valuation_rate(item.item_code, self.from_company, self.default_from_warehouse)
-            if not valuation_rate_data or valuation_rate_data.valuation_rate is None or valuation_rate_data.valuation_rate == 0:
->>>>>>> version-15-hotfix
                 frappe.throw(f"Valuation rate is zero or not found for Item {item.item_code} in warehouse {self.default_from_warehouse}")
             else:
                 item_list_from.append({
@@ -42,11 +31,7 @@ class InterCompanyStockTransfer(Document):
                     "uom": item.uom,
                     "qty": item.qty,
                     "s_warehouse": self.default_from_warehouse,
-<<<<<<< csf_tz-fix
                     "basic_rate": valuation_rate,
-=======
-                    "basic_rate": valuation_rate_data.valuation_rate,
->>>>>>> version-15-hotfix
                     "batch_no": item.batch_no,
                 })
 
@@ -55,11 +40,7 @@ class InterCompanyStockTransfer(Document):
                     "uom": item.uom,
                     "qty": item.qty,
                     "t_warehouse": self.default_to_warehouse,
-<<<<<<< csf_tz-fix
                     "basic_rate": valuation_rate,
-=======
-                    "basic_rate": valuation_rate_data.valuation_rate,
->>>>>>> version-15-hotfix
                     "batch_no": item.batch_no,
                     "cost_center": ""
                 })

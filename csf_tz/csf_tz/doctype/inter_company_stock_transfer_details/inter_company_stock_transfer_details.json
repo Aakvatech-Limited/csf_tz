@@ -48,15 +48,9 @@
   {
    "fieldname": "batch_no",
    "fieldtype": "Link",
-<<<<<<< csf_tz-fix
-   "in_list_view": 1,
-   "label": "Batch No",
-   "options": "Batch"
-=======
    "options": "Batch",
    "in_list_view": 1,
    "label": "Batch No"
->>>>>>> version-15-hotfix
   },
   {
    "fieldname": "bom_no",
