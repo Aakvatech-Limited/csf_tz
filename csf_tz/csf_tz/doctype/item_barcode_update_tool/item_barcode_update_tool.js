@@ -18,7 +18,7 @@ frappe.ui.form.on('Item Barcode Update Tool', {
 							var child = frm.add_child("barcodes");
 							frappe.model.set_value(child.doctype, child.name, "barcode", r.message.barcodes[row].barcode);
 							frappe.model.set_value(child.doctype, child.name, "barcode_type", r.message.barcodes[row].barcode_type);
-							frappe.model.set_value(child.doctype, child.name, "posa_uom", r.message.barcodes[row].posa_uom);
+							frappe.model.set_value(child.doctype, child.name, "uom", r.message.barcodes[row].uom);
 							refresh_field("barcodes");
 						}
 					}
