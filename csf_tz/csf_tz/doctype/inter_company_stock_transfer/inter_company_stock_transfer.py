@@ -3,7 +3,9 @@
 
 import frappe
 from frappe.model.document import Document
-from erpnext.stock.get_item_details import get_valuation_rate
+import erpnext
+from erpnext.stock.stock_ledger import get_valuation_rate
+from frappe.utils import flt
 
 class InterCompanyStockTransfer(Document):
     def validate(self):
@@ -12,34 +14,52 @@ class InterCompanyStockTransfer(Document):
             frappe.throw("<b><h4>Inter Company Stock Transfer is not enabled, please contact system administrator</h4></b>")
         if self.from_company == self.to_company:
             frappe.throw("From and To Company cannot be same")
+<<<<<<< csf_tz-fix
+        self._set_missing_basic_rates()
+=======
+>>>>>>> version-15-hotfix
 
 
     def before_submit(self,warehouse=None):
         item_list_from, item_list_to = [], []
+<<<<<<< csf_tz-fix
+        self._set_missing_basic_rates(throw_if_missing=True)
+
+        for item in self.items_child:
+            valuation_rate = flt(item.get("basic_rate"))
+            if not valuation_rate:
+=======
 
         for item in self.items_child:
             
             valuation_rate_data = get_valuation_rate(item.item_code, self.from_company, self.default_from_warehouse)
             if not valuation_rate_data or valuation_rate_data.valuation_rate is None or valuation_rate_data.valuation_rate == 0:
+>>>>>>> version-15-hotfix
                 frappe.throw(f"Valuation rate is zero or not found for Item {item.item_code} in warehouse {self.default_from_warehouse}")
             else:
                 item_list_from.append({
-                    "item_name": item.item_name,
                     "item_code": item.item_code,
                     "uom": item.uom,
                     "qty": item.qty,
                     "s_warehouse": self.default_from_warehouse,
+<<<<<<< csf_tz-fix
+                    "basic_rate": valuation_rate,
+=======
                     "basic_rate": valuation_rate_data.valuation_rate,
+>>>>>>> version-15-hotfix
                     "batch_no": item.batch_no,
                 })
 
                 item_list_to.append({
-                    "item_name": item.item_name,
                     "item_code": item.item_code,
                     "uom": item.uom,
                     "qty": item.qty,
                     "t_warehouse": self.default_to_warehouse,
+<<<<<<< csf_tz-fix
+                    "basic_rate": valuation_rate,
+=======
                     "basic_rate": valuation_rate_data.valuation_rate,
+>>>>>>> version-15-hotfix
                     "batch_no": item.batch_no,
                     "cost_center": ""
                 })
@@ -68,3 +88,28 @@ class InterCompanyStockTransfer(Document):
 
         self.material_issue = entry_from.name
         self.material_receipt = entry_to.name
+
+    def _set_missing_basic_rates(self, throw_if_missing=False):
+        if not self.from_company or not self.default_from_warehouse:
+            return
+
+        for item in self.items_child:
+            if not item.item_code or flt(item.basic_rate):
+                continue
+
+            valuation_rate = get_valuation_rate(
+                item.item_code,
+                self.default_from_warehouse,
+                self.doctype,
+                self.name,
+                currency=erpnext.get_company_currency(self.from_company),
+                company=self.from_company,
+                raise_error_if_no_rate=False,
+                batch_no=item.batch_no,
+            )
+            if valuation_rate:
+                item.basic_rate = valuation_rate
+            elif throw_if_missing:
+                frappe.throw(
+                    f"Valuation rate is zero or not found for Item {item.item_code} in warehouse {self.default_from_warehouse}"
+                )

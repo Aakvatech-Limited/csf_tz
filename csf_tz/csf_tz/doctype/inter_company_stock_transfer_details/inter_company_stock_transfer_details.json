@@ -7,9 +7,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_name",
   "item_code",
   "uom",
+  "basic_rate",
   "qty",
   "batch_no",
   "bom_no",
@@ -25,9 +25,9 @@
    "label": "Item Code",
    "options": "Item"
   },
-  
   {
    "fetch_from": "item_code.stock_uom",
+   "fetch_if_empty": 1,
    "fieldname": "uom",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -48,9 +48,15 @@
   {
    "fieldname": "batch_no",
    "fieldtype": "Link",
+<<<<<<< csf_tz-fix
+   "in_list_view": 1,
+   "label": "Batch No",
+   "options": "Batch"
+=======
    "options": "Batch",
    "in_list_view": 1,
    "label": "Batch No"
+>>>>>>> version-15-hotfix
   },
   {
    "fieldname": "bom_no",
