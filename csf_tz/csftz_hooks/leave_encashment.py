@@ -102,7 +102,6 @@ def _has_any_field(doc, fieldnames):
 
 
 _original_before_submit = HRMSLeaveEncashment.before_submit
-_original_on_submit = HRMSLeaveEncashment.on_submit
 
 
 def _custom_before_submit(self):
@@ -113,7 +112,7 @@ def _custom_before_submit(self):
     amount = flt(self.encashment_amount)
 
     if _has_flag_fields(self):
-        validate_flags(self)
+        ensure_selection_before_submit(self)
 
         if self.is_deduction and amount < 0:
             return
@@ -137,12 +136,19 @@ def _custom_before_submit(self):
 
 def _custom_on_submit(self):
     """Custom on_submit to handle deductions and earnings."""
-    # Handle custom flags if present
-    if _has_flag_fields(self):
-        _create_custom_additional_salary(self)
+    if not self.leave_allocation:
+        self.db_set("leave_allocation", self.get_leave_allocation().get("name"))
+
+    if self.pay_via_payment_entry:
+        self.create_gl_entries()
     else:
-        # Use original behavior
-        _original_on_submit(self)
+        if _has_flag_fields(self):
+            _create_custom_additional_salary(self)
+        else:
+            self.create_additional_salary()
+
+    self.set_encashed_leaves_in_allocation()
+    self.create_leave_ledger_entry()
 
 
 def _create_custom_additional_salary(doc):
@@ -178,8 +184,3 @@ def _create_custom_additional_salary(doc):
 
     doc.additional_salary = additional_salary.name
     doc.db_set("additional_salary", additional_salary.name)
-
-
-# Apply monkey patches
-HRMSLeaveEncashment.before_submit = _custom_before_submit
-HRMSLeaveEncashment.on_submit = _custom_on_submit
