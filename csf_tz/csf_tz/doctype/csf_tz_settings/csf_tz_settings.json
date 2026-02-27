@@ -64,7 +64,12 @@
   "tz_regions_section",
   "populate_tz_regions",
   "column_break_tz_regions",
-  "tz_regions_populated"
+  "tz_regions_populated",
+  "vehicle_sync_settings_section",
+  "enable_sync",
+  "batch_size",
+  "column_break_gdub",
+  "sync_interval"
  ],
  "fields": [
   {
@@ -422,12 +427,40 @@
    "fieldname": "check_budget_in_je",
    "fieldtype": "Check",
    "label": "Check Budget in JE"
+  },
+  {
+   "fieldname": "vehicle_sync_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Sync Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable or disable the background sync process for traffic fine records.",
+   "fieldname": "enable_sync",
+   "fieldtype": "Check",
+   "label": "Enable Sync"
+  },
+  {
+   "description": "Maximum number of records to process in a single batch to manage API load.",
+   "fieldname": "batch_size",
+   "fieldtype": "Int",
+   "label": "Batch Size"
+  },
+  {
+   "fieldname": "column_break_gdub",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The minimum duration to wait before a record becomes eligible for the next synchronization attempt.",
+   "fieldname": "sync_interval",
+   "fieldtype": "Int",
+   "label": "Sync Interval (Minutes)"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-22 17:32:01.784671",
+ "modified": "2026-02-27 19:15:40.444046",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
