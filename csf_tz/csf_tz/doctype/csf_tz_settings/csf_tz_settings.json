@@ -441,26 +441,30 @@
    "label": "Enable Sync"
   },
   {
+   "depends_on": "eval:doc.enable_sync",
    "description": "Maximum number of records to process in a single batch to manage API load.",
    "fieldname": "batch_size",
    "fieldtype": "Int",
-   "label": "Batch Size"
+   "label": "Batch Size",
+   "mandatory_depends_on": "eval:doc.enable_sync"
   },
   {
    "fieldname": "column_break_gdub",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.enable_sync",
    "description": "The minimum duration to wait before a record becomes eligible for the next synchronization attempt.",
    "fieldname": "sync_interval",
    "fieldtype": "Int",
-   "label": "Sync Interval (Minutes)"
+   "label": "Sync Interval (Minutes)",
+   "mandatory_depends_on": "eval:doc.enable_sync"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-27 19:15:40.444046",
+ "modified": "2026-02-27 19:27:06.051100",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
