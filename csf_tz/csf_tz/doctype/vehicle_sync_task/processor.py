@@ -67,7 +67,7 @@ def _schedule_task_by_interval(task_name, sync_interval):
         TASK_DOCTYPE,
         task_name,
         {
-            "status": "Pending",
+            "status": "Success",
             "last_run_at": now,
             "next_run_at": next_run,
             "claimed_by": "",
@@ -119,7 +119,7 @@ def _claim_batch_fallback(doctype, limit=5):
             frappe.qb.from_(Task)
             .select(Task.name)
             .where(
-                (Task.status == "Pending") &
+                (Task.status.isin(["Pending", "Success"])) &
                 ((Task.next_run_at.isnull()) | (Task.next_run_at <= now)) &
                 ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))
             )
@@ -150,7 +150,7 @@ def _mark_done_fallback(doctype, task):
     """Fallback mark done when queue module fails"""
     try:
         frappe.db.set_value(doctype, task["name"], {
-            "status": "Done",
+            "status": "Success",
             "last_run_at": frappe.utils.now_datetime(),
             "claimed_by": "",
             "claimed_at": None,
@@ -503,14 +503,7 @@ def run_vehicle_batch():
                 _call_external_api(task["vehicle_no"])
 
                 # Schedule next processing by configured sync interval
-                next_run_at = _schedule_task_by_interval(task["name"], sync_settings["sync_interval"])
-                frappe.log_error(
-                    title="Vehicle API Processing Success",
-                    message=(
-                        f"Successfully processed vehicle {task['vehicle_no']}. "
-                        f"Next run at: {next_run_at}"
-                    ),
-                )
+                _schedule_task_by_interval(task["name"], sync_settings["sync_interval"])
                 processed += 1
             except Exception as e:
                 errors += 1
@@ -632,7 +625,7 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
             TASK_DOCTYPE,
             {
                 "vehicle_no": vehicle_no,
-                "status": ["in", ["Pending", "Processing"]],
+                "status": ["in", ["Pending", "Processing", "Success"]],
                 "is_deleted": ["!=", 1]  # Only check non-deleted tasks
             },
             "name"

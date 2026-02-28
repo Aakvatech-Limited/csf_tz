@@ -30,7 +30,7 @@ def claim_batch(doctype, limit=BATCH_SIZE):
             frappe.qb.from_(Task)
             .select(Task.name)
             .where(
-                (Task.status == "Pending") &
+                (Task.status.isin(["Pending", "Success"])) &
                 ((Task.next_run_at.isnull()) | (Task.next_run_at <= now)) &
                 ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))  # ← IGNORE DELETED TASKS
             )
@@ -63,7 +63,7 @@ def claim_batch(doctype, limit=BATCH_SIZE):
 def mark_done(doctype, task):
     try:
         frappe.db.set_value(doctype, task["name"], {
-            "status": "Done",
+            "status": "Success",
             "last_run_at": _now(),
             "claimed_by": "",
             "claimed_at": None,
