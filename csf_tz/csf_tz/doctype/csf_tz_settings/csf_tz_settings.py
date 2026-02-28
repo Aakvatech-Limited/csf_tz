@@ -32,6 +32,9 @@ class CSFTZSettings(Document):
         self.manage_tz_regions_population()
 
     def manage_trade_in_functionality(self):
+        if not self.has_value_changed("enable_trade_in"):
+            return
+
         # Check if the feature is being enabled
         if self.enable_trade_in:
             try:
