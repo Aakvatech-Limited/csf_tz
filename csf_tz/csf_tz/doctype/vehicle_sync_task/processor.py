@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from time import sleep
 import frappe
+from frappe.utils import cint, get_datetime
 
 # Safe import with fallback
 try:
@@ -13,6 +14,70 @@ except (ImportError, AttributeError) as e:
 # ------------ CONFIGURATION ------------
 HOST = "https://tms.tpf.go.tz/api/OffenceCheck"
 TASK_DOCTYPE = "Vehicle Sync Task"
+SYNC_LAST_RUN_CACHE_KEY = "csf_tz:vehicle_sync:last_batch_run_at"
+
+
+def _get_sync_settings():
+    settings = frappe.get_cached_doc("CSF TZ Settings")
+    enable_sync = cint(settings.get("enable_sync"))
+    batch_size = cint(settings.get("batch_size"))
+    sync_interval = cint(settings.get("sync_interval"))
+
+    if batch_size < 1:
+        batch_size = 1
+    if sync_interval < 1:
+        sync_interval = 1
+
+    return {
+        "enable_sync": enable_sync,
+        "batch_size": batch_size,
+        "sync_interval": sync_interval,
+    }
+
+
+def _is_batch_due(sync_interval):
+    cache = frappe.cache()
+    last_run_at = cache.get_value(SYNC_LAST_RUN_CACHE_KEY)
+    if not last_run_at:
+        return True
+
+    try:
+        last_run = get_datetime(last_run_at)
+    except Exception:
+        return True
+
+    next_allowed_run = frappe.utils.add_to_date(last_run, minutes=sync_interval)
+    return frappe.utils.now_datetime() >= next_allowed_run
+
+
+def _mark_batch_run():
+    frappe.cache().set_value(SYNC_LAST_RUN_CACHE_KEY, frappe.utils.now())
+
+
+def _schedule_task_by_interval(task_name, sync_interval):
+    now = frappe.utils.now_datetime()
+    active_task_count = (
+        frappe.db.sql(
+            f"select count(name) from `tab{TASK_DOCTYPE}` where ifnull(is_deleted, 0) = 0"
+        )[0][0]
+        or 1
+    )
+    next_run = frappe.utils.add_to_date(now, minutes=(sync_interval * active_task_count))
+    frappe.db.set_value(
+        TASK_DOCTYPE,
+        task_name,
+        {
+            "status": "Success",
+            "last_run_at": now,
+            "next_run_at": next_run,
+            "claimed_by": "",
+            "claimed_at": None,
+            "last_error": "",
+            "attempts": 0,
+            "backoff_exp": 0,
+        },
+    )
+    return next_run
 
 # ------------ FALLBACK QUEUE FUNCTIONS ------------
 def _reset_stuck_tasks_fallback(doctype, timeout_minutes=10):
@@ -54,7 +119,7 @@ def _claim_batch_fallback(doctype, limit=5):
             frappe.qb.from_(Task)
             .select(Task.name)
             .where(
-                (Task.status == "Pending") &
+                (Task.status.isin(["Pending", "Success"])) &
                 ((Task.next_run_at.isnull()) | (Task.next_run_at <= now)) &
                 ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))
             )
@@ -85,7 +150,7 @@ def _mark_done_fallback(doctype, task):
     """Fallback mark done when queue module fails"""
     try:
         frappe.db.set_value(doctype, task["name"], {
-            "status": "Done",
+            "status": "Success",
             "last_run_at": frappe.utils.now_datetime(),
             "claimed_by": "",
             "claimed_at": None,
@@ -401,6 +466,19 @@ def run_vehicle_batch():
     processed, errors = 0, 0
 
     try:
+        print(f"[Vehicle Sync] run_vehicle_batch triggered at {frappe.utils.now()}")
+        sync_settings = _get_sync_settings()
+        if not sync_settings["enable_sync"]:
+            print("[Vehicle Sync] skipped: sync disabled in settings")
+            return {"status": "disabled", "message": "Vehicle sync is disabled in CSF TZ Settings"}
+
+        if not _is_batch_due(sync_settings["sync_interval"]):
+            print(f"[Vehicle Sync] skipped: waiting for interval ({sync_settings['sync_interval']} minute(s))")
+            return {
+                "status": "skipped",
+                "message": f"Waiting for sync interval ({sync_settings['sync_interval']} minute(s))",
+            }
+
         # Reset stuck tasks - use queue module or fallback
         if queue and hasattr(queue, 'reset_stuck_tasks'):
             queue.reset_stuck_tasks(TASK_DOCTYPE, timeout_minutes=10)
@@ -409,23 +487,23 @@ def run_vehicle_batch():
         
         # Claim batch of tasks
         if queue and hasattr(queue, 'claim_batch'):
-            tasks = queue.claim_batch(TASK_DOCTYPE, limit=5)
+            tasks = queue.claim_batch(TASK_DOCTYPE, limit=sync_settings["batch_size"])
         else:
-            tasks = _claim_batch_fallback(TASK_DOCTYPE, limit=5)
+            tasks = _claim_batch_fallback(TASK_DOCTYPE, limit=sync_settings["batch_size"])
             
         if not tasks:
+            print("[Vehicle Sync] no tasks to process")
             return {"status": "no_tasks", "message": f"No pending tasks at {start}"}
+
+        _mark_batch_run()
+        print(f"[Vehicle Sync] processing {len(tasks)} task(s)")
 
         for task in tasks:
             try:
                 _call_external_api(task["vehicle_no"])
-                
-                # Mark task as done
-                if queue and hasattr(queue, 'mark_done'):
-                    queue.mark_done(TASK_DOCTYPE, task)
-                else:
-                    _mark_done_fallback(TASK_DOCTYPE, task)
-                    
+
+                # Schedule next processing by configured sync interval
+                _schedule_task_by_interval(task["name"], sync_settings["sync_interval"])
                 processed += 1
             except Exception as e:
                 errors += 1
@@ -437,12 +515,9 @@ def run_vehicle_batch():
                 
                 # Handle failed task - use queue or simple fallback
                 if queue and hasattr(queue, 'bump_attempts'):
-                    attempts, _ = queue.bump_attempts(TASK_DOCTYPE, task)
-                    if attempts >= getattr(queue, 'MAX_ATTEMPTS', 8):
-                        queue.mark_failed(TASK_DOCTYPE, task, error_msg)
-                    else:
-                        backoff_seconds = getattr(queue, 'BASE_BACKOFF', 300) * (2 ** attempts)
-                        queue.schedule_next(TASK_DOCTYPE, task, backoff_seconds, error_msg)
+                    current_attempts = frappe.db.get_value(TASK_DOCTYPE, task["name"], "attempts") or 0
+                    backoff_seconds = getattr(queue, 'BASE_BACKOFF', 300) * (2 ** (current_attempts + 1))
+                    queue.schedule_next(TASK_DOCTYPE, task, backoff_seconds, error_msg)
                 else:
                     # Simple fallback - mark as pending for retry
                     frappe.db.set_value(TASK_DOCTYPE, task["name"], {
@@ -458,6 +533,7 @@ def run_vehicle_batch():
 
         frappe.db.commit()
         total_runtime = (datetime.utcnow() - start).total_seconds()
+        print(f"[Vehicle Sync] completed: processed={processed}, errors={errors}, runtime={total_runtime:.2f}s")
         return {
             "status": "completed",
             "runtime_seconds": total_runtime,
@@ -549,7 +625,7 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
             TASK_DOCTYPE,
             {
                 "vehicle_no": vehicle_no,
-                "status": ["in", ["Pending", "Processing"]],
+                "status": ["in", ["Pending", "Processing", "Success"]],
                 "is_deleted": ["!=", 1]  # Only check non-deleted tasks
             },
             "name"
