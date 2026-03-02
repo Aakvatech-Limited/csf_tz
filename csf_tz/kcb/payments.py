@@ -32,6 +32,25 @@ def _validate_single_value(values, label):
     return unique_values.pop() if unique_values else ""
 
 
+def _attach_print_pdf(source_doctype: str, source_name: str, target_name: str, prefix: str):
+    pdf_content = frappe.get_print(
+        source_doctype,
+        source_name,
+        as_pdf=True,
+        no_letterhead=False,
+    )
+    frappe.get_doc(
+        {
+            "doctype": "File",
+            "file_name": f"{prefix}-{source_name}.pdf",
+            "attached_to_doctype": "KCB Payments Initiation",
+            "attached_to_name": target_name,
+            "content": pdf_content,
+            "folder": "Home",
+        }
+    ).save(ignore_permissions=True)
+
+
 @frappe.whitelist()
 def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     _require_kcb_enabled()
@@ -145,6 +164,11 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
 
     doc.total_amount = total_amount
     doc.insert(ignore_permissions=True)
+
+    # Supporting docs for supplier batches: attach Payment Entry PDFs.
+    for pe in pe_docs:
+        _attach_print_pdf("Payment Entry", pe.name, doc.name, "SUP")
+
     return doc.name
 
 
@@ -238,4 +262,8 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
 
     doc.total_amount = total_amount
     doc.insert(ignore_permissions=True)
+
+    # Supporting docs for payroll batches: attach Payroll Entry PDF.
+    _attach_print_pdf("Payroll Entry", payroll_entry_name, doc.name, "SUP")
+
     return doc.name

@@ -4,15 +4,36 @@
 import frappe
 import requests
 import os
-from frappe.utils import get_url
 from frappe.utils.file_manager import get_file
 
 
 @frappe.whitelist()
-@frappe.whitelist()
 def is_kcb_enabled():
     settings = frappe.get_single("KCB Settings")
     return settings.enabled
+
+
+def _get_supporting_file_docs(doc):
+    attachments = frappe.get_all(
+        "File",
+        filters={
+            "attached_to_doctype": "KCB Payments Initiation",
+            "attached_to_name": doc.name,
+            "is_folder": 0,
+        },
+        fields=["name", "file_name", "file_url", "creation"],
+        order_by="creation asc",
+    )
+
+    excluded_urls = {doc.payment_file, doc.encrypted_file}
+    supporting_docs = [f for f in attachments if f.get("file_url") not in excluded_urls]
+
+    if not supporting_docs:
+        frappe.throw(
+            "Attach at least one supporting document before submitting to KCB."
+        )
+
+    return supporting_docs
 
 
 def get_kcb_token():
@@ -87,12 +108,17 @@ def submit_file_details(doc):
         originator_id = frappe.generate_hash(length=20)
         doc.db_set("originator_conversation_id", originator_id, update_modified=False)
 
+    supporting_docs = _get_supporting_file_docs(doc)
+    supporting_names = ", ".join(
+        [f.get("file_name", "") for f in supporting_docs if f.get("file_name")]
+    )
+
     payload = {
         "originatorConversationID": originator_id,  # Unique ID for the conversation
         "fileName": doc.encrypted_file.split("/")[
             -1
         ],  # Extract file name from the file path
-        "supportingFilesNames": "",  # Supporting files (if any)
+        "supportingFilesNames": supporting_names,
         "partnerCode": config.partner_code,  # Partner code from settings
         "processorCode": config.processor_code,  # Processor code from settings
         "subsidiaryCode": config.subsidiary_code,  # Subsidiary code from settings
@@ -124,16 +150,34 @@ def upload_encrypted_file(doc):
 
     originator_id = getattr(doc, "originator_conversation_id", None) or doc.name
 
-    files = {
-        # Bulk Receiver expects "files" (can be multiple). Keep as single file list.
-        "files": (
-            file_doc.file_name,
-            file_content,
-            "application/octet-stream",
-        ),
-        # Include originatorConversationID as form-data
-        "originatorConversationID": (None, originator_id),
-    }
+    supporting_docs = _get_supporting_file_docs(doc)
+
+    # Bulk Receiver expects repeated `files` entries.
+    files = [
+        (
+            "files",
+            (
+                file_doc.file_name,
+                file_content,
+                "application/octet-stream",
+            ),
+        )
+    ]
+    for support_doc in supporting_docs:
+        support_content = get_file(support_doc.get("file_url"))[1]
+        files.append(
+            (
+                "files",
+                (
+                    support_doc.get("file_name"),
+                    support_content,
+                    "application/octet-stream",
+                ),
+            )
+        )
+
+    # Include originatorConversationID as form-data
+    files.append(("originatorConversationID", (None, originator_id)))
 
     headers = {"Authorization": f"Bearer {token}"}  # Bearer token for authorization
 
