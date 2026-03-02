@@ -6,6 +6,8 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from frappe.utils import nowdate
+from frappe.utils.data import escape_html
+from frappe.utils.pdf import get_pdf
 
 
 def _get_bank_account_details(bank_account_name: str | None) -> dict:
@@ -43,6 +45,71 @@ def _attach_print_pdf(source_doctype: str, source_name: str, target_name: str, p
         {
             "doctype": "File",
             "file_name": f"{prefix}-{source_name}.pdf",
+            "attached_to_doctype": "KCB Payments Initiation",
+            "attached_to_name": target_name,
+            "content": pdf_content,
+            "folder": "Home",
+        }
+    ).save(ignore_permissions=True)
+
+
+def _attach_supplier_batch_summary_pdf(target_name: str, doc, pe_docs):
+    rows_html = ""
+    for pe in pe_docs:
+        rows_html += (
+            "<tr>"
+            f"<td>{escape_html(pe.name)}</td>"
+            f"<td>{escape_html(pe.party_name or pe.party or '')}</td>"
+            f"<td>{escape_html(str(pe.paid_amount or 0))}</td>"
+            f"<td>{escape_html(pe.paid_from_account_currency or '')}</td>"
+            f"<td>{escape_html(pe.party_bank_account or '')}</td>"
+            "</tr>"
+        )
+
+    html = f"""
+    <html>
+      <head>
+        <style>
+          body {{ font-family: Arial, sans-serif; font-size: 12px; }}
+          h3 {{ margin-bottom: 8px; }}
+          table {{ border-collapse: collapse; width: 100%; }}
+          th, td {{ border: 1px solid #444; padding: 6px; text-align: left; }}
+          th {{ background: #f2f2f2; }}
+          .meta {{ margin-bottom: 10px; }}
+        </style>
+      </head>
+      <body>
+        <h3>KCB Supplier Batch Supporting Summary</h3>
+        <div class="meta">
+          <div><strong>KCB Batch:</strong> {escape_html(target_name)}</div>
+          <div><strong>Posting Date:</strong> {escape_html(str(doc.posting_date or ''))}</div>
+          <div><strong>Debit Account:</strong> {escape_html(str(doc.debit_account or ''))}</div>
+          <div><strong>Currency:</strong> {escape_html(str(doc.currency or ''))}</div>
+          <div><strong>Total Amount:</strong> {escape_html(str(doc.total_amount or 0))}</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Payment Entry</th>
+              <th>Beneficiary</th>
+              <th>Amount</th>
+              <th>Currency</th>
+              <th>Party Bank Account</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows_html}
+          </tbody>
+        </table>
+      </body>
+    </html>
+    """
+
+    pdf_content = get_pdf(html)
+    frappe.get_doc(
+        {
+            "doctype": "File",
+            "file_name": f"SUP-{target_name}-Supplier-Summary.pdf",
             "attached_to_doctype": "KCB Payments Initiation",
             "attached_to_name": target_name,
             "content": pdf_content,
@@ -153,9 +220,8 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     doc.total_amount = total_amount
     doc.insert(ignore_permissions=True)
 
-    # Supporting docs for supplier batches: attach Payment Entry PDFs.
-    for pe in pe_docs:
-        _attach_print_pdf("Payment Entry", pe.name, doc.name, "SUP")
+    # Supporting docs for supplier batches: attach one custom summary PDF.
+    _attach_supplier_batch_summary_pdf(doc.name, doc, pe_docs)
 
     return doc.name
 
