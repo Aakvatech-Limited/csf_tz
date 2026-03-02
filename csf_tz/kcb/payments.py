@@ -33,26 +33,6 @@ def _validate_single_value(values, label):
         frappe.throw(_("{0} must be the same for all entries.").format(label))
     return unique_values.pop() if unique_values else ""
 
-
-def _attach_print_pdf(source_doctype: str, source_name: str, target_name: str, prefix: str):
-    pdf_content = frappe.get_print(
-        source_doctype,
-        source_name,
-        as_pdf=True,
-        no_letterhead=False,
-    )
-    frappe.get_doc(
-        {
-            "doctype": "File",
-            "file_name": f"{prefix}-{source_name}.pdf",
-            "attached_to_doctype": "KCB Payments Initiation",
-            "attached_to_name": target_name,
-            "content": pdf_content,
-            "folder": "Home",
-        }
-    ).save(ignore_permissions=True)
-
-
 def _attach_supplier_batch_summary_pdf(target_name: str, doc, pe_docs):
     rows_html = ""
     for pe in pe_docs:
@@ -110,6 +90,72 @@ def _attach_supplier_batch_summary_pdf(target_name: str, doc, pe_docs):
         {
             "doctype": "File",
             "file_name": f"SUP-{target_name}-Supplier-Summary.pdf",
+            "attached_to_doctype": "KCB Payments Initiation",
+            "attached_to_name": target_name,
+            "content": pdf_content,
+            "folder": "Home",
+        }
+    ).save(ignore_permissions=True)
+
+
+def _attach_payroll_batch_summary_pdf(target_name: str, doc, payroll_entry_name: str, slips):
+    rows_html = ""
+    for slip in slips:
+        rows_html += (
+            "<tr>"
+            f"<td>{escape_html(slip.get('name') or '')}</td>"
+            f"<td>{escape_html(slip.get('employee') or '')}</td>"
+            f"<td>{escape_html(slip.get('employee_name') or '')}</td>"
+            f"<td>{escape_html(str(slip.get('net_pay') or 0))}</td>"
+            f"<td>{escape_html(slip.get('currency') or '')}</td>"
+            "</tr>"
+        )
+
+    html = f"""
+    <html>
+      <head>
+        <style>
+          body {{ font-family: Arial, sans-serif; font-size: 12px; }}
+          h3 {{ margin-bottom: 8px; }}
+          table {{ border-collapse: collapse; width: 100%; }}
+          th, td {{ border: 1px solid #444; padding: 6px; text-align: left; }}
+          th {{ background: #f2f2f2; }}
+          .meta {{ margin-bottom: 10px; }}
+        </style>
+      </head>
+      <body>
+        <h3>KCB Payroll Batch Supporting Summary</h3>
+        <div class="meta">
+          <div><strong>KCB Batch:</strong> {escape_html(target_name)}</div>
+          <div><strong>Payroll Entry:</strong> {escape_html(payroll_entry_name)}</div>
+          <div><strong>Posting Date:</strong> {escape_html(str(doc.posting_date or ''))}</div>
+          <div><strong>Debit Account:</strong> {escape_html(str(doc.debit_account or ''))}</div>
+          <div><strong>Currency:</strong> {escape_html(str(doc.currency or ''))}</div>
+          <div><strong>Total Amount:</strong> {escape_html(str(doc.total_amount or 0))}</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Salary Slip</th>
+              <th>Employee</th>
+              <th>Employee Name</th>
+              <th>Net Pay</th>
+              <th>Currency</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows_html}
+          </tbody>
+        </table>
+      </body>
+    </html>
+    """
+
+    pdf_content = get_pdf(html)
+    frappe.get_doc(
+        {
+            "doctype": "File",
+            "file_name": f"SUP-{target_name}-Payroll-Summary.pdf",
             "attached_to_doctype": "KCB Payments Initiation",
             "attached_to_name": target_name,
             "content": pdf_content,
@@ -307,7 +353,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     doc.total_amount = total_amount
     doc.insert(ignore_permissions=True)
 
-    # Supporting docs for payroll batches: attach Payroll Entry PDF.
-    _attach_print_pdf("Payroll Entry", payroll_entry_name, doc.name, "SUP")
+    # Supporting docs for payroll batches: attach one custom summary PDF.
+    _attach_payroll_batch_summary_pdf(doc.name, doc, payroll_entry_name, slips)
 
     return doc.name
