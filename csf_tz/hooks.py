@@ -27,8 +27,8 @@ override_doctype_class = {
 # app_include_css = "/assets/csf_tz/css/csf_tz.css"
 # app_include_js = "/assets/csf_tz/js/csf_tz.js"
 app_include_js = "csf_tz.bundle.js"
-app_include_css = "/assets/csf_tz/css/theme.css"
-web_include_css = "/assets/csf_tz/css/theme.css"
+# app_include_css = "/assets/csf_tz/css/theme.css"
+# web_include_css = "/assets/csf_tz/css/theme.css"
 # include js, css files in header of web template
 # web_include_css = "/assets/csf_tz/css/csf_tz.css"
 # web_include_js = "/assets/csf_tz/js/csf_tz.js"
@@ -206,31 +206,6 @@ doc_events = {
         "reload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
         "before_submit": "csf_tz.csftz_hooks.program_enrollment.validate_submit_program_enrollment",
     },
-    "*": {
-        "validate": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "onload": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_insert": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "after_insert": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_naming": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_change": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_update_after_submit": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "before_validate": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "before_save": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_update": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_submit": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "autoname": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_cancel": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_trash": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_submit": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_update_after_submit": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "on_change": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-    },
     "Stock Entry": {
         "validate": "csf_tz.custom_api.calculate_total_net_weight",
         "before_save": "csf_tz.csftz_hooks.stock.import_from_bom",
@@ -321,7 +296,6 @@ scheduler_events = {
     },
     "daily": [
         "csf_tz.custom_api.create_delivery_note_for_all_pending_sales_invoice",
-        "csf_tz.csf_tz.doctype.visibility.visibility.trigger_daily_alerts",
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
         "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
@@ -352,9 +326,4 @@ jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
 # ------------------------------
 #
 override_whitelisted_methods = {
-    "frappe.desk.query_report.get_script": "csf_tz.csftz_hooks.query_report.get_script",
-    "erpnext.buying.doctype.purchase_order.purchase_order.update_status": "csf_tz.csftz_hooks.purchase_order.update_po_status",
-    "erpnext.buying.doctype.purchase_order.purchase_order.close_or_unclose_purchase_orders": "csf_tz.csftz_hooks.purchase_order.close_or_unclose_purchase_orders",
-    "erpnext.stock.doctype.material_request.material_request.update_status": "csf_tz.csftz_hooks.material_request.update_mr_status",
-    "erpnext.stock.get_item_details.get_item_details": "csf_tz.csftz_hooks.custom_get_item_details.custom_get_item_details",
 }

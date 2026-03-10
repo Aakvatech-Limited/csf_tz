@@ -510,40 +510,10 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Accounting",
-   "link_count": 12,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Payment Reconciliation Pro",
-   "link_count": 0,
-   "link_to": "Payment Reconciliation Pro",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Bank Clearance Pro",
-   "link_count": 0,
-   "link_to": "Bank Clearance Pro",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Special Closing Balance",
-   "link_count": 0,
-   "link_to": "Special Closing Balance",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
