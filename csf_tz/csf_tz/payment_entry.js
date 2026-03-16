@@ -305,7 +305,7 @@ frappe.ui.form.on("Payment Entry", {
 	add_write_off_button: function (frm) {
 		// Check if feature is enabled and conditions are met
 		frappe.db
-			.get_single_value("CSF TZ Settings", "enable_write_off_jv_si")
+			.get_single_value("CSF TZ Settings", "enable_write_off_jv_pe")
 			.then((enable_write_off) => {
 				if (enable_write_off &&
 					frm.doc.docstatus === 1 &&
@@ -355,7 +355,7 @@ frappe.ui.form.on("Payment Entry", {
 										},
 										callback: function(r) {
 											if (r.message) {
-												frappe.msgprint(__("Write-off Journal Entry created: {0}", [r.message]));
+												frappe.msgprint(__("Write-off entry processed: {0}", [r.message]));
 												frm.reload_doc();
 											}
 										}
