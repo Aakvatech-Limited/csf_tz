@@ -84,7 +84,7 @@ frappe.ui.form.on("Purchase Invoice", {
     add_write_off_button: function (frm) {
         // Check if feature is enabled and conditions are met
         frappe.db
-            .get_single_value("CSF TZ Settings", "enable_write_off_jv_pe")
+            .get_single_value("CSF TZ Settings", "enable_write_off_jv_pi")
             .then((enable_write_off) => {
                 if (enable_write_off &&
                     frm.doc.docstatus === 1 &&
