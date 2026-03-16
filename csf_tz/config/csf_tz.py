@@ -24,11 +24,6 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Visibility",
-					"description": _("Setup Visibity of records."),
-				},
-				{
-					"type": "doctype",
 					"name": "Open Invoice Exchange Rate Revaluation",
 					"description": _("Open Invoice Exchange Rate Revaluation for period end P & L visibility."),
 				},
@@ -41,11 +36,6 @@ def get_data():
 					"type": "doctype",
 					"name": "Expense Record",
 					"description": _("Petty expenses for Section. Intelligent expense transactions."),
-				},
-				{
-					"type": "doctype",
-					"name": "Section",
-					"description": _("Sections for petty expense recording."),
 				},
 				{
 					"type": "doctype",
@@ -172,30 +162,8 @@ def get_data():
 			]
 		},
 		{
-			"label": _("System Analytics"),
-			"items": [
-				{
-					"type": "report",
-					"name": "Master Data Statistics",
-					"doctype": "Electronic Fiscal Device",
-					"is_query_report": True
-				},
-				{
-					"type": "report",
-					"name": "Transaction Statistics",
-					"doctype": "Electronic Fiscal Device",
-					"is_query_report": True
-				},
-			],
-		},
-		{
 			"label": _("Other features"),
 			"items": [
-				{
-					"type": "doctype",
-					"name": "Special Closing Balance",
-					"description": _("Special Closing Balance recording and generating Material Receipts for reverse calculated productions."),
-				},
 				{
 					"type": "doctype",
 					"name": "Repack Template",
