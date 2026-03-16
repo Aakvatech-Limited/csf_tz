@@ -39,10 +39,18 @@ app_include_js = "csf_tz.bundle.js"
 # include js in doctype views
 doctype_js = {
     "Payment Entry": "csf_tz/payment_entry.js",
-    "Sales Invoice": ["csf_tz/sales_invoice.js", "authotp/api/sales_invoice.js"],
+    "Sales Invoice": [
+        "csf_tz/sales_invoice.js",
+        "authotp/api/sales_invoice.js",
+        "vfd_support/sales_invoice.js",
+    ],
     "Sales Order": "csf_tz/sales_order.js",
     "Delivery Note": "csf_tz/delivery_note.js",
-    "Customer": ["csf_tz/customer.js", "authotp/api/customer.js"],
+    "Customer": [
+        "csf_tz/customer.js",
+        "authotp/api/customer.js",
+        "vfd_support/customer.js",
+    ],
     "Supplier": "csf_tz/supplier.js",
     "Stock Entry": "csf_tz/stock_entry.js",
     "Account": "csf_tz/account.js",
@@ -113,6 +121,8 @@ after_install = [
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
     "csf_tz.patches.custom_fields.auth_otp_custom_fields.execute",
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
+    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
 ]
@@ -122,6 +132,8 @@ after_migrate = [
     "csf_tz.utils.create_property_setter.execute",
     "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
+    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
 ]
 
 # Desk Notifications
@@ -154,6 +166,7 @@ doc_events = {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",
             "csf_tz.authotp.api.sales_invoice.before_submit",
+            "csf_tz.vfd_support.sales_invoice.vfd_validation",
         ],
         "on_submit": [
             "csf_tz.custom_api.validate_net_rate",
@@ -161,6 +174,7 @@ doc_events = {
             "csf_tz.custom_api.check_submit_delivery_note",
             "csf_tz.custom_api.make_withholding_tax_gl_entries_for_sales",
             "csf_tz.custom_api.create_trade_in_stock_entry",
+            "csf_tz.vfd_support.utils.autogenerate_vfd",
         ],
         "validate": [
             "csf_tz.custom_api.check_validate_delivery_note",
@@ -169,8 +183,14 @@ doc_events = {
             "csf_tz.custom_api.validate_trade_in_serial_no_and_batch",
             "csf_tz.custom_api.validate_trade_in_sales_percentage",
         ],
-        "before_cancel": "csf_tz.custom_api.check_cancel_delivery_note",
+        "before_cancel": [
+            "csf_tz.vfd_support.sales_invoice.validate_cancel",
+            "csf_tz.custom_api.check_cancel_delivery_note",
+        ],
         "before_insert": "csf_tz.custom_api.batch_splitting",
+    },
+    "Customer": {
+        "validate": "csf_tz.vfd_support.utils.clean_and_update_tax_id_info",
     },
     "Delivery Note": {
         "on_submit": "csf_tz.custom_api.update_delivery_on_sales_invoice",
@@ -289,6 +309,13 @@ scheduler_events = {
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
+            "csf_tz.vfd_support.utils.posting_all_vfd_invoices",
+        ],
+        "*/10 * * * *": [
+            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_access_token",
+        ],
+        "0 */12 * * *": [
+            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_refresh_token",
         ],
         # Routine for every day 3:30am at night
         "30 3 * * *": [
