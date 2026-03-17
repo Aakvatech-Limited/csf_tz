@@ -202,7 +202,8 @@ frappe.ui.form.on("Sales Invoice", {
                     },
                     callback: function(r) {
                       if (r.message) {
-                        frappe.msgprint(__("Write-off Journal Entry created: {0}", [r.message]));
+                        const journal_entry_link = `<a href="/app/journal-entry/${encodeURIComponent(r.message)}" target="_blank">${frappe.utils.escape_html(r.message)}</a>`;
+                        frappe.msgprint(__("Write-off Journal Entry created: {0}", [journal_entry_link]));
                         frm.reload_doc();
                       }
                     }
