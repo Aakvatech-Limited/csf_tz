@@ -62,4 +62,22 @@ def get_data():
 			"icon": "octicon octicon-bookmark",
 			"type": "module",
 		},
+		{
+			"module_name": "VFD Providers",
+			"category": "Modules",
+			"label": _("VFD Providers"),
+			"color": "green",
+			"icon": "octicon octicon-bookmark",
+			"type": "module",
+			"description": "VFD provider setup, posting logs, and provider-specific settings.",
+		},
+		{
+			"module_name": "VFD Settings",
+			"category": "Modules",
+			"label": _("VFD Settings"),
+			"color": "green",
+			"icon": "octicon octicon-bookmark",
+			"type": "module",
+			"description": "Company-level VFD provider mapping and controls.",
+		},
 	]

@@ -38,9 +38,16 @@ def set_callback_token(doc, method):
     if not doc.abbr:
         doc.abbr = frappe.get_value("Company", doc.company, "abbr") or ""
     doc.bank_reference = reference.replace("-", "").replace("FEE" + doc.abbr, "")
-    if method == "invoice_submission":
-        doc.save()
-        frappe.db.commit()
+    frappe.db.set_value(
+        doc.doctype,
+        doc.name,
+        {
+            "callback_token": doc.callback_token,
+            "bank_reference": doc.bank_reference,
+            "abbr": doc.abbr,
+        },
+        update_modified=False,
+    )
 
 
 def get_nmb_token(company):
@@ -505,4 +512,3 @@ def url_fix(url: str, charset: str = "utf-8") -> str:
     qs = quote(url.query, safe=":&%=+$!*'(),")
     anchor = quote(url.fragment, safe=":&%=+$!*'(),")
     return urlunparse((url.scheme, url.netloc, path, qs, "", anchor))
-

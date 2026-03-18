@@ -7,22 +7,20 @@ frappe.ui.form.on("Purchase Order", {
     refresh: (frm) => {
         frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
             if (limit_uom_as_item_uom == 1) {
-                frm.set_query("uom", "items", function (frm, cdt, cdn) {
-                    let row = locals[cdt][cdn];
-                    return {
-                        query:
-                            "erpnext.accounts.doctype.pricing_rule.pricing_rule.get_item_uoms",
-                        filters: {
-                            value: row.item_code,
-                            apply_on: "Item Code",
-                        },
-                    };
-                });
+            frm.set_query("uom", "items", function (frm, cdt, cdn) {
+                let row = locals[cdt][cdn];
+                return {
+                    query:
+                        "erpnext.accounts.doctype.pricing_rule.pricing_rule.get_item_uoms",
+                    filters: {
+                        value: row.item_code,
+                        apply_on: "Item Code",
+                    },
+                };
+            });
             }
         });
     },
-    // Budget check for Purchase Order is now handled server-side via doc_events hooks
-    // See apps/csf_tz/csf_tz/hooks.py and apps/csf_tz/csf_tz/budget_check.py
     supplier: function (frm) {
         setTimeout(function () {
             if (!frm.doc.tax_category) {
@@ -57,20 +55,16 @@ frappe.ui.form.on("Purchase Order Item", {
     item_code: async function (frm, cdt, cdn) {
         var item = locals[cdt][cdn];
         var price_list = await get_price_list(frm, item.item_code, item.warehouse);
-        if (price_list !== undefined && price_list !== null) {
-            frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
-            frappe.model.set_value(cdt, cdn, "rate", price_list);
-            frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
-        }
+        frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
+        frappe.model.set_value(cdt, cdn, "rate", price_list);
+        frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
     },
     warehouse: async function (frm, cdt, cdn) {
         var item = locals[cdt][cdn];
         var price_list = await get_price_list(frm, item.item_code, item.warehouse);
-        if (price_list !== undefined && price_list !== null) {
-            frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
-            frappe.model.set_value(cdt, cdn, "rate", price_list);
-            frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
-        }
+        frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
+        frappe.model.set_value(cdt, cdn, "rate", price_list);
+        frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
     },
 })
 

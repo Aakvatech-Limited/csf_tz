@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Employee-residential_status",
+    "dt": "Employee",
+    "label": "Residential Status",
+    "fieldname": "residential_status",
+    "insert_after": "employment_type",
+    "fieldtype": "Select",
+    "options": "\nResident\nNon Resident",
+    "translatable": 1,
+    "doctype": "Custom Field"
+  },
+  {
+    "name": "Employee-employee_location",
+    "dt": "Employee",
+    "label": "Employee Location",
+    "fieldname": "employee_location",
+    "insert_after": "branch",
+    "fieldtype": "Data",
+    "translatable": 1,
+    "doctype": "Custom Field"
+  }
+]

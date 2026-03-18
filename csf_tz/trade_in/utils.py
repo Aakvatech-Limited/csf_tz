@@ -12,7 +12,6 @@ def add_trade_in_module():
             'app_name': 'csf_tz',
         })
         module.insert()
-        frappe.db.commit()  # Commit the transaction
         print("Trade In Module created successfully.")
     else:
         print("Trade In Module already exists.")
@@ -43,7 +42,6 @@ def add_trade_in_item():
                 'is_stock_item': 0,
             })
             item.insert()
-            frappe.db.commit()
             print("Trade In item created successfully.")
         else:
             # If the item exists, update its values and enable it
@@ -54,7 +52,6 @@ def add_trade_in_item():
             item_doc.is_stock_item = 0  # Set stock item status
             
             item_doc.save()  # Save the updated item
-            frappe.db.commit()
             print("Trade In item already exists. Updated and enabled successfully.")
     except Exception as e:
         frappe.log_error(message=frappe.get_traceback(), title="Error in Trade-In Item Creation Script")
@@ -91,7 +88,6 @@ def add_trade_in_control_account():
                 'parent_account': direct_expenses_account,  # Check with abbreviation
             })
             stock_expenses_doc.insert(ignore_permissions=True)
-            frappe.db.commit()
             print(f"Parent account 'Stock Expenses' created successfully.")
         except frappe.DuplicateEntryError:
             print(f"'Stock Expenses - {company_abbr}' already exists (avoiding duplicate creation).")
@@ -110,7 +106,6 @@ def add_trade_in_control_account():
                 'disabled': 0,
             })
             trade_in_control_doc.insert(ignore_permissions=True)
-            frappe.db.commit()
             print(f"Trade In Control Account 'Trade In Control' created successfully.")
         except frappe.DuplicateEntryError:
             print(f"'Trade In Control - {company_abbr}' already exists (avoiding duplicate creation).")
@@ -175,5 +170,4 @@ def set_negative_rates_for_items():
     except Exception as e:
         frappe.log_error(message=str(e), title="Error Setting Allow Negative Rates for Items")
         print(f"An error occurred: {e}")
-
 

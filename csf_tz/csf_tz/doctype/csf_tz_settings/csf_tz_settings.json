@@ -33,12 +33,12 @@
   "sle_gle_reposting_start_date",
   "column_break_10",
   "start_sle_gle_reporting",
-  "budget_check_settings_section",
-  "enable_budget_check_button_for_journal_entry",
-  "enable_budget_check_button_for_material_request",
-  "column_break_budget_check",
-  "enable_budget_check_button_for_purchase_order",
-  "enable_budget_check_button_for_purchase_invoice",
+  "budget_settings_section",
+  "check_budget_in_po",
+  "check_budget_in_pi",
+  "column_break_wdzp",
+  "check_budget_in_mr",
+  "check_budget_in_je",
   "trade_in_settings_section",
   "enable_trade_in",
   "sales_invoice_qty_settings_section",
@@ -64,7 +64,12 @@
   "tz_regions_section",
   "populate_tz_regions",
   "column_break_tz_regions",
-  "tz_regions_populated"
+  "tz_regions_populated",
+  "vehicle_sync_settings_section",
+  "enable_sync",
+  "batch_size",
+  "column_break_gdub",
+  "sync_interval"
  ],
  "fields": [
   {
@@ -314,44 +319,6 @@
    "label": "Override Sales Invoice Qty"
   },
   {
-   "collapsible": 1,
-   "fieldname": "budget_check_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Budget Check Settings"
-  },
-  {
-   "default": "0",
-   "description": "Enable 'Check Budget' button in Journal Entry form when document is in draft status",
-   "fieldname": "enable_budget_check_button_for_journal_entry",
-   "fieldtype": "Check",
-   "label": "Enable Budget Check Button for Journal Entry"
-  },
-  {
-   "default": "0",
-   "description": "Enable 'Check Budget' button in Material Request form when document is in draft status",
-   "fieldname": "enable_budget_check_button_for_material_request",
-   "fieldtype": "Check",
-   "label": "Enable Budget Check Button for Material Request"
-  },
-  {
-   "fieldname": "column_break_budget_check",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "description": "Enable 'Check Budget' button in Purchase Order form when document is in draft status",
-   "fieldname": "enable_budget_check_button_for_purchase_order",
-   "fieldtype": "Check",
-   "label": "Enable Budget Check Button for Purchase Order"
-  },
-  {
-   "default": "0",
-   "description": "Enable 'Check Budget' button in Purchase Invoice form when document is in draft status",
-   "fieldname": "enable_budget_check_button_for_purchase_invoice",
-   "fieldtype": "Check",
-   "label": "Enable Budget Check Button for Purchase Invoice"
-  },
-  {
    "fieldname": "trade_in_settings_section",
    "fieldtype": "Section Break",
    "label": "Trade In Settings"
@@ -423,12 +390,81 @@
    "fieldname": "enable_write_off_jv_pe",
    "fieldtype": "Check",
    "label": "Enable Write Off Journal Entry Payment Entry"
+  },
+  {
+   "fieldname": "budget_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Budget Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Purchase Order",
+   "fieldname": "check_budget_in_po",
+   "fieldtype": "Check",
+   "label": "Check Budget in PO"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Purchase Invoice",
+   "fieldname": "check_budget_in_pi",
+   "fieldtype": "Check",
+   "label": "Check Budget in PI"
+  },
+  {
+   "fieldname": "column_break_wdzp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Material Request",
+   "fieldname": "check_budget_in_mr",
+   "fieldtype": "Check",
+   "label": "Check Budget in MR"
+  },
+  {
+   "default": "0",
+   "description": "Enable this feature to handle budget check before Submit Journal Entry",
+   "fieldname": "check_budget_in_je",
+   "fieldtype": "Check",
+   "label": "Check Budget in JE"
+  },
+  {
+   "fieldname": "vehicle_sync_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Sync Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable or disable the background sync process for traffic fine records.",
+   "fieldname": "enable_sync",
+   "fieldtype": "Check",
+   "label": "Enable Sync"
+  },
+  {
+   "depends_on": "eval:doc.enable_sync",
+   "description": "Maximum number of records to process in a single batch to manage API load.",
+   "fieldname": "batch_size",
+   "fieldtype": "Int",
+   "label": "Batch Size",
+   "mandatory_depends_on": "eval:doc.enable_sync"
+  },
+  {
+   "fieldname": "column_break_gdub",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_sync",
+   "description": "The minimum duration to wait before a record becomes eligible for the next synchronization attempt.",
+   "fieldname": "sync_interval",
+   "fieldtype": "Int",
+   "label": "Sync Interval (Minutes)",
+   "mandatory_depends_on": "eval:doc.enable_sync"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-25 10:00:00.000000",
+ "modified": "2026-02-27 19:27:06.051100",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
@@ -454,7 +490,7 @@
  ],
  "quick_entry": 1,
  "row_format": "Dynamic",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

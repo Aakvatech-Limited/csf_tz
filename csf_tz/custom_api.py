@@ -748,7 +748,6 @@ def delete_doc(doctype, docname):
             frappe.msgprint(_("{0} {1} is Canceled").format("Stock Entry", doc.name))
             doc.flags.ignore_permissions = True
             doc.delete()
-            frappe.db.commit()
             frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
         else:
             frappe.msgprint(
@@ -757,7 +756,6 @@ def delete_doc(doctype, docname):
     elif doc.docstatus == 0 or doc.docstatus == 2:
         doc.flags.ignore_permissions = True
         doc.delete()
-        frappe.db.commit()
         frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
 
 
@@ -1801,8 +1799,6 @@ def auto_close_dn():
     for dn in dn_list:
         frappe.db.set_value("Delivery Note", dn, "status", "Closed")
 
-        frappe.db.commit()
-
 
 def batch_splitting(doc, method):
     """Splitting of batches before insert of sales invoice
@@ -2431,7 +2427,7 @@ def linking_tax_template(doctype, default_tax_template, abbr):
     item_list = frappe.db.get_all("Item", filters=default_tax_template)
 
     for item in item_list:
-        item_doc = frappe.get_doc("Item", item.name, fields=["default_tax_template"])
+        item_doc = frappe.get_doc("Item", item.name)
         if item_doc.default_tax_template == f"Tanzania VAT 18% - {abbr}":
 
             item_doc.append(
@@ -2994,7 +2990,7 @@ def create_trade_in_stock_entry(doc, method):
     if not trade_in_control_account:
         frappe.throw(
             f"Trade-In Control Account not configured for {doc.company}. "
-            f"Please set it in the <a href='/app/company/{doc.company}'>Company settings</a>."
+            f"Please set it in the <a href='/desk/company/{doc.company}'>Company settings</a>."
         )
         return
 
@@ -3050,7 +3046,7 @@ def create_trade_in_stock_entry(doc, method):
 
             # Notify the user
             frappe.msgprint(
-                f"Stock Entry <a href='/app/stock-entry/{stock_entry.name}' target='_blank'>{stock_entry.name}</a> created successfully!"
+                f"Stock Entry <a href='/desk/stock-entry/{stock_entry.name}' target='_blank'>{stock_entry.name}</a> created successfully!"
             )
         except Exception as e:
             frappe.throw(f"Error during Stock Entry creation: {str(e)}")

@@ -7,9 +7,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_name",
   "item_code",
   "uom",
+  "basic_rate",
   "qty",
   "batch_no",
   "bom_no",
@@ -19,25 +19,25 @@
  ],
  "fields": [
   {
-   "fieldname": "item_name",
+   "fieldname": "item_code",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Item Name",
+   "label": "Item Code",
    "options": "Item"
   },
   {
-   "fetch_from": "item_name.item_code",
-   "fieldname": "item_code",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Item code"
-  },
-  {
-   "fetch_from": "item_name.stock_uom",
+   "fetch_from": "item_code.stock_uom",
+   "fetch_if_empty": 1,
    "fieldname": "uom",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "UOM"
+  },
+  {
+   "fieldname": "basic_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Basic Rate"
   },
   {
    "fieldname": "qty",
@@ -84,7 +84,7 @@
  "name": "Inter Company Stock Transfer Details",
  "owner": "Administrator",
  "permissions": [],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

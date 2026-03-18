@@ -10,13 +10,14 @@ app_icon = "octicon octicon-bookmark"
 app_color = "green"
 app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
-required_apps = ["frappe/erpnext", "frappe/hrms"]
+required_apps = ["frappe/erpnext"]
 
 
 # Override Document Class
 override_doctype_class = {
     "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
     "Additional Salary": "csf_tz.overrides.additional_salary.AdditionalSalary",
+    "Leave Encashment": "csf_tz.overrides.leave_encashment.LeaveEncashment",
 }
 
 # Includes in <head>
@@ -26,8 +27,8 @@ override_doctype_class = {
 # app_include_css = "/assets/csf_tz/css/csf_tz.css"
 # app_include_js = "/assets/csf_tz/js/csf_tz.js"
 app_include_js = "csf_tz.bundle.js"
-app_include_css = "/assets/csf_tz/css/theme.css"
-web_include_css = "/assets/csf_tz/css/theme.css"
+# app_include_css = "/assets/csf_tz/css/theme.css"
+# web_include_css = "/assets/csf_tz/css/theme.css"
 # include js, css files in header of web template
 # web_include_css = "/assets/csf_tz/css/csf_tz.css"
 # web_include_js = "/assets/csf_tz/js/csf_tz.js"
@@ -38,10 +39,18 @@ web_include_css = "/assets/csf_tz/css/theme.css"
 # include js in doctype views
 doctype_js = {
     "Payment Entry": "csf_tz/payment_entry.js",
-    "Sales Invoice": ["csf_tz/sales_invoice.js", "authotp/api/sales_invoice.js"],
+    "Sales Invoice": [
+        "csf_tz/sales_invoice.js",
+        "authotp/api/sales_invoice.js",
+        "vfd_support/sales_invoice.js",
+    ],
     "Sales Order": "csf_tz/sales_order.js",
     "Delivery Note": "csf_tz/delivery_note.js",
-    "Customer": ["csf_tz/customer.js", "authotp/api/customer.js"],
+    "Customer": [
+        "csf_tz/customer.js",
+        "authotp/api/customer.js",
+        "vfd_support/customer.js",
+    ],
     "Supplier": "csf_tz/supplier.js",
     "Stock Entry": "csf_tz/stock_entry.js",
     "Account": "csf_tz/account.js",
@@ -57,7 +66,11 @@ doctype_js = {
     "Student Applicant": "csf_tz/student_applicant.js",
     "Bank Reconciliation": "csf_tz/bank_reconciliation.js",
     "Program Enrollment": "csf_tz/program_enrollment.js",
-    "Payroll Entry": ["csf_tz/payroll_entry.js", "stanbic/payroll_entry.js"],
+    "Payroll Entry": [
+        "csf_tz/payroll_entry.js",
+        "stanbic/payroll_entry.js",
+        "kcb/payroll_entry.js",
+    ],
     "Salary Slip": "csf_tz/salary_slip.js",
     "Landed Cost Voucher": "csf_tz/landed_cost_voucher.js",
     "Additional Salary": "csf_tz/additional_salary.js",
@@ -66,9 +79,9 @@ doctype_js = {
     "Employee Advance": "csf_tz/employee_advance.js",
     "Employee": "csf_tz/employee_contact_qr.js",
     "Material Request": "csf_tz/material_request.js",
-    "Journal Entry": "csf_tz/journal_entry.js",
 }
 doctype_list_js = {
+    "Payment Entry": "csf_tz/payment_entry_list.js",
     "Custom Field": "csf_tz/custom_field.js",
     "Property Setter": "csf_tz/property_setter.js",
 }
@@ -108,6 +121,8 @@ after_install = [
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
     "csf_tz.patches.custom_fields.auth_otp_custom_fields.execute",
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
+    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
 ]
@@ -117,6 +132,8 @@ after_migrate = [
     "csf_tz.utils.create_property_setter.execute",
     "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
+    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
 ]
 
 # Desk Notifications
@@ -149,6 +166,7 @@ doc_events = {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",
             "csf_tz.authotp.api.sales_invoice.before_submit",
+            "csf_tz.vfd_support.sales_invoice.vfd_validation",
         ],
         "on_submit": [
             "csf_tz.custom_api.validate_net_rate",
@@ -156,6 +174,7 @@ doc_events = {
             "csf_tz.custom_api.check_submit_delivery_note",
             "csf_tz.custom_api.make_withholding_tax_gl_entries_for_sales",
             "csf_tz.custom_api.create_trade_in_stock_entry",
+            "csf_tz.vfd_support.utils.autogenerate_vfd",
         ],
         "validate": [
             "csf_tz.custom_api.check_validate_delivery_note",
@@ -164,8 +183,14 @@ doc_events = {
             "csf_tz.custom_api.validate_trade_in_serial_no_and_batch",
             "csf_tz.custom_api.validate_trade_in_sales_percentage",
         ],
-        "before_cancel": "csf_tz.custom_api.check_cancel_delivery_note",
+        "before_cancel": [
+            "csf_tz.vfd_support.sales_invoice.validate_cancel",
+            "csf_tz.custom_api.check_cancel_delivery_note",
+        ],
         "before_insert": "csf_tz.custom_api.batch_splitting",
+    },
+    "Customer": {
+        "validate": "csf_tz.vfd_support.utils.clean_and_update_tax_id_info",
     },
     "Delivery Note": {
         "on_submit": "csf_tz.custom_api.update_delivery_on_sales_invoice",
@@ -181,19 +206,18 @@ doc_events = {
             "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
         ],
         "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": [
-            "csf_tz.custom_api.target_warehouse_based_price_list",
-            "csf_tz.budget_check.validate_budget_on_draft",
+        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
+                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
         ],
     },
     "Material Request": {
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
     },
     "Journal Entry": {
-        "validate": "csf_tz.budget_check.validate_budget_on_draft",
+        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_journal_entry",
     },
     "Fees": {
         "before_insert": "csf_tz.custom_api.set_fee_abbr",
@@ -206,31 +230,6 @@ doc_events = {
         "refresh": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
         "reload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
         "before_submit": "csf_tz.csftz_hooks.program_enrollment.validate_submit_program_enrollment",
-    },
-    "*": {
-        "validate": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "onload": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_insert": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "after_insert": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_naming": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_change": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_update_after_submit": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "before_validate": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "before_save": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_update": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "before_submit": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "autoname": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_cancel": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_trash": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_submit": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
-        "on_update_after_submit": [
-            "csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"
-        ],
-        "on_change": ["csf_tz.csf_tz.doctype.visibility.visibility.run_visibility"],
     },
     "Stock Entry": {
         "validate": "csf_tz.custom_api.calculate_total_net_weight",
@@ -310,6 +309,13 @@ scheduler_events = {
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
+            "csf_tz.vfd_support.utils.posting_all_vfd_invoices",
+        ],
+        "*/10 * * * *": [
+            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_access_token",
+        ],
+        "0 */12 * * *": [
+            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_refresh_token",
         ],
         # Routine for every day 3:30am at night
         "30 3 * * *": [
@@ -322,7 +328,6 @@ scheduler_events = {
     },
     "daily": [
         "csf_tz.custom_api.create_delivery_note_for_all_pending_sales_invoice",
-        "csf_tz.csf_tz.doctype.visibility.visibility.trigger_daily_alerts",
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
         "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
@@ -353,9 +358,4 @@ jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
 # ------------------------------
 #
 override_whitelisted_methods = {
-    "frappe.desk.query_report.get_script": "csf_tz.csftz_hooks.query_report.get_script",
-    "erpnext.buying.doctype.purchase_order.purchase_order.update_status": "csf_tz.csftz_hooks.purchase_order.update_po_status",
-    "erpnext.buying.doctype.purchase_order.purchase_order.close_or_unclose_purchase_orders": "csf_tz.csftz_hooks.purchase_order.close_or_unclose_purchase_orders",
-    "erpnext.stock.doctype.material_request.material_request.update_status": "csf_tz.csftz_hooks.material_request.update_mr_status",
-    "erpnext.stock.get_item_details.get_item_details": "csf_tz.csftz_hooks.custom_get_item_details.custom_get_item_details",
 }

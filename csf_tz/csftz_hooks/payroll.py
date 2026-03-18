@@ -412,7 +412,7 @@ def get_amounts_summary(payroll_entry):
                 "parent": ("in", slip_names),
                 "salary_component": ("in", component_names),
             },
-            fields=["salary_component", "sum(amount) as total"],
+            fields=["salary_component", {"SUM": "amount", "as": "total"}],
             group_by="salary_component",
         )
         totals_map = {row.salary_component: flt(row.total) for row in component_totals}

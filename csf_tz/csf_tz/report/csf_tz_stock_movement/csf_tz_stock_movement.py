@@ -7,6 +7,8 @@ from frappe.query_builder.functions import CombineDatetime
 from frappe.utils import flt
 from erpnext.stock.utils import is_reposting_item_valuation_in_progress
 from itertools import groupby
+from operator import itemgetter
+import math
 
 
 def execute(filters=None):
@@ -142,67 +144,43 @@ def execute(filters=None):
 
 
 def prepare_data(data):
-    def get_group_key(entry):
-        return (
-            entry.get("company") or "",
-            entry.get("item_group") or "",
-            entry.get("item_code") or "",
-        )
+    sorted_data = sorted(data, key=itemgetter("item_code"))
 
-    sorted_data = sorted(data, key=get_group_key)
-
+    grouped_data = {
+        key: list(group)
+        for key, group in groupby(sorted_data, key=itemgetter("item_code"))
+    }
     result = []
-    for (company, item_group, item_code), group in groupby(
-        sorted_data, key=get_group_key
-    ):
-        grouped_entries = list(group)
+    for item_code, group in grouped_data.items():
         result.append(
             {
-                "date": grouped_entries[0]["date"],
-                "company": company,
+                "date": group[0]["date"],
                 "item_code": item_code,
-                "item_group": item_group,
-                "stock_uom": grouped_entries[0]["stock_uom"],
-                "opening_qty": sum(entry["opening_qty"] for entry in grouped_entries),
-                "opening_value": sum(
-                    entry["opening_value"] for entry in grouped_entries
-                ),
-                "purchase_qty": sum(entry["purchase_qty"] for entry in grouped_entries),
-                "purchase_value": sum(
-                    entry["purchase_value"] for entry in grouped_entries
-                ),
-                "sold_qty": sum(entry["sold_qty"] for entry in grouped_entries),
-                "sold_value": sum(entry["sold_value"] for entry in grouped_entries),
-                "adjustment_qty": sum(
-                    entry["adjustment_qty"] for entry in grouped_entries
-                ),
-                "adjustment_value": sum(
-                    entry["adjustment_value"] for entry in grouped_entries
-                ),
-                "consumed_qty": sum(entry["consumed_qty"] for entry in grouped_entries),
-                "consumed_value": sum(
-                    entry["consumed_value"] for entry in grouped_entries
-                ),
-                "produced_qty": sum(entry["produced_qty"] for entry in grouped_entries),
-                "produced_value": sum(
-                    entry["produced_value"] for entry in grouped_entries
-                ),
-                "received_qty": sum(entry["received_qty"] for entry in grouped_entries),
-                "received_value": sum(
-                    entry["received_value"] for entry in grouped_entries
-                ),
-                "issued_qty": sum(entry["issued_qty"] for entry in grouped_entries),
-                "issued_value": sum(entry["issued_value"] for entry in grouped_entries),
+                "stock_uom": group[0]["stock_uom"],
+                "opening_qty": sum(entry["opening_qty"] for entry in group),
+                "opening_value": sum(entry["opening_value"] for entry in group),
+                "purchase_qty": sum(entry["purchase_qty"] for entry in group),
+                "purchase_value": sum(entry["purchase_value"] for entry in group),
+                "sold_qty": sum(entry["sold_qty"] for entry in group),
+                "sold_value": sum(entry["sold_value"] for entry in group),
+                "adjustment_qty": sum(entry["adjustment_qty"] for entry in group),
+                "adjustment_value": sum(entry["adjustment_value"] for entry in group),
+                "consumed_qty": sum(entry["consumed_qty"] for entry in group),
+                "consumed_value": sum(entry["consumed_value"] for entry in group),
+                "produced_qty": sum(entry["produced_qty"] for entry in group),
+                "produced_value": sum(entry["produced_value"] for entry in group),
+                "received_qty": sum(entry["received_qty"] for entry in group),
+                "received_value": sum(entry["received_value"] for entry in group),
+                "issued_qty": sum(entry["issued_qty"] for entry in group),
+                "issued_value": sum(entry["issued_value"] for entry in group),
                 "reconciliation_qty": sum(
-                    entry["reconciliation_qty"] for entry in grouped_entries
+                    entry["reconciliation_qty"] for entry in group
                 ),
                 "reconciliation_value": sum(
-                    entry["reconciliation_value"] for entry in grouped_entries
+                    entry["reconciliation_value"] for entry in group
                 ),
-                "closing_qty": sum(entry["closing_qty"] for entry in grouped_entries),
-                "closing_value": sum(
-                    entry["closing_value"] for entry in grouped_entries
-                ),
+                "closing_qty": sum(entry["closing_qty"] for entry in group),
+                "closing_value": sum(entry["closing_value"] for entry in group),
             }
         )
     return result
@@ -217,25 +195,11 @@ def get_columns(filters):
             "width": 150,
         },
         {
-            "label": _("Company"),
-            "fieldname": "company",
-            "fieldtype": "Link",
-            "options": "Company",
-            "width": 120,
-        },
-        {
             "label": _("Item"),
             "fieldname": "item_code",
             "fieldtype": "Link",
             "options": "Item",
             "width": 100,
-        },
-        {
-            "label": _("Item Group"),
-            "fieldname": "item_group",
-            "fieldtype": "Link",
-            "options": "Item Group",
-            "width": 120,
         },
         {
             "label": _("Stock UOM"),
@@ -420,8 +384,6 @@ def get_stock_ledger_entries(filters, items):
         .orderby(CombineDatetime(sle.posting_date, sle.posting_time))
         .orderby(sle.creation)
     )
-    if filters.company:
-        query = query.where(sle.company == filters.get("company"))
     if filters.warehouse:
         query = query.where(sle.warehouse == filters.get("warehouse"))
     if filters.item_code:

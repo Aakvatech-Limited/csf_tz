@@ -1,0 +1,270 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:company",
+ "creation": "2023-01-28 23:00:15.714571",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "serial_id",
+  "serial_code",
+  "account_id",
+  "company_name",
+  "alias_name",
+  "env",
+  "tin",
+  "vrn",
+  "serial",
+  "uin",
+  "mobile",
+  "address",
+  "city",
+  "region",
+  "street",
+  "taxoffice",
+  "column_break_mtey",
+  "sandbox",
+  "vat_enabled",
+  "enable_vfd_preview",
+  "vfd_start_date",
+  "gc",
+  "dev_type",
+  "gov_reg_sdate",
+  "gov_reg_edate",
+  "vfdplus_api_key",
+  "token_ackmsg",
+  "section_break_dhfv",
+  "response"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "serial_id",
+   "fieldtype": "Data",
+   "label": "Serial ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial_code",
+   "fieldtype": "Data",
+   "label": "Serial Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "account_id",
+   "fieldtype": "Data",
+   "label": "Account ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "alias_name",
+   "fieldtype": "Data",
+   "label": "Alias Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "env",
+   "fieldtype": "Data",
+   "label": "Env",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tin",
+   "fieldtype": "Data",
+   "label": "TIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vrn",
+   "fieldtype": "Data",
+   "label": "VRN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial",
+   "fieldtype": "Data",
+   "label": "Serial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uin",
+   "fieldtype": "Data",
+   "label": "UIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Data",
+   "label": "Mobile",
+   "read_only": 1
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Data",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "read_only": 1
+  },
+  {
+   "fieldname": "region",
+   "fieldtype": "Data",
+   "label": "Region",
+   "read_only": 1
+  },
+  {
+   "fieldname": "street",
+   "fieldtype": "Data",
+   "label": "Street",
+   "read_only": 1
+  },
+  {
+   "fieldname": "taxoffice",
+   "fieldtype": "Data",
+   "label": "TaxOffice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "token_ackmsg",
+   "fieldtype": "Data",
+   "label": "Token AckMsg",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.gov_reg_edate",
+   "fieldname": "vat_enabled",
+   "fieldtype": "Check",
+   "label": "VAT Enabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "gc",
+   "fieldtype": "Int",
+   "label": "GC",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dev_type",
+   "fieldtype": "Data",
+   "label": "Dev Type",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.gov_reg_edate",
+   "fieldname": "gov_reg_sdate",
+   "fieldtype": "Date",
+   "label": "Gov Reg SDate"
+  },
+  {
+   "fieldname": "gov_reg_edate",
+   "fieldtype": "Date",
+   "label": "Gov Reg EDate",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sandbox",
+   "fieldtype": "Check",
+   "label": "Sandbox"
+  },
+  {
+   "fieldname": "vfdplus_api_key",
+   "fieldtype": "Data",
+   "label": "VFDPLUS API KEY",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "Code",
+   "label": "Response",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mtey",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "if ticked, VFD data will be preview before sending to TRA",
+   "fieldname": "enable_vfd_preview",
+   "fieldtype": "Check",
+   "label": "Enable VFD Preview",
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_dhfv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "A date to start sending invoices to Tax Authority",
+   "fieldname": "vfd_start_date",
+   "fieldtype": "Date",
+   "label": "VFD Start Date",
+   "reqd": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-02-27 16:56:50.760836",
+ "modified_by": "Administrator",
+ "module": "VFD Providers",
+ "name": "VFDPlus Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

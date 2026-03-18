@@ -1,27 +1,19 @@
 import frappe
-from frappe import _
 from frappe.query_builder import DocType
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import add_days, nowdate, create_batch
-from erpnext.stock.doctype.material_request.material_request import update_status
 
 
 cp = DocType("Company")
 mr = DocType("Material Request")
 
-@frappe.whitelist()
-def update_mr_status(name, status):
-    if status != "Submitted":
-        update_status(name, status)
-        return
-
-    csf_tz_settings = frappe.get_doc("CSF TZ Settings")
-    if csf_tz_settings.allow_reopen_of_material_request_based_on_role == 1:
-        roles = frappe.get_roles()
-        if csf_tz_settings.role_to_reopen_material_request and csf_tz_settings.role_to_reopen_material_request in roles:
-            update_status(name, status)
-        else:
-            frappe.throw(_(f"You are not allowed to reopen this Material Request: <b>{name}</b>"))
+def _auto_close_material_request_batch(material_request_names):
+    for name in material_request_names:
+        try:
+            material_request_doc = frappe.get_doc("Material Request", name)
+            material_request_doc.update_status("Stopped")
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Auto Close Material Request Error: {name}")
 
 
 
@@ -48,13 +40,13 @@ def auto_close_material_request():
             return
 
         for records in create_batch(material_requests, 100):
-            for record in records:
-                try:
-                    material_request_doc = frappe.get_doc("Material Request", record.name)
-                    material_request_doc.update_status("Stopped")
-                
-                except Exception as e:
-                    frappe.log_error(frappe.get_traceback(), f"Auto Close Material Request Error: {record.name}")
+            enqueue(
+                _auto_close_material_request_batch,
+                queue="long",
+                timeout=1200,
+                job_name=f"auto_close_material_request_{row.name}_{records[0].name}",
+                kwargs={"material_request_names": [record.name for record in records]},
+            )
 
     company_details = (
         frappe.qb.from_(cp)

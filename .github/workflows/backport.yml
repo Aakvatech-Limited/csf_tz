@@ -1,0 +1,101 @@
+name: Backport
+
+on:
+  pull_request_target:
+    types: [closed, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide whether to run backport
+        id: gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const action = context.payload.action;
+
+            // Fetch PR via API to reliably know merged status + labels
+            const pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const merged = !!pr.data.merged;
+            const labels = (pr.data.labels || []).map(l => l.name);
+            const hasBackportLabel = labels.some(name => /^backport-to-.+/.test(name));
+            const shouldAutoMerge = labels.includes('backport-auto-merge');
+
+            // Determine if we should run
+            let shouldRun = false;
+
+            if (action === 'closed') {
+              // Run on close only if it was merged and already has a backport-to-* label
+              shouldRun = merged && hasBackportLabel;
+            } else if (action === 'labeled') {
+              // Only run when the added label matches backport-to-*
+              const added = context.payload.label?.name || '';
+              const addedMatches = /^backport-to-.+/.test(added);
+
+              // Also require PR is merged (label-after-merge flow)
+              shouldRun = addedMatches && merged;
+            }
+
+            core.info(`Event action: ${action}`);
+            core.info(`PR merged: ${merged}`);
+            core.info(`Labels: ${labels.join(', ')}`);
+            core.info(`Should run backport: ${shouldRun}`);
+            core.info(`Auto-merge requested: ${shouldAutoMerge}`);
+
+            core.setOutput('run', shouldRun ? 'true' : 'false');
+            core.setOutput('auto_merge', shouldAutoMerge ? 'true' : 'false');
+
+      - name: Create backport PR(s)
+        if: steps.gate.outputs.run == 'true'
+        uses: korthout/backport-action@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Labels like: backport-to-version-15, backport-to-version-16, etc.
+          label_pattern: "^backport-to-(.+)$"
+          merge_commits: "skip"
+          pull_title: "[Backport ${target_branch}] ${pull_title}"
+          pull_description: |
+            Backport of #${pull_number} to `${target_branch}`.
+
+            ---
+
+            ${pull_description}
+          copy_requested_reviewers: true
+          copy_assignees: true
+          copy_labels_pattern: "^(?!backport-to-)"
+          auto_merge_enabled: ${{ steps.gate.outputs.auto_merge == 'true' }}
+
+      - name: Report backport status
+        if: failure() && steps.gate.outputs.run == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: [
+                '⚠️ **Backport failed!**',
+                '',
+                'Automatic backport could not be completed (often due to conflicts or missing target branch).',
+                '',
+                'Manual backport example:',
+                '',
+                '```bash',
+                'git checkout <target-branch>',
+                `git cherry-pick -x ${context.payload.pull_request.merge_commit_sha}`,
+                '```',
+              ].join('\n')
+            });

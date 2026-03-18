@@ -3,8 +3,6 @@ frappe.require([
 ]);
 
 frappe.ui.form.on("Purchase Invoice", {
-    // Budget check for Purchase Invoice is now handled server-side via doc_events hooks
-    // See apps/csf_tz/csf_tz/hooks.py and apps/csf_tz/csf_tz/budget_check.py
     supplier: function(frm) {
         if (!frm.doc.supplier) {
             return

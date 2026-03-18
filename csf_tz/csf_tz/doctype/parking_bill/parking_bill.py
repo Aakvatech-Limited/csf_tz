@@ -37,8 +37,6 @@ def check_bills_all_vehicles():
                     
             except Exception as e:
                 frappe.log_error(frappe.get_traceback(), str(e))
-    
-    frappe.db.commit()
 
 
 def get_bills(number_plate):
