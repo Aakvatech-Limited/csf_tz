@@ -50,6 +50,12 @@ This repository contains the customizations and configurations necessary to adap
 * **Scheduled Reports** \- Automate regular reports with Scheduled Auto Email Report for timely decision-making.  
 * **Operational Logs** \- Maintain comprehensive logs of critical business activities with QR Code Log and CSF API Response Log.
 
+## **Workspace Preview**
+
+The Tanzania workspace brings together VFD setup, tax configuration, payroll setup, and statutory reports in a single dashboard for daily operations and compliance work.
+
+![Tanzania Workspace](csf_tz/public/images/tanzania-workspace.png)
+
 ## **Installation**
 
 To install this application, please follow these steps:
@@ -99,4 +105,3 @@ This project is licensed under the GNU General Public License (GPL). See the lic
 ---
 
 Thank you for choosing Country Specific Functionality Tanzania. We hope this solution enhances your business operations and helps you stay compliant with local regulations\!
-
