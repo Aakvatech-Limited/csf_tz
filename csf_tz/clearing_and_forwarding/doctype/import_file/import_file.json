@@ -92,7 +92,7 @@
   }
  ],
  "search_fields": "supplier_name, bl_number, supplier_invoice_no",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "track_changes": 1
 }

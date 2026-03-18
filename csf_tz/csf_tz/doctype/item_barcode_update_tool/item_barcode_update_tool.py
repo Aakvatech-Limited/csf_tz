@@ -34,7 +34,6 @@ def update_barcodes(doc):
             },
         )
     item.save(ignore_permissions=True)
-    frappe.db.commit()
     frappe.msgprint(
         _("Barcodes successfully updated for Item: " + item.item_name), alert=True
     )

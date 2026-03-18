@@ -3327,7 +3327,7 @@
   "read_only_onload": 0,
   "search_fields": "booking_number",
   "show_name_in_global_search": 0,
-  "sort_field": "modified",
+  "sort_field": "creation",
   "sort_order": "DESC",
   "track_changes": 1,
   "track_seen": 0,

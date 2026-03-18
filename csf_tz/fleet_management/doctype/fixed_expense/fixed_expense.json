@@ -149,7 +149,7 @@
   "read_only_onload": 0,
   "search_fields": "description",
   "show_name_in_global_search": 0,
-  "sort_field": "modified",
+  "sort_field": "creation",
   "sort_order": "DESC",
   "title_field": "description",
   "track_changes": 1,

@@ -103,7 +103,7 @@
   }
  ],
  "search_fields": "item_code, default_warehouse",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "title_field": "item_name",
  "track_changes": 1

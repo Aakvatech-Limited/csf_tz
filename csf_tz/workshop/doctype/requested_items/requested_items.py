@@ -23,7 +23,6 @@ class RequestedItems(Document):
 			self.db_set('approval_status', 'Waiting Approval')
 		elif not waiting_approval and self.approval_status != "Processed":
 			self.db_set('approval_status', 'Processed')
-		frappe.db.commit()
 		
 		
 	def set_issue_status(self):
@@ -50,17 +49,14 @@ class RequestedItems(Document):
 			
 			if not issued[0].issued_qty:
 				self.db_set('items_issue_status', 'To Issue')
-				frappe.db.commit()
 			elif issued[0].issued_qty and issued[0].issued_qty < row.quantity and self.items_issue_status != 'To Issue': #If partially issued
 				fully_issued = False
 				issued_qty = issued_qty + issued[0].issued_qty
 				self.db_set('items_issue_status', 'To Issue')
-				frappe.db.commit()
 		
 		#If fully issued	
 		if fully_issued and issued_qty > 0 and self.items_issue_status not in ['Waiting Approval', 'Fully Issued']:
 			self.db_set('items_issue_status', 'Fully Issued')
-			frappe.db.commit()
 			
 		
 	def get_all_children(self, parenttype=None):

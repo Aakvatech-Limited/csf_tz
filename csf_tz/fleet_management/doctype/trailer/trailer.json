@@ -296,7 +296,7 @@
   "read_only_onload": 0,
   "search_fields": "number_plate, chassis_number, make",
   "show_name_in_global_search": 1,
-  "sort_field": "modified",
+  "sort_field": "creation",
   "sort_order": "DESC",
   "title_field": "number_plate",
   "track_changes": 1,

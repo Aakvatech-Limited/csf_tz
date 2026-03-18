@@ -1058,7 +1058,7 @@
  "read_only_onload": 0, 
  "search_fields": "item_code, report_date, reference_name", 
  "show_name_in_global_search": 1, 
- "sort_field": "modified", 
+ "sort_field": "creation", 
  "sort_order": "ASC", 
  "track_changes": 0, 
  "track_seen": 0

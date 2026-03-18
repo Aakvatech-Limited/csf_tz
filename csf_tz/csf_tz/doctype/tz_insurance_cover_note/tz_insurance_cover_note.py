@@ -97,8 +97,6 @@ def update_covernote_docs():
 		
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), str(e))
-	
-	frappe.db.commit()
 	return True
 
 def get_covernote_details(regnumber):
@@ -126,5 +124,4 @@ def get_covernote_details(regnumber):
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), str(e))
-
 
