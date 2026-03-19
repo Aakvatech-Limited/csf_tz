@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-13 11:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "company",
+  "salary_structure",
+  "calculate_based_on",
+  "net_pay",
+  "gross_pay",
+  "base",
+  "section_break_statutory",
+  "nssf",
+  "nssf_amount",
+  "column_break_wcf",
+  "wcf",
+  "wcf_amount",
+  "column_break_sdl",
+  "sdl",
+  "sdl_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "salary_structure",
+   "fieldtype": "Link",
+   "label": "Salary Structure",
+   "options": "Salary Structure",
+   "read_only": 1
+  },
+  {
+   "fieldname": "calculate_based_on",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Calculate based on",
+   "options": "Net Pay\nGross Pay",
+   "reqd": 1
+  },
+  {
+   "fieldname": "net_pay",
+   "fieldtype": "Currency",
+   "label": "Net Pay"
+  },
+  {
+   "fieldname": "gross_pay",
+   "fieldtype": "Currency",
+   "label": "Gross Pay"
+  },
+  {
+   "fieldname": "base",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Base",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_statutory",
+   "fieldtype": "Section Break",
+   "label": "Statutory Components"
+  },
+  {
+   "default": "0",
+   "fieldname": "nssf",
+   "fieldtype": "Check",
+   "label": "NSSF"
+  },
+  {
+   "fieldname": "nssf_amount",
+   "fieldtype": "Currency",
+   "label": "NSSF Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wcf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "wcf",
+   "fieldtype": "Check",
+   "label": "WCF"
+  },
+  {
+   "fieldname": "wcf_amount",
+   "fieldtype": "Currency",
+   "label": "WCF Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_sdl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "sdl",
+   "fieldtype": "Check",
+   "label": "SDL"
+  },
+  {
+   "fieldname": "sdl_amount",
+   "fieldtype": "Currency",
+   "label": "SDL Amount",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-13 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "CSF TZ",
+ "name": "Salary Calculator",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
