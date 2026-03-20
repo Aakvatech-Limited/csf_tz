@@ -3,11 +3,15 @@ frappe.ui.form.on("Salary Calculator", {
 		setFieldState(frm);
 	},
 
-	employee(frm) {
+	results_add(frm) {
 		triggerCalculation(frm);
 	},
 
-	company(frm) {
+	results_remove(frm) {
+		triggerCalculation(frm);
+	},
+
+	salary_structure(frm) {
 		triggerCalculation(frm);
 	},
 
@@ -28,15 +32,7 @@ frappe.ui.form.on("Salary Calculator", {
 		}
 	},
 
-	nssf(frm) {
-		triggerCalculation(frm);
-	},
-
-	wcf(frm) {
-		triggerCalculation(frm);
-	},
-
-	sdl(frm) {
+	allowance(frm) {
 		triggerCalculation(frm);
 	},
 });
@@ -52,11 +48,7 @@ function setFieldState(frm) {
 }
 
 function triggerCalculation(frm) {
-	if (frm.__applying_salary_calculation) {
-		return;
-	}
-
-	if (!frm.doc.employee || !frm.doc.calculate_based_on) {
+	if (frm.__applying_salary_calculation || !frm.doc.salary_structure || !frm.doc.calculate_based_on) {
 		return;
 	}
 
@@ -70,14 +62,7 @@ function triggerCalculation(frm) {
 	frappe.call({
 		method: "csf_tz.csf_tz.doctype.salary_calculator.salary_calculator.calculate_salary",
 		args: {
-			employee: frm.doc.employee,
-			company: frm.doc.company,
-			calculate_based_on: frm.doc.calculate_based_on,
-			net_pay: frm.doc.net_pay,
-			gross_pay: frm.doc.gross_pay,
-			nssf: frm.doc.nssf,
-			wcf: frm.doc.wcf,
-			sdl: frm.doc.sdl,
+			doc: frm.doc,
 		},
 		callback: async (r) => {
 			if (!r.message) {
@@ -86,17 +71,28 @@ function triggerCalculation(frm) {
 
 			frm.__applying_salary_calculation = true;
 			await frm.set_value({
-				company: r.message.company,
-				salary_structure: r.message.salary_structure,
 				base: r.message.base,
-				net_pay: r.message.net_pay,
 				gross_pay: r.message.gross_pay,
-				nssf_amount: r.message.nssf_amount,
-				wcf_amount: r.message.wcf_amount,
-				sdl_amount: r.message.sdl_amount,
+				net_pay: r.message.net_pay,
+				total_deductions: r.message.total_deductions,
+				calculation_summary: r.message.calculation_summary,
 			});
+
+			frm.clear_table("results");
+			for (const row of r.message.results || []) {
+				const child = frm.add_child("results");
+				child.salary_component = row.salary_component;
+				child.amount = row.amount;
+			}
+
+			frm.refresh_field("results");
 			frm.__applying_salary_calculation = false;
 		},
 	});
 }
 
+frappe.ui.form.on("Salary Calculator Result", {
+	salary_component(frm) {
+		triggerCalculation(frm);
+	},
+});

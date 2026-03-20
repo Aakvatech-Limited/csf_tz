@@ -3,210 +3,142 @@
 
 from __future__ import annotations
 
+import json
 import re
-from copy import deepcopy
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate
-from hrms.payroll.doctype.salary_structure.salary_structure import make_salary_slip
+from frappe.utils import cint, cstr, flt
 
 
-STATUTORY_COMPONENTS = {
-	"nssf": "NSSF",
-	"wcf": "WCF",
-	"sdl": "SDL",
+DEFAULT_AMOUNT_PRECISION = 2
+SAFE_EVAL_GLOBALS = {
+	"int": int,
+	"float": float,
+	"round": round,
+	"abs": abs,
+	"min": min,
+	"max": max,
+	"flt": flt,
 }
-FORMULA_FLAG_PREFIXES = ("custom_", "deduct_", "include_")
-AMOUNT_PRECISION = 2
+BOOLEAN_PREFIXES = ("custom_deduct_", "deduct_", "include_")
+NUMERIC_PREFIX = "custom_"
 
 
 class SalaryCalculator(Document):
 	def validate(self):
-		self.company = self.company or frappe.db.get_value("Employee", self.employee, "company")
 		self.run_calculation()
 
 	def run_calculation(self):
-		if not self.employee or not self.calculate_based_on:
-			self.reset_results()
-			return
-
-		target_amount = flt(self.net_pay if self.calculate_based_on == "Net Pay" else self.gross_pay)
-		if target_amount <= 0:
-			self.reset_results()
-			return
-
-		assignment = get_salary_structure_assignment(self.employee, self.company, nowdate())
-		self.company = assignment.company
-		self.salary_structure = assignment.salary_structure
-
-		base, slip = solve_base_for_target(
-			assignment=assignment,
-			target_field="net_pay" if self.calculate_based_on == "Net Pay" else "gross_pay",
-			target_amount=target_amount,
-			include_map=self.get_component_toggle_map(),
-		)
-
-		self.base = base
-		self.net_pay = flt(slip.net_pay, AMOUNT_PRECISION)
-		self.gross_pay = flt(slip.gross_pay, AMOUNT_PRECISION)
-		self.nssf_amount = get_component_amount(slip, STATUTORY_COMPONENTS["nssf"], enabled=self.nssf)
-		self.wcf_amount = get_component_amount(slip, STATUTORY_COMPONENTS["wcf"], enabled=self.wcf)
-		self.sdl_amount = get_component_amount(slip, STATUTORY_COMPONENTS["sdl"], enabled=self.sdl)
-
-	def get_component_toggle_map(self) -> dict[str, bool]:
-		return {key: bool(getattr(self, key)) for key in STATUTORY_COMPONENTS}
-
-	def reset_results(self):
-		self.base = 0
-		self.salary_structure = None
-		self.nssf_amount = 0
-		self.wcf_amount = 0
-		self.sdl_amount = 0
+		result = calculate_salary(doc=self.as_dict())
+		apply_result(self, result)
 
 
 @frappe.whitelist()
-def calculate_salary(
-	employee: str,
-	company: str | None = None,
-	calculate_based_on: str | None = None,
-	net_pay: float | None = None,
-	gross_pay: float | None = None,
-	nssf: int = 0,
-	wcf: int = 0,
-	sdl: int = 0,
-):
-	if not employee or not calculate_based_on:
-		return {}
+def calculate_salary(doc=None, **kwargs):
+	data = get_input_data(doc, kwargs)
 
-	doc = frappe._dict(
-		employee=employee,
-		company=company,
-		calculate_based_on=calculate_based_on,
-		net_pay=flt(net_pay),
-		gross_pay=flt(gross_pay),
-		nssf=nssf,
-		wcf=wcf,
-		sdl=sdl,
-	)
+	if not data.salary_structure or not data.calculate_based_on:
+		return empty_result()
 
-	assignment = get_salary_structure_assignment(doc.employee, doc.company, nowdate())
-	target_field = "net_pay" if doc.calculate_based_on == "Net Pay" else "gross_pay"
-	target_amount = flt(doc.get(target_field))
-
+	structure = frappe.get_cached_doc("Salary Structure", data.salary_structure)
+	precision = get_amount_precision(structure)
+	selected_components = get_selected_components(data)
+	validate_selected_components(structure, selected_components)
+	target_field = "gross_pay" if data.calculate_based_on == "Gross Pay" else "net_pay"
+	target_amount = flt(data.get(target_field), precision)
 	if target_amount <= 0:
-		return {
-			"company": assignment.company,
-			"salary_structure": assignment.salary_structure,
-			"base": 0,
-			"net_pay": 0,
-			"gross_pay": 0,
-			"nssf_amount": 0,
-			"wcf_amount": 0,
-			"sdl_amount": 0,
-		}
+		return empty_result(precision)
 
-	base, slip = solve_base_for_target(
-		assignment=assignment,
-		target_field=target_field,
-		target_amount=target_amount,
-		include_map={
-			"nssf": bool(nssf),
-			"wcf": bool(wcf),
-			"sdl": bool(sdl),
-		},
+	result = solve_base_for_target(
+		structure,
+		data.calculate_based_on,
+		target_amount,
+		precision,
+		selected_components,
+		data.allowance,
 	)
+	result["salary_structure"] = structure.name
+	return result
 
+
+def get_input_data(doc, kwargs):
+	if isinstance(doc, str):
+		doc = json.loads(doc)
+
+	data = frappe._dict(doc or {})
+	data.update(kwargs)
+
+	data.salary_structure = cstr(data.get("salary_structure"))
+	data.calculate_based_on = cstr(data.get("calculate_based_on"))
+	data.gross_pay = flt(data.get("gross_pay"))
+	data.net_pay = flt(data.get("net_pay"))
+	data.allowance = flt(data.get("allowance"))
+	data.results = [frappe._dict(row) for row in (data.get("results") or [])]
+
+	return data
+
+
+def empty_result(precision=DEFAULT_AMOUNT_PRECISION):
 	return {
-		"company": assignment.company,
-		"salary_structure": assignment.salary_structure,
-		"base": flt(base, AMOUNT_PRECISION),
-		"net_pay": flt(slip.net_pay, AMOUNT_PRECISION),
-		"gross_pay": flt(slip.gross_pay, AMOUNT_PRECISION),
-		"nssf_amount": get_component_amount(slip, STATUTORY_COMPONENTS["nssf"], enabled=nssf),
-		"wcf_amount": get_component_amount(slip, STATUTORY_COMPONENTS["wcf"], enabled=wcf),
-		"sdl_amount": get_component_amount(slip, STATUTORY_COMPONENTS["sdl"], enabled=sdl),
+		"base": 0,
+		"gross_pay": 0,
+		"net_pay": 0,
+		"total_deductions": 0,
+		"results": [],
+		"calculation_summary": build_summary_html(0, 0, 0, [], precision=precision),
 	}
 
 
-def get_salary_structure_assignment(employee: str, company: str | None, on_date: str):
-	filters = {
-		"employee": employee,
-		"from_date": ("<=", on_date),
-		"docstatus": 1,
-	}
-	if company:
-		filters["company"] = company
+def apply_result(doc, result):
+	doc.base = result["base"]
+	doc.gross_pay = result["gross_pay"]
+	doc.net_pay = result["net_pay"]
+	doc.total_deductions = result["total_deductions"]
+	doc.calculation_summary = result["calculation_summary"]
 
-	assignment = frappe.db.get_value(
-		"Salary Structure Assignment",
-		filters,
-		[
-			"name",
-			"employee",
-			"salary_structure",
-			"company",
-			"currency",
-			"base",
-			"variable",
-			"income_tax_slab",
-		],
-		as_dict=True,
-		order_by="from_date desc, modified desc",
-	)
-
-	if not assignment:
-		frappe.throw(
-			_("No submitted Salary Structure Assignment found for employee {0}.").format(
-				frappe.bold(employee)
-			)
+	doc.set("results", [])
+	for row in result["results"]:
+		doc.append(
+			"results",
+			{
+				"salary_component": row["salary_component"],
+				"amount": row["amount"],
+			},
 		)
 
-	return assignment
 
-
-def solve_base_for_target(
-	assignment: frappe._dict,
-	target_field: str,
-	target_amount: float,
-	include_map: dict[str, bool],
-):
+def solve_base_for_target(structure, calculate_based_on, target_amount, precision, selected_components, allowance=0):
+	target_field = "gross_pay" if calculate_based_on == "Gross Pay" else "net_pay"
 	lower_bound = 0.0
-	upper_bound = max(flt(assignment.base) * 2, target_amount * 2, 1)
-	tolerance = 0.5
-	best_base = 0.0
-	best_slip = None
+	upper_bound = max(target_amount, 1)
+	best_result = None
 	best_difference = None
 
 	for _ in range(20):
-		slip = generate_preview_slip(assignment, upper_bound, include_map)
-		current_amount = flt(getattr(slip, target_field))
-		if current_amount >= target_amount:
-			best_base = upper_bound
-			best_slip = slip
-			best_difference = abs(current_amount - target_amount)
+		result = calculate_from_base(structure, upper_bound, precision, selected_components, allowance)
+		current_value = flt(result[target_field], precision)
+		if current_value >= target_amount:
+			best_result = result
+			best_difference = abs(current_value - target_amount)
 			break
 		upper_bound *= 2
 	else:
-		best_slip = generate_preview_slip(assignment, upper_bound, include_map)
-		best_base = upper_bound
-		best_difference = abs(flt(getattr(best_slip, target_field)) - target_amount)
+		best_result = result
+		best_difference = abs(flt(result[target_field], precision) - target_amount)
 
-	for _ in range(30):
+	for _ in range(60):
 		candidate_base = (lower_bound + upper_bound) / 2
-		slip = generate_preview_slip(assignment, candidate_base, include_map)
-		current_amount = flt(getattr(slip, target_field))
-		difference = current_amount - target_amount
+		result = calculate_from_base(structure, candidate_base, precision, selected_components, allowance)
+		difference = flt(result[target_field], precision) - target_amount
 
 		if best_difference is None or abs(difference) < best_difference:
 			best_difference = abs(difference)
-			best_base = candidate_base
-			best_slip = slip
+			best_result = result
 
-		if abs(difference) <= tolerance:
-			best_base = candidate_base
-			best_slip = slip
+		if abs(difference) <= get_tolerance(precision):
+			best_result = result
 			break
 
 		if difference < 0:
@@ -214,117 +146,368 @@ def solve_base_for_target(
 		else:
 			upper_bound = candidate_base
 
-	return flt(best_base, AMOUNT_PRECISION), best_slip
+	return refine_best_result(
+		structure,
+		best_result,
+		target_field,
+			target_amount,
+			precision,
+			selected_components,
+			allowance,
+		)
 
 
-def generate_preview_slip(
-	assignment: frappe._dict,
-	base_amount: float,
-	include_map: dict[str, bool],
-):
-	slip = make_salary_slip(
-		assignment.salary_structure,
-		employee=assignment.employee,
-		posting_date=nowdate(),
-		for_preview=1,
-		ignore_permissions=True,
-	)
-	slip.company = assignment.company
-	slip._salary_structure_assignment = frappe._dict(deepcopy(dict(assignment)))
-	slip._salary_structure_assignment.base = flt(base_amount)
-	set_formula_toggle_flags(slip, include_map)
+def calculate_from_base(structure, base_amount, precision, selected_components, allowance=0):
+	gross_pay = 0.0
+	net_pay = 0.0
+	total_deductions = 0.0
+	allowance = flt(allowance, precision)
+	evaluated_rows = initialize_rows(structure, precision)
+	previous_state = None
 
-	for component_type in ("earnings", "deductions"):
-		for row in slip.get(component_type) or []:
-			row.amount = 0
-			row.default_amount = 0
+	for _ in range(10):
+		context = get_initial_context(
+			base_amount,
+			gross_pay,
+			net_pay,
+			total_deductions,
+			evaluated_rows,
+			precision,
+			selected_components,
+			allowance,
+		)
+		earnings = evaluate_rows(evaluated_rows["earnings"], context, precision, selected_components)
+		earnings_total = flt(
+			sum(
+				row.amount
+				for row in earnings
+				if should_include_in_gross(row, selected_components)
+			),
+			precision,
+		)
+		gross_pay = flt(earnings_total + allowance, precision)
 
-	slip.calculate_net_pay()
-	apply_component_toggles(slip, include_map)
+		context.update(get_row_context(earnings, precision))
+		context["gross_pay"] = gross_pay
 
-	return slip
+		deductions = evaluate_rows(evaluated_rows["deductions"], context, precision, selected_components)
+		total_deductions = flt(
+			sum(
+				row.amount
+				for row in deductions
+				if should_include_in_total_deductions(row, selected_components)
+			),
+			precision,
+		)
+		net_pay = flt(gross_pay - total_deductions, precision)
 
+		current_state = (
+			gross_pay,
+			total_deductions,
+			net_pay,
+			tuple(row.amount for row in earnings + deductions),
+		)
 
-def apply_component_toggles(slip, include_map: dict[str, bool]):
-	adjusted = False
+		evaluated_rows = {"earnings": earnings, "deductions": deductions}
+		if current_state == previous_state:
+			break
+		previous_state = current_state
 
-	for component_type in ("earnings", "deductions"):
-		for row in slip.get(component_type) or []:
-			component_key = get_matching_component_key(row.salary_component, row.abbr)
-			if component_key and not include_map.get(component_key):
-				row.amount = 0
-				row.default_amount = 0
-				adjusted = True
-
-	if adjusted:
-		slip.set_totals()
-
-
-def set_formula_toggle_flags(slip, include_map: dict[str, bool]):
-	if not getattr(slip, "_salary_structure_doc", None):
-		slip.set_salary_structure_doc()
-
-	for key, enabled in include_map.items():
-		flag = 1 if enabled else 0
-		setattr(slip, key, flag)
-		setattr(slip, f"deduct_{key}", flag)
-		setattr(slip, f"include_{key}", flag)
-		slip._salary_structure_assignment[key] = flag
-		slip._salary_structure_assignment[f"deduct_{key}"] = flag
-		slip._salary_structure_assignment[f"include_{key}"] = flag
-
-	for component_type in ("earnings", "deductions"):
-		for row in slip._salary_structure_doc.get(component_type) or []:
-			for token in extract_formula_flags(row.condition) | extract_formula_flags(row.formula):
-				if token not in slip._salary_structure_assignment:
-					setattr(slip, token, 0)
-					slip._salary_structure_assignment[token] = 0
-
-
-def get_component_amount(slip, component_name: str, enabled: bool = True) -> float:
-	if not enabled:
-		return 0
-
-	total_amount = sum_matching_component_amounts(slip.get("deductions") or [], component_name)
-	if total_amount:
-		return flt(total_amount, AMOUNT_PRECISION)
-
-	total_amount = sum_matching_component_amounts(slip.get("earnings") or [], component_name)
-
-	return flt(total_amount, AMOUNT_PRECISION)
-
-
-def get_matching_component_key(*values: str | None) -> str | None:
-	for key, label in STATUTORY_COMPONENTS.items():
-		if any(is_component_match(value, label) for value in values if value):
-			return key
-
-	return None
-
-
-def normalize_component(value: str | None) -> str:
-	return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
-
-
-def is_component_match(value: str | None, component_name: str) -> bool:
-	return normalize_component(component_name) in normalize_component(value)
-
-
-def sum_matching_component_amounts(rows, component_name: str) -> float:
-	return sum(
-		flt(row.amount, AMOUNT_PRECISION)
-		for row in rows
-		if is_component_match(row.salary_component, component_name)
-	)
-
-
-def extract_formula_flags(expression: str | None) -> set[str]:
-	if not expression:
-		return set()
-
+	all_rows = earnings + deductions
+	selected_results = build_selected_results(selected_components, all_rows, precision)
 	return {
-		token
-		for token in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", expression)
-		if token.startswith(FORMULA_FLAG_PREFIXES)
+		"base": flt(base_amount, precision),
+		"allowance": allowance,
+		"gross_pay": gross_pay,
+		"net_pay": net_pay,
+		"total_deductions": total_deductions,
+		"results": selected_results,
+		"calculation_summary": build_summary_html(
+			flt(base_amount, precision),
+			gross_pay,
+			net_pay,
+			[(row["salary_component"], row["amount"]) for row in selected_results],
+			total_deductions=total_deductions,
+			precision=precision,
+			allowance=allowance,
+		),
 	}
 
+
+def initialize_rows(structure, precision):
+	return {
+		"earnings": [normalize_row(row, "Earning", precision) for row in structure.earnings],
+		"deductions": [normalize_row(row, "Deduction", precision) for row in structure.deductions],
+	}
+
+
+def normalize_row(row, component_type, precision):
+	return frappe._dict(
+		salary_component=cstr(row.salary_component),
+		abbr=cstr(row.abbr),
+		component_type=component_type,
+		condition=cstr(row.condition),
+		formula=cstr(row.formula),
+		amount=flt(row.amount, precision),
+		amount_based_on_formula=cint(row.amount_based_on_formula),
+		do_not_include_in_total=cint(row.do_not_include_in_total),
+		statistical_component=cint(row.statistical_component),
+	)
+
+
+def get_initial_context(
+	base_amount, gross_pay, net_pay, total_deductions, evaluated_rows, precision, selected_components, allowance=0
+):
+	context = {
+		"base": flt(base_amount, precision),
+		"allowance": flt(allowance, precision),
+		"gross_pay": flt(gross_pay, precision),
+		"net_pay": flt(net_pay, precision),
+		"total_deductions": flt(total_deductions, precision),
+	}
+	context.update(get_row_context(evaluated_rows["earnings"] + evaluated_rows["deductions"], precision))
+	context.update(get_custom_context(evaluated_rows["earnings"] + evaluated_rows["deductions"], selected_components))
+	return context
+
+
+def get_row_context(rows, precision):
+	context = {}
+	for row in rows:
+		if row.abbr:
+			context[row.abbr] = flt(row.amount, precision)
+			context[f"{row.abbr}_amount"] = flt(row.amount, precision)
+	return context
+
+
+def get_custom_context(rows, selected_components):
+	expressions = []
+	for row in rows:
+		if row.condition:
+			expressions.append(row.condition)
+		if row.formula:
+			expressions.append(row.formula)
+
+	tokens = {
+		token
+		for expression in expressions
+		for token in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", expression)
+		if token.startswith(NUMERIC_PREFIX) or token.startswith(BOOLEAN_PREFIXES)
+	}
+
+	context = {}
+	for token in tokens:
+		if token.startswith(BOOLEAN_PREFIXES):
+			context[token] = infer_boolean_flag(token, selected_components)
+		elif token not in context:
+			context[token] = 0
+	return context
+
+
+def evaluate_rows(rows, base_context, precision, selected_components):
+	context = frappe._dict(base_context.copy())
+	evaluated = []
+
+	for row in rows:
+		amount = row.amount if not row.amount_based_on_formula else 0
+		if not should_evaluate_row(row, selected_components):
+			amount = 0
+		elif row.condition and not evaluate_condition(row.condition, context, row.salary_component):
+			amount = 0
+		elif row.amount_based_on_formula and row.formula:
+			amount = evaluate_formula(row.formula, context, row.salary_component, precision)
+
+		row.amount = flt(amount, precision)
+		evaluated.append(row)
+
+		if row.abbr:
+			context[row.abbr] = row.amount
+			context[f"{row.abbr}_amount"] = row.amount
+
+	return evaluated
+
+
+def evaluate_formula(formula, context, label, precision):
+	try:
+		return flt(
+			frappe.safe_eval(
+				cstr(formula).strip(),
+				eval_globals=SAFE_EVAL_GLOBALS,
+				eval_locals=context,
+			),
+			precision,
+		)
+	except Exception as exc:
+		frappe.throw(_("{0} formula error: {1}").format(label, exc))
+
+
+def evaluate_condition(condition, context, label):
+	try:
+		return cint(
+			frappe.safe_eval(
+				cstr(condition).strip(),
+				eval_globals=SAFE_EVAL_GLOBALS,
+				eval_locals=context,
+			)
+		)
+	except Exception as exc:
+		frappe.throw(_("{0} condition error: {1}").format(label, exc))
+
+
+def build_summary_html(
+	base, gross_pay, net_pay, component_rows, total_deductions=0, precision=DEFAULT_AMOUNT_PRECISION, allowance=0
+):
+	rows = [("Base", base)]
+	if flt(allowance, precision):
+		rows.append(("Allowance", allowance))
+	rows.extend(component_rows)
+	rows.extend(
+		[
+			("Total Deductions", total_deductions),
+			("Gross Pay", gross_pay),
+			("Net Pay", net_pay),
+		]
+	)
+
+	table_rows = "".join(
+		f"<tr><td><strong>{label}</strong></td><td style='text-align:right'>{format_amount(amount, precision)}</td></tr>"
+		for label, amount in rows
+	)
+
+	return (
+		"<div style='padding: 10px;'>"
+		"<h4><strong>Calculated Values</strong></h4>"
+		"<table class='table table-bordered'>"
+		f"{table_rows}"
+		"</table>"
+		"</div>"
+	)
+
+
+def format_amount(amount, precision=DEFAULT_AMOUNT_PRECISION):
+	format_spec = f",.{precision}f"
+	return format(flt(amount, precision), format_spec)
+
+
+def get_amount_precision(structure):
+	if cstr(getattr(structure, "currency", "")) == "TZS":
+		return 0
+	return DEFAULT_AMOUNT_PRECISION
+
+
+def get_tolerance(precision):
+	return 1 if precision == 0 else 0.05
+
+
+def refine_best_result(structure, best_result, target_field, target_amount, precision, selected_components, allowance=0):
+	if not best_result:
+		return best_result
+
+	base_value = int(round(flt(best_result.get("base"), precision)))
+	candidate_bases = {base_value}
+
+	for offset in range(1, 4):
+		candidate_bases.add(base_value - offset)
+		candidate_bases.add(base_value + offset)
+
+	refined_result = best_result
+	refined_difference = abs(flt(best_result.get(target_field), precision) - target_amount)
+
+	for candidate_base in sorted(base for base in candidate_bases if base >= 0):
+		result = calculate_from_base(structure, candidate_base, precision, selected_components, allowance)
+		difference = abs(flt(result.get(target_field), precision) - target_amount)
+
+		if difference < refined_difference:
+			refined_result = result
+			refined_difference = difference
+		elif difference == refined_difference and flt(result.get(target_field), precision) >= flt(
+			refined_result.get(target_field), precision
+		):
+			refined_result = result
+
+	return refined_result
+
+
+def get_selected_components(data):
+	return [cstr(row.get("salary_component")) for row in (data.get("results") or []) if cstr(row.get("salary_component"))]
+
+
+def validate_selected_components(structure, selected_components):
+	if not selected_components:
+		return
+
+	duplicates = sorted({component for component in selected_components if selected_components.count(component) > 1})
+	if duplicates:
+		frappe.throw(_("Duplicate salary components are not allowed: {0}").format(", ".join(duplicates)))
+
+	available_components = {
+		cstr(row.salary_component) for row in list(structure.earnings) + list(structure.deductions) if cstr(row.salary_component)
+	}
+	missing_components = [component for component in selected_components if component not in available_components]
+	if missing_components:
+		frappe.throw(
+			_("These salary components are not in salary structure {0}: {1}").format(
+				frappe.bold(structure.name), ", ".join(missing_components)
+			)
+		)
+
+
+def should_evaluate_row(row, selected_components):
+	if row.statistical_component:
+		return True
+
+	if is_base_row(row):
+		return True
+
+	return is_selected_component(row.salary_component, selected_components)
+
+
+def should_include_in_gross(row, selected_components):
+	if row.component_type != "Earning" or row.do_not_include_in_total or row.statistical_component:
+		return False
+
+	return is_base_row(row) or is_selected_component(row.salary_component, selected_components)
+
+
+def should_include_in_total_deductions(row, selected_components):
+	if row.component_type != "Deduction" or row.do_not_include_in_total or row.statistical_component:
+		return False
+
+	return is_selected_component(row.salary_component, selected_components)
+
+
+def is_base_row(row):
+	formula = cstr(row.formula).replace(" ", "").lower()
+	return row.abbr == "B" or cstr(row.salary_component).lower() == "basic" or formula == "base"
+
+
+def is_selected_component(component_name, selected_components):
+	return cstr(component_name) in set(selected_components)
+
+
+def infer_boolean_flag(token, selected_components):
+	keyword = token
+	for prefix in BOOLEAN_PREFIXES:
+		if keyword.startswith(prefix):
+			keyword = keyword[len(prefix) :]
+			break
+
+	normalized_keyword = keyword.replace("_", "").lower()
+	selected_text = " ".join(selected_components).replace(" ", "").replace("_", "").lower()
+	return 1 if normalized_keyword and normalized_keyword in selected_text else 0
+
+
+def build_selected_results(selected_components, all_rows, precision):
+	amounts = {}
+	for row in all_rows:
+		if not cstr(row.salary_component):
+			continue
+		amounts.setdefault(cstr(row.salary_component), 0)
+		amounts[cstr(row.salary_component)] = flt(amounts[cstr(row.salary_component)] + flt(row.amount, precision), precision)
+
+	return [
+		{
+			"salary_component": component,
+			"amount": flt(amounts.get(component, 0), precision),
+		}
+		for component in selected_components
+	]

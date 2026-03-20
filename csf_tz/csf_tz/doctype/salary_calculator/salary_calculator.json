@@ -1,52 +1,33 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2026-03-13 11:00:00.000000",
+ "autoname": "SAL-CAL-.#####",
+ "creation": "2026-03-19 16:43:13.067948",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "employee",
-  "company",
   "salary_structure",
+  "employee",
   "calculate_based_on",
-  "net_pay",
+  "column_break_kydq",
   "gross_pay",
+  "net_pay",
+  "results_section",
   "base",
-  "section_break_statutory",
-  "nssf",
-  "nssf_amount",
-  "column_break_wcf",
-  "wcf",
-  "wcf_amount",
-  "column_break_sdl",
-  "sdl",
-  "sdl_amount"
+  "allowance",
+  "total_deductions",
+  "calculation_summary",
+  "column_break_ftav",
+  "results"
  ],
  "fields": [
   {
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Employee",
-   "options": "Employee",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "employee.company",
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Company",
-   "options": "Company",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "salary_structure",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Salary Structure",
    "options": "Salary Structure",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "calculate_based_on",
@@ -59,73 +40,70 @@
   {
    "fieldname": "net_pay",
    "fieldtype": "Currency",
-   "label": "Net Pay"
+   "label": "Net Pay",
+   "precision": "0"
   },
   {
    "fieldname": "gross_pay",
    "fieldtype": "Currency",
-   "label": "Gross Pay"
+   "label": "Gross Pay",
+   "precision": "0"
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
   },
   {
    "fieldname": "base",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Base",
+   "precision": "0",
    "read_only": 1
   },
   {
-   "fieldname": "section_break_statutory",
-   "fieldtype": "Section Break",
-   "label": "Statutory Components"
-  },
-  {
-   "default": "0",
-   "fieldname": "nssf",
-   "fieldtype": "Check",
-   "label": "NSSF"
-  },
-  {
-   "fieldname": "nssf_amount",
+   "fieldname": "total_deductions",
    "fieldtype": "Currency",
-   "label": "NSSF Amount",
+   "label": "Total Deductions",
+   "precision": "0",
    "read_only": 1
   },
   {
-   "fieldname": "column_break_wcf",
+   "fieldname": "results",
+   "fieldtype": "Table",
+   "label": "Salary Components",
+   "options": "Salary Calculator Result"
+  },
+  {
+   "fieldname": "calculation_summary",
+   "fieldtype": "HTML",
+   "label": "Calculation Summary"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_kydq",
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "wcf",
-   "fieldtype": "Check",
-   "label": "WCF"
-  },
-  {
-   "fieldname": "wcf_amount",
+   "fieldname": "allowance",
    "fieldtype": "Currency",
-   "label": "WCF Amount",
-   "read_only": 1
+   "label": "Allowance",
+   "precision": "0"
   },
   {
-   "fieldname": "column_break_sdl",
+   "fieldname": "column_break_ftav",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "sdl",
-   "fieldtype": "Check",
-   "label": "SDL"
-  },
-  {
-   "fieldname": "sdl_amount",
-   "fieldtype": "Currency",
-   "label": "SDL Amount",
-   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "issingle": 0,
  "links": [],
- "modified": "2026-03-13 11:00:00.000000",
+ "modified": "2026-03-20 15:53:00.553851",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Salary Calculator",
@@ -135,15 +113,14 @@
    "create": 1,
    "delete": 1,
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
-   "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
