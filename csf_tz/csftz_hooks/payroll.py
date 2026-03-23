@@ -1,10 +1,7 @@
-from __future__ import unicode_literals
 import frappe
 from frappe import _
-import frappe
 import os
 from frappe.utils.background_jobs import enqueue
-from frappe.utils.pdf import get_pdf, cleanup
 from io import BytesIO
 from PyPDF3 import PdfFileReader, PdfFileWriter
 from csf_tz import console
@@ -69,31 +66,61 @@ def before_cancel_payroll_entry(doc, method):
 
 @frappe.whitelist()
 def update_slips(payroll_entry):
-    ss_list = frappe.get_all("Salary Slip", filters={"payroll_entry": payroll_entry})
-    count = 0
-    for salary in ss_list:
-        ss_doc = frappe.get_doc("Salary Slip", salary.name)
-        if ss_doc.docstatus != 0:
-            continue
-        ss_doc.earnings = []
-        ss_doc.deductions = []
-        ss_doc.queue_action("save", timeout=4600)
-        count += 1
+    salary_slips = frappe.get_all(
+        "Salary Slip",
+        filters={"payroll_entry": payroll_entry, "docstatus": 0},
+        pluck="name",
+    )
+    count = len(salary_slips)
+
+    job = enqueue(
+        method=enqueue_update_slips,
+        queue="short",
+        timeout=4600,
+        is_async=True,
+        enqueue_after_commit=False,
+        job_id=f"update-salary-slips::{payroll_entry}",
+        deduplicate=True,
+        payroll_entry=payroll_entry,
+    )
 
     frappe.msgprint(_("{0} Salary Slips is updated".format(count)))
     return count
 
 
+def enqueue_update_slips(payroll_entry):
+    salary_slips = frappe.get_all(
+        "Salary Slip", filters={"payroll_entry": payroll_entry}, pluck="name"
+    )
+
+    for salary_slip in salary_slips:
+        try:
+            _update_salary_slip(salary_slip)
+        except frappe.DocumentLockedError:
+            continue
+        except Exception:
+            frappe.log_error(
+                frappe.get_traceback(),
+                _("Failed to update Salary Slip {0}").format(salary_slip),
+            )
+
+
 @frappe.whitelist()
-def update_slip(salary_slip):
+def update_slip(salary_slip, show_message=True):
+    result = _update_salary_slip(salary_slip)
+    if show_message and result == "updated":
+        frappe.msgprint(_("Salary Slips is updated"))
+    return result
+
+
+def _update_salary_slip(salary_slip):
     ss_doc = frappe.get_doc("Salary Slip", salary_slip)
     if ss_doc.docstatus != 0:
-        return
+        return "skipped"
     ss_doc.earnings = []
     ss_doc.deductions = []
     ss_doc.save()
-    frappe.msgprint(_("Salary Slips is updated"))
-    return "True"
+    return "updated"
 
 
 @frappe.whitelist()
