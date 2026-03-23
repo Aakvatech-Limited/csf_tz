@@ -16,7 +16,8 @@
     "label": "Employee Location",
     "fieldname": "employee_location",
     "insert_after": "branch",
-    "fieldtype": "Data",
+    "fieldtype": "Select",
+    "options": "\nTanzania Mainland\nZanzibar",
     "translatable": 1,
     "doctype": "Custom Field"
   }
