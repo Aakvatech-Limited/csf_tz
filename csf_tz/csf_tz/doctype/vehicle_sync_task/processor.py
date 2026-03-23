@@ -166,7 +166,13 @@ def _call_external_api(vehicle_no):
         raise Exception(f"Invalid vehicle license plate: {vehicle_no}")
 
     payload = {"vehicle": vehicle_no}
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Origin": "https://tms.tpf.go.tz",
+        "Referer": "https://tms.tpf.go.tz/",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+    }
     try:
         sleep(2)
         response = requests.post(HOST, json=payload, headers=headers, timeout=10)
