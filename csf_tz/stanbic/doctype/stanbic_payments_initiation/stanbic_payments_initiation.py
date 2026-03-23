@@ -87,8 +87,8 @@ class StanbicPaymentsInitiation(Document):
         with open(file_path, "w") as file:
             file.write(self.encrypted_xml)
         self.add_comment(
-            comment_type="File Created",  # Type of comment
-            text=f"""A file has been created with file name as {filename} and uploaded to stanbic/outbox folder.""",
+            comment_type="Info",
+            text=f"Stanbic payment file created with file name as {filename}",
         )
 
     def on_update_after_submit(self):
