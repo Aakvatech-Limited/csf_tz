@@ -290,6 +290,23 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     settings = frappe.get_single("KCB Settings")
     payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry_name)
 
+    existing = frappe.get_all(
+        "KCB Payments Initiation Info",
+        filters={
+            "source_doctype": "Payroll Entry",
+            "source_name": payroll_entry_name,
+            "docstatus": ["!=", 2],
+        },
+        fields=["parent"],
+    )
+    if existing:
+        names = ", ".join(sorted({row.parent for row in existing if row.parent}))
+        frappe.throw(
+            _("KCB Payments Initiation already exists for Payroll Entry {0}: {1}").format(
+                payroll_entry_name, names or _("Existing draft/submitted document")
+            )
+        )
+
     slips = frappe.get_all(
         "Salary Slip",
         filters={"payroll_entry": payroll_entry_name, "docstatus": 1},
