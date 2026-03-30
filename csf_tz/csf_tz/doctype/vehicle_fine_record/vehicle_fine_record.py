@@ -90,14 +90,25 @@ def get_fine(license_plate=None, reference=None):
 
     fine_list = []
     url = "https://tms.tpf.go.tz/api/OffenceCheck"
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Origin": "https://tms.tpf.go.tz",
+        "Referer": "https://tms.tpf.go.tz/",
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+        ),
+    }
 
     payload = {"vehicle": license_plate or reference}
     vehicle_key = license_plate or reference
 
     try:
         sleep(2)  # Sleep to avoid hitting the server too frequently
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        with requests.Session() as session:
+            session.get("https://tms.tpf.go.tz/", headers=headers, timeout=10)
+            response = session.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
     except RequestException as e:
         frappe.log_error("HTTP error", str(e))
@@ -112,6 +123,21 @@ def get_fine(license_plate=None, reference=None):
     data = result.get("pending_transactions", [])
 
     if data:
+        fine_list = [tx.get("reference") for tx in data if tx.get("reference")]
+        existing = frappe.get_all(
+            "Vehicle Fine Record",
+            filters={
+                "vehicle": vehicle_key,
+                "status": ["!=", "PAID"],
+                "reference": ["not in", fine_list],
+            },
+            pluck="name",
+        )
+        for record in existing:
+            doc = frappe.get_doc("Vehicle Fine Record", record)
+            doc.status = "PAID"
+            doc.save()
+        frappe.db.commit()
         return fine_list
     else:
         print(f"Vehicle: {vehicle_key} has no pending transactions")
