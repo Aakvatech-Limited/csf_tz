@@ -307,6 +307,26 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
             )
         )
 
+    all_slips = frappe.get_all(
+        "Salary Slip",
+        filters={"payroll_entry": payroll_entry_name},
+        fields=["name", "docstatus"],
+    )
+    if not all_slips:
+        frappe.throw(
+            _(
+                "No Salary Slips found for Payroll Entry {0}. Create and submit Salary Slips first."
+            ).format(payroll_entry_name)
+        )
+
+    pending_slips = [slip.name for slip in all_slips if slip.docstatus != 1]
+    if pending_slips:
+        frappe.throw(
+            _(
+                "Cannot create KCB Payments Initiation for Payroll Entry {0}. Submit all Salary Slips first. Pending: {1}"
+            ).format(payroll_entry_name, ", ".join(pending_slips))
+        )
+
     slips = frappe.get_all(
         "Salary Slip",
         filters={"payroll_entry": payroll_entry_name, "docstatus": 1},
