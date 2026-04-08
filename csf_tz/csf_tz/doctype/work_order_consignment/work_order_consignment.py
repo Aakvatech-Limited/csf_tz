@@ -40,7 +40,7 @@ def crate_work_order(bom_name, doc):
     wo_order.source_warehouse = doc.default_source_warehouse
     wo_order.wip_warehouse = bom.wip_warehouse
     wo_order.fg_warehouse = bom.fg_warehouse
-    wo_order.scrap_warehouse = bom.fg_warehouse
+    wo_order.scrap_warehouse = bom.scrap_warehouse
     wo_order.company = doc.company
     wo_order.stock_uom = bom.uom
     wo_order.use_multi_level_bom = 0
