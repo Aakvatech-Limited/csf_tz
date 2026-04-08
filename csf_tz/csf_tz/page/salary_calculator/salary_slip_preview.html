@@ -1,0 +1,104 @@
+<div class="salary-slip-preview-content">
+    <div class="slip-header">
+        <h4 class="slip-title">Salary Slip Preview</h4>
+        <div class="slip-meta">
+            <div class="meta-row">
+                <span class="meta-label">Employee:</span>
+                <span class="meta-value">{{ employee }} - {{ employee_name }}</span>
+            </div>
+            {% if department %}
+            <div class="meta-row">
+                <span class="meta-label">Department:</span>
+                <span class="meta-value">{{ department }}</span>
+            </div>
+            {% endif %}
+            {% if designation %}
+            <div class="meta-row">
+                <span class="meta-label">Designation:</span>
+                <span class="meta-value">{{ designation }}</span>
+            </div>
+            {% endif %}
+            <div class="meta-row">
+                <span class="meta-label">Company:</span>
+                <span class="meta-value">{{ company }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-label">Salary Structure:</span>
+                <span class="meta-value">{{ salary_structure }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="slip-body">
+        <div class="slip-columns">
+            <div class="slip-column">
+                <h5 class="column-title earnings-title">Earnings</h5>
+                <table class="slip-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th class="text-right">Amount ({{ currency }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in earnings %}
+                        <tr>
+                            <td>{{ e.salary_component }}</td>
+                            <td class="text-right">{{ format_amount(e.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td><strong>Total Earnings</strong></td>
+                            <td class="text-right"><strong>{{ format_amount(total_earning) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="slip-column">
+                <h5 class="column-title deductions-title">Deductions</h5>
+                <table class="slip-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th class="text-right">Amount ({{ currency }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in deductions %}
+                        <tr>
+                            <td>{{ d.salary_component }}</td>
+                            <td class="text-right">{{ format_amount(d.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not deductions %}
+                        <tr>
+                            <td colspan="2" class="text-muted text-center">No deductions</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td><strong>Total Deductions</strong></td>
+                            <td class="text-right"><strong>{{ format_amount(total_deduction) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="slip-footer">
+        <div class="net-pay-row">
+            <span class="net-pay-label">Net Pay</span>
+            <span class="net-pay-value">{{ currency }} {{ format_amount(net_pay) }}</span>
+        </div>
+        <div class="gross-pay-row">
+            <span>Gross Pay: {{ currency }} {{ format_amount(gross_pay) }}</span>
+            <span class="separator">|</span>
+            <span>Base: {{ currency }} {{ format_amount(base) }}</span>
+        </div>
+    </div>
+</div>
