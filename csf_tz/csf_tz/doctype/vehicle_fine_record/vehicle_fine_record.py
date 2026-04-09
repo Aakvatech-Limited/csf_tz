@@ -7,7 +7,7 @@ from frappe.model.document import Document
 import frappe
 from frappe import _
 import requests
-from requests.exceptions import Timeout
+from requests.exceptions import Timeout, RequestException
 from bs4 import BeautifulSoup
 from csf_tz.custom_api import print_out
 import re
@@ -27,7 +27,7 @@ class VehicleFineRecord(Document):
         try:
             if self.vehicle:
                 vehicle_name = frappe.get_value(
-                    "Vehicle", {"number_plate": self.vehicle}, "name"
+                    "Vehicle", {"license_plate": self.vehicle}, "name"
                 )
                 if vehicle_name:
                     self.vehicle_doc = vehicle_name
@@ -38,11 +38,9 @@ class VehicleFineRecord(Document):
                 title=f"Error in VehicleFineRecord.validate",
                 message=frappe.get_traceback(),
             )
-
-
 def check_fine_all_vehicles(batch_size=20):
     plate_list = frappe.get_all(
-        "Vehicle", fields=["name", "number_plate"], limit_page_length=0
+        "Vehicle", fields=["name", "license_plate"], limit_page_length=0
     )
     all_fine_list = []
     total_vehicles = len(plate_list)
@@ -50,19 +48,12 @@ def check_fine_all_vehicles(batch_size=20):
     for i in range(0, total_vehicles, batch_size):
         batch_vehicles = plate_list[i : i + batch_size]
         for vehicle in batch_vehicles:
-            # Enqueue get_fine(number_plate=vehicle["number_plate"] or vehicle["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                number_plate=vehicle["number_plate"] or vehicle["name"],
-            )
+            get_fine(license_plate=vehicle["license_plate"] or vehicle["name"])
 
             fine_list = []
-            # fine_list = get_fine(
-            #     number_plate=vehicle["number_plate"] or vehicle["name"]
-            # )
             if fine_list and len(fine_list) > 0:
                 all_fine_list.extend(fine_list)
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+            sleep(5)  # Sleep to avoid hitting the server too frequently
 
     # Get all the references that are not paid
     reference_list = frappe.get_all(
@@ -73,28 +64,24 @@ def check_fine_all_vehicles(batch_size=20):
     for i in range(0, len(reference_list), batch_size):
         batch_references = reference_list[i : i + batch_size]
         for reference in batch_references:
-            # Enqueue get_fine(reference=reference["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                reference=reference["vehicle"],
-            )
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+            get_fine(reference=reference["vehicle"])
+            sleep(5)  # Sleep to avoid hitting the server too frequently
 
 
 @frappe.whitelist()
-def get_fine(number_plate=None, reference=None):
-    if not number_plate and not reference:
+def get_fine(license_plate=None, reference=None):
+    if not license_plate and not reference:
         print_out(
-            _("Please provide either number plate or reference"),
+            _("Please provide either license plate or reference"),
             alert=True,
             add_traceback=True,
             to_error_log=True,
         )
         return
 
-    if number_plate and len(number_plate) < 7:
+    if license_plate and len(license_plate) < 7:
         print_out(
-            f"Please provide a valid number plate for {number_plate}",
+            f"Please provide a valid license plate for {license_plate}",
             alert=True,
             add_traceback=True,
             to_error_log=True,
@@ -103,15 +90,27 @@ def get_fine(number_plate=None, reference=None):
 
     fine_list = []
     url = "https://tms.tpf.go.tz/api/OffenceCheck"
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "Origin": "https://tms.tpf.go.tz",
+        "Referer": "https://tms.tpf.go.tz/",
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+        ),
+    }
 
-    payload = {"vehicle": number_plate or reference}
+    payload = {"vehicle": license_plate or reference}
+    vehicle_key = license_plate or reference
 
     try:
         sleep(2)  # Sleep to avoid hitting the server too frequently
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        with requests.Session() as session:
+            session.get("https://tms.tpf.go.tz/", headers=headers, timeout=10)
+            response = session.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:
+    except RequestException as e:
         frappe.log_error("HTTP error", str(e))
         frappe.throw(f"Error contacting traffic system: {str(e)}")
 
@@ -124,11 +123,31 @@ def get_fine(number_plate=None, reference=None):
     data = result.get("pending_transactions", [])
 
     if data:
-        print(f"Vehicle: {number_plate or reference} has no pending transactions")
+        fine_list = [tx.get("reference") for tx in data if tx.get("reference")]
+        existing = frappe.get_all(
+            "Vehicle Fine Record",
+            filters={
+                "vehicle": vehicle_key,
+                "status": ["!=", "PAID"],
+                "reference": ["not in", fine_list],
+            },
+            pluck="name",
+        )
+        for record in existing:
+            doc = frappe.get_doc("Vehicle Fine Record", record)
+            doc.status = "PAID"
+            doc.save()
+        frappe.db.commit()
         return fine_list
     else:
-        if frappe.db.exists("Vehicle Fine Record", payload):
-            doc = frappe.get_doc("Vehicle Fine Record", payload)
+        print(f"Vehicle: {vehicle_key} has no pending transactions")
+        existing = frappe.get_all(
+            "Vehicle Fine Record",
+            filters={"vehicle": vehicle_key, "status": ["!=", "PAID"]},
+            pluck="name",
+        )
+        for record in existing:
+            doc = frappe.get_doc("Vehicle Fine Record", record)
             doc.status = "PAID"
             doc.save()
 
