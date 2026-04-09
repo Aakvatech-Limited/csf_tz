@@ -23,8 +23,6 @@ frappe.query_reports["Particular Item History Report"] = {
 			"label": __("Price List"),
 			"fieldtype": "Link",
 			"options": "Price List",
-			"default": frappe.defaults.get_default("selling_price_list"),
-			"reqd": 1,
 			"get_query": () => {
 				return {
 					filters: {
