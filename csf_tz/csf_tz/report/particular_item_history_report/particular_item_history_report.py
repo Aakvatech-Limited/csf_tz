@@ -9,7 +9,6 @@ from frappe.utils import flt, getdate, nowdate
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
-    apply_defaults(filters)
     validate_filters(filters)
 
     columns = get_columns()
@@ -18,24 +17,12 @@ def execute(filters=None):
     return columns, data
 
 
-def apply_defaults(filters):
-    if not filters.get("price_list"):
-        default_price_list = frappe.db.get_single_value("Selling Settings", "selling_price_list")
-        if default_price_list:
-            filters.price_list = default_price_list
-        else:
-            filters.price_list = frappe.db.get_value("Price List", {"selling": 1, "enabled": 1}, "name")
-
-
 def validate_filters(filters):
     if not filters.get("from_date") or not filters.get("to_date"):
         frappe.throw(_("From Date and To Date are required"))
 
     if getdate(filters.to_date) < getdate(filters.from_date):
         frappe.throw(_("To Date must be on or after From Date"))
-
-    if not filters.get("price_list"):
-        frappe.throw(_("Price List is required"))
 
 
 def get_columns():
@@ -179,6 +166,9 @@ def get_bin_snapshot(filters):
 
 
 def get_current_selling_prices(filters):
+    if not filters.get("price_list"):
+        return {}
+
     today = nowdate()
     ItemPrice = frappe.qb.DocType("Item Price")
 
