@@ -60,6 +60,13 @@ def get_columns():
             "width": 160,
         },
         {
+            "label": _("Price List"),
+            "fieldname": "price_list",
+            "fieldtype": "Link",
+            "options": "Price List",
+            "width": 160,
+        },
+        {
             "label": _("Current Selling Price"),
             "fieldname": "current_selling_price",
             "fieldtype": "Currency",
@@ -102,19 +109,22 @@ def get_data(filters):
     for item in items:
         item_code = item.item_code
         bin_row = bin_map.get(item_code, {})
+        price_entries = price_map.get(item_code, [{}])
 
-        data.append(
-            {
-                "item_code": item_code,
-                "item_name": item.item_name,
-                "item_group": item.item_group,
-                "last_purchase_price": flt(item.last_purchase_rate),
-                "valuation_rate": flt(bin_row.get("valuation_rate")),
-                "current_selling_price": flt(price_map.get(item_code)),
-                "qty_sold": flt(sold_map.get(item_code)),
-                "available_qty": flt(bin_row.get("available_qty")),
-            }
-        )
+        for price_info in price_entries:
+            data.append(
+                {
+                    "item_code": item_code,
+                    "item_name": item.item_name,
+                    "item_group": item.item_group,
+                    "last_purchase_price": flt(item.last_purchase_rate),
+                    "valuation_rate": flt(bin_row.get("valuation_rate")),
+                    "price_list": price_info.get("price_list"),
+                    "current_selling_price": flt(price_info.get("price_list_rate")),
+                    "qty_sold": flt(sold_map.get(item_code)),
+                    "available_qty": flt(bin_row.get("available_qty")),
+                }
+            )
 
     return data
 
@@ -166,33 +176,42 @@ def get_bin_snapshot(filters):
 
 
 def get_current_selling_prices(filters):
-    if not filters.get("price_list"):
-        return {}
-
     today = nowdate()
     ItemPrice = frappe.qb.DocType("Item Price")
 
-    rows = (
+    query = (
         frappe.qb.from_(ItemPrice)
         .select(
             ItemPrice.item_code,
+            ItemPrice.price_list,
             ItemPrice.price_list_rate,
             ItemPrice.valid_from,
             ItemPrice.modified,
         )
-        .where(ItemPrice.price_list == filters.price_list)
         .where(ItemPrice.selling == 1)
         .where(ItemPrice.valid_from.isnull() | (ItemPrice.valid_from <= today))
         .where(ItemPrice.valid_upto.isnull() | (ItemPrice.valid_upto >= today))
         .orderby(ItemPrice.item_code)
         .orderby(qb_functions.IfNull(ItemPrice.valid_from, "1900-01-01"), order=frappe.qb.desc)
         .orderby(ItemPrice.modified, order=frappe.qb.desc)
-        .run(as_dict=True)
     )
 
+    if filters.get("price_list"):
+        query = query.where(ItemPrice.price_list == filters.price_list)
+
+    rows = query.run(as_dict=True)
+
     price_map = {}
+    seen = set()
     for row in rows:
-        if row.item_code not in price_map:
-            price_map[row.item_code] = row.price_list_rate
+        key = (row.item_code, row.price_list)
+        if key not in seen:
+            seen.add(key)
+            price_map.setdefault(row.item_code, []).append(
+                {
+                    "price_list": row.price_list,
+                    "price_list_rate": row.price_list_rate,
+                }
+            )
 
     return price_map
