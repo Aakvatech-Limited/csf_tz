@@ -1,9 +1,7 @@
 import frappe
-from frappe import _
 from frappe.query_builder import DocType
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import add_days, nowdate, create_batch
-from erpnext.stock.doctype.material_request.material_request import update_status
 
 
 cp = DocType("Company")
@@ -16,20 +14,6 @@ def _auto_close_material_request_batch(material_request_names):
             material_request_doc.update_status("Stopped")
         except Exception:
             frappe.log_error(frappe.get_traceback(), f"Auto Close Material Request Error: {name}")
-
-@frappe.whitelist()
-def update_mr_status(name, status):
-    if status != "Submitted":
-        update_status(name, status)
-        return
-
-    csf_tz_settings = frappe.get_doc("CSF TZ Settings")
-    if csf_tz_settings.allow_reopen_of_material_request_based_on_role == 1:
-        roles = frappe.get_roles()
-        if csf_tz_settings.role_to_reopen_material_request and csf_tz_settings.role_to_reopen_material_request in roles:
-            update_status(name, status)
-        else:
-            frappe.throw(_(f"You are not allowed to reopen this Material Request: <b>{name}</b>"))
 
 
 

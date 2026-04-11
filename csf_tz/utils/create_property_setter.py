@@ -34,6 +34,9 @@ def create_property_setter_from_json(property_setters_obj):
         if property_setter.get('name') in existing_setters:
             continue
 
+        if not frappe.db.exists("DocType", property_setter.get("doc_type")):
+            continue
+
         if property_setter.get('doctype_or_field') == "DocType":
             for_doctype = True
         else:

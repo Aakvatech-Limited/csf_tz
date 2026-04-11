@@ -23,4 +23,8 @@ def execute():
         ]
     }
 
+    fields = {doctype: values for doctype, values in fields.items() if frappe.db.exists("DocType", doctype)}
+    if not fields:
+        return
+
     create_custom_fields(fields, update=True)

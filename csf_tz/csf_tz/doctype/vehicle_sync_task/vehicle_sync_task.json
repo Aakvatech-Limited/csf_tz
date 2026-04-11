@@ -38,7 +38,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "\nPending\nProcessing\nDone\nFailed\nPaused",
+   "options": "\nPending\nProcessing\nSuccess\nFailed\nPaused",
    "search_index": 1
   },
   {
@@ -164,7 +164,7 @@
   },
   {
    "color": "Green",
-   "title": "Done"
+   "title": "Success"
   },
   {
    "color": "Red",

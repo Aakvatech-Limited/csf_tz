@@ -30,7 +30,7 @@ def update_barcodes(doc):
             {
                 "barcode": barcode["barcode"],
                 "barcode_type": barcode["barcode_type"],
-                "posa_uom": barcode["posa_uom"],
+                "uom": barcode["uom"],
             },
         )
     item.save(ignore_permissions=True)
