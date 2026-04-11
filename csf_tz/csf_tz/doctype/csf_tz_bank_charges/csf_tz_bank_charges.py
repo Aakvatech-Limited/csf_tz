@@ -59,7 +59,7 @@ class CSFTZBankCharges(Document):
                     "exchange_rate": self.exchange_rate,
                 }
             ]
-            self.payment_reconcile()
+            # self.payment_reconcile()
         except Exception as e:
             frappe.throw(_("Error while creating Purchase Invoice: {0}").format(str(e)))
 
@@ -97,6 +97,7 @@ class CSFTZBankCharges(Document):
             frappe.throw(_("Error while creating Payment Entry: {0}").format(str(e)))
 
     def payment_reconcile(self):
+        exit
         try:
             reconcile = frappe.new_doc("Payment Reconciliation")
             reconcile.party_type = "Supplier"
