@@ -26,4 +26,4 @@ csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields
 csf_tz.patches.migrate_vfd_providers_to_csf_tz
 execute:frappe.delete_doc_if_exists("Report", "Stock Ledger Mismatch")
 csf_tz.patches.delete_versions_for_vehicle_fine_record_and_parking_bill
-csf_tz.patches.add_vehicle_sync_task_log_setting
+csf_tz.patches.remove_vehicle_sync_task_log_setting
