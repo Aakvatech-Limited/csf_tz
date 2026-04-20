@@ -326,14 +326,6 @@ def execute():
                 "read_only": 1
             },
             {
-                "allow_on_submit": 1,
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "clearance_date",
-                "label": "Import File",
-                "options": "Import File"
-            },
-            {
                 "fieldname": "from_date",
                 "fieldtype": "Date",
                 "insert_after": "auto_repeat",
@@ -360,15 +352,6 @@ def execute():
                 "insert_after": "referance_doctype",
                 "fieldtype": "Dynamic Link",
                 "options": "referance_doctype",
-            },
-        ],
-        "Landed Cost Voucher":[
-            {
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "sec_break1",
-                "label": "Import File",
-                "options": "Import File"
             },
         ],
         "Material Request Item":[
@@ -468,14 +451,6 @@ def execute():
                 "fieldtype": "Section Break",
                 "insert_after": "language",
                 "label": "Reference",
-            },
-            {
-                "allow_on_submit": 1,
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "reference",
-                "label": "Import File",
-                "options": "Import File"
             },
         ],
         "Purchase Invoice Item":[
