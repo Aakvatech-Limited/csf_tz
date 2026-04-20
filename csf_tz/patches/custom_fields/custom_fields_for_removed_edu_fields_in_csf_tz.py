@@ -331,7 +331,7 @@ def execute():
                 "fieldtype": "Link",
                 "insert_after": "clearance_date",
                 "label": "Import File",
-                "options": "Import File"
+                "options": "File"
             },
             {
                 "fieldname": "from_date",
@@ -368,7 +368,7 @@ def execute():
                 "fieldtype": "Link",
                 "insert_after": "sec_break1",
                 "label": "Import File",
-                "options": "Import File"
+                "options": "File"
             },
         ],
         "Material Request Item":[
@@ -475,7 +475,7 @@ def execute():
                 "fieldtype": "Link",
                 "insert_after": "reference",
                 "label": "Import File",
-                "options": "Import File"
+                "options": "File"
             },
         ],
         "Purchase Invoice Item":[
