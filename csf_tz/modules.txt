@@ -1,7 +1,6 @@
 CSF TZ
 Purchase And Stock Management
 Sales And Marketing
-AuthOTP
 Meal Count
 Stanbic
 KCB
