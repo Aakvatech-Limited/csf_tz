@@ -280,12 +280,6 @@ def execute():
                 "value": "company.default_letter_head"
             },
             {
-                "doctype": "Piecework Type",
-                "property": "search_fields",
-                "property_type": "Data",
-                "value": "task_name"
-            },
-            {
                 "doctype": "Document Attachment",
                 "field_name": "attachment",
                 "property": "in_list_view",

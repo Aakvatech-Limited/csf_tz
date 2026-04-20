@@ -199,7 +199,6 @@ fixtures = [
                     "Payment Reconciliation Payment-posting_date-columns",
                     "Payment Reconciliation Payment-posting_date-in_list_view",
                     "Payment Schedule-payment_amount-options",
-                    "Piecework Type-search_fields",
                     "Purchase Invoice Item-cost_center-default",
                     "Purchase Order-letter_head-fetch_from",
                     "Report-javascript-depends_on",
