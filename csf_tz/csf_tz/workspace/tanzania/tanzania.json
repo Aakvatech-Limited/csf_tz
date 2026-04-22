@@ -370,69 +370,9 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Payroll Reports",
-   "link_count": 10,
+   "link_count": 5,
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Salary Register CTC",
-   "link_count": 0,
-   "link_to": "Salary Register CTC",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Salary Slip",
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Salary Register CSF",
-   "link_count": 0,
-   "link_to": "Salary Register csf",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Salary Slip",
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Salary Register Summary",
-   "link_count": 0,
-   "link_to": "Salary Register Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Salary Slip",
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Monthly Payroll Summary",
-   "link_count": 0,
-   "link_to": "Salary Register Summary with Monthly Comparison",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Salary Slip",
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Salary Register Components",
-   "link_count": 0,
-   "link_to": "Salary Register Summary with Components",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Salary Slip",
-   "type": "Link"
   },
   {
    "dependencies": "",
@@ -495,7 +435,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-18 16:28:18.980187",
+ "modified": "2026-04-22 12:23:05.945800",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "Tanzania",
