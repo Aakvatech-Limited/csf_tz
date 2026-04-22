@@ -209,9 +209,7 @@ doc_events = {
         "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
-                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
-        ],
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Material Request": {
         "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",

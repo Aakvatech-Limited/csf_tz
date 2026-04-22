@@ -51,46 +51,6 @@ frappe.ui.form.on("Purchase Order", {
     },
 });
 
-frappe.ui.form.on("Purchase Order Item", {
-    item_code: async function (frm, cdt, cdn) {
-        var item = locals[cdt][cdn];
-        var price_list = await get_price_list(frm, item.item_code, item.warehouse);
-        frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
-        frappe.model.set_value(cdt, cdn, "rate", price_list);
-        frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
-    },
-    warehouse: async function (frm, cdt, cdn) {
-        var item = locals[cdt][cdn];
-        var price_list = await get_price_list(frm, item.item_code, item.warehouse);
-        frappe.model.set_value(cdt, cdn, "price_list_rate", price_list);
-        frappe.model.set_value(cdt, cdn, "rate", price_list);
-        frappe.model.set_value(cdt, cdn, "amount", price_list * item.qty);
-    },
-})
-
-async function get_price_list(frm, item_code, warehouse) {
-    var check = await frappe.db.get_single_value("CSF TZ Settings", "target_warehouse_based_price_list");
-    if (check == 0) {
-        return null;
-    }
-    if (!item_code || !warehouse || !frm.doc.supplier) {
-        frappe.throw("Item Code, Warehouse and Supplier are required");
-    }
-
-    var price_list = await frappe.db.get_value("Dynamic Price List Assignment", { supplier: frm.doc.supplier, warehouse: warehouse }, "price_list");
-    console.log(price_list);
-    if (price_list.message.price_list) {
-        var price_list_rate = await frappe.db.get_value("Item Price", { item_code: item_code, price_list: price_list.message.price_list }, "price_list_rate");
-        if (price_list_rate.message.price_list_rate) {
-            return price_list_rate.message.price_list_rate;
-        } else {
-            frappe.throw("Price List not found for Item " + item.item_code + ". Please create");
-        }
-    } else {
-        frappe.throw("Price List not found. Please create one in Dynamic Price List Assignment for " + frm.doc.supplier + " and " + warehouse);
-    }
-}
-
 frappe.ui.keys.add_shortcut({
     shortcut: 'ctrl+i',
     action: () => {
@@ -111,4 +71,3 @@ frappe.ui.keys.add_shortcut({
     description: __('Select Item Price'),
     ignore_inputs: true,
 });
-
