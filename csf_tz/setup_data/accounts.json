@@ -1,0 +1,199 @@
+[
+  {
+    "doctype": "Account",
+    "account_name": "Payroll Liabilities",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Current Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet",
+    "is_group": 1
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Employment Costs",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Indirect Expenses - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss",
+    "is_group": 1
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Financial Charges",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Indirect Expenses - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss",
+    "is_group": 1
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Bank Charges",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Financial Charges - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss",
+    "is_group": 1
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Input VAT",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "account_type": "Tax",
+    "parent_account": "Tax Assets - {abbr}",
+    "root_type": "Asset",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Output VAT",
+    "company": "{company}",
+    "account_type": "Tax",
+    "parent_account": "Duties and Taxes - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Withholding Tax Receivable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "account_type": "Receivable",
+    "parent_account": "Tax Assets - {abbr}",
+    "root_type": "Asset",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Withholding Tax Received",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "account_type": "Receivable",
+    "parent_account": "Tax Assets - {abbr}",
+    "root_type": "Asset",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Withholding Tax Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "account_type": "Payable",
+    "parent_account": "Duties and Taxes - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "HESLB Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "NHIF Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "NSSF Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "PAYE Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "SDL Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "WCF Payable",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Payroll Liabilities - {abbr}",
+    "root_type": "Liability",
+    "report_type": "Balance Sheet"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "Bank Charges TZS",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Bank Charges - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "WCF Expense",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Employment Costs - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "SDL Expense",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Employment Costs - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "NSSF Expense",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Employment Costs - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "NHIF Expense",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Employment Costs - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  },
+  {
+    "doctype": "Account",
+    "account_name": "HESLB Expense",
+    "company": "{company}",
+    "account_currency": "TZS",
+    "parent_account": "Employment Costs - {abbr}",
+    "root_type": "Expense",
+    "report_type": "Profit and Loss"
+  }
+]
