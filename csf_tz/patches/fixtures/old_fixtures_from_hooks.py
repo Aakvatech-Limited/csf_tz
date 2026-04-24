@@ -171,7 +171,6 @@ fixtures = [
                     "Customer-main-search_fields",
                     "Customer-tax_id-label",
                     "Delivery Note-items-allow_bulk_edit",
-                    "Document Attachment-attachment-in_list_view",
                     "Energy Point Log-main-track_changes",
                     "Healthcare Insurance Claim-main-track_changes",
                     "Healthcare Service Order-main-track_changes",

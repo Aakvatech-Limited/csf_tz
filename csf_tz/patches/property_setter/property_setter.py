@@ -286,13 +286,6 @@ def execute():
                 "value": "task_name"
             },
             {
-                "doctype": "Document Attachment",
-                "field_name": "attachment",
-                "property": "in_list_view",
-                "property_type": "Check",
-                "value": "1"
-            },
-            {
                 "doctype": "Operation",
                 "property": "image_field",
                 "property_type": "Data",
