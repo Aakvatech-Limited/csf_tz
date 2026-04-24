@@ -234,9 +234,6 @@ doc_events = {
     "Student Applicant": {
         "on_update_after_submit": "csf_tz.csftz_hooks.student_applicant.make_student_applicant_fees",
     },
-    "Custom DocPerm": {
-        "validate": "csf_tz.csftz_hooks.custom_docperm.grant_dependant_access",
-    },
     "Payroll Entry": {
         "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
         "before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
