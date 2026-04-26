@@ -284,6 +284,9 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
+    "cron": { 
+        "0 */6 * * *": [
+            "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
     "cron": {
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
@@ -292,7 +295,6 @@ scheduler_events = {
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
         ],
         "*/15 * * * *": [
-            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.reset_cycle",
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
@@ -318,8 +320,6 @@ scheduler_events = {
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
         "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
-        "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.seed_vehicle_sync_queue",
-
     ],
     # "hourly": [
     # 	"csf_tz.tasks.hourly"
