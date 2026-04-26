@@ -285,9 +285,6 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
-    "cron": { 
-        "0 */6 * * *": [
-            "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
     "cron": {
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
