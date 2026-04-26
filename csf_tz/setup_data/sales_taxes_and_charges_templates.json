@@ -1,0 +1,58 @@
+[
+  {
+    "doctype": "Sales Taxes and Charges Template",
+    "title": "Zero Rated",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Sales Taxes and Charges",
+        "charge_type": "Actual",
+        "description": "Output VAT",
+        "account_head": "Output VAT - {abbr}",
+        "cost_center": "Main - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Sales Taxes and Charges Template",
+    "title": "Special Rate",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Sales Taxes and Charges",
+        "charge_type": "Actual",
+        "description": "Output VAT",
+        "account_head": "Output VAT - {abbr}",
+        "cost_center": "Main - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Sales Taxes and Charges Template",
+    "title": "Special Relief",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Sales Taxes and Charges",
+        "charge_type": "Actual",
+        "description": "Output VAT",
+        "account_head": "Output VAT - {abbr}",
+        "cost_center": "Main - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Sales Taxes and Charges Template",
+    "title": "Standard (18%)",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Sales Taxes and Charges",
+        "charge_type": "On Net Total",
+        "description": "VAT @ 18.0",
+        "account_head": "Output VAT - {abbr}",
+        "cost_center": "Main - {abbr}"
+      }
+    ]
+  }
+]

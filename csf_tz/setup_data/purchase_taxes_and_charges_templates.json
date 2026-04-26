@@ -1,0 +1,87 @@
+[
+  {
+    "doctype": "Purchase Taxes and Charges Template",
+    "title": "Special Relief",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Purchase Taxes and Charges",
+        "charge_type": "On Net Total",
+        "category": "Total",
+        "add_deduct_tax": "Add",
+        "description": "Input VAT",
+        "account_head": "Input VAT - {abbr}",
+        "cost_center": "Main - {abbr}",
+        "account_currency": "TZS"
+      }
+    ]
+  },
+  {
+    "doctype": "Purchase Taxes and Charges Template",
+    "title": "Special Rate",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Purchase Taxes and Charges",
+        "charge_type": "On Net Total",
+        "category": "Total",
+        "add_deduct_tax": "Add",
+        "description": "Input VAT",
+        "account_head": "Input VAT - {abbr}",
+        "cost_center": "Main - {abbr}",
+        "account_currency": "TZS"
+      }
+    ]
+  },
+  {
+    "doctype": "Purchase Taxes and Charges Template",
+    "title": "Exempt",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Purchase Taxes and Charges",
+        "charge_type": "On Net Total",
+        "category": "Total",
+        "add_deduct_tax": "Add",
+        "description": "Input VAT",
+        "account_head": "Input VAT - {abbr}",
+        "cost_center": "Main - {abbr}",
+        "account_currency": "TZS"
+      }
+    ]
+  },
+  {
+    "doctype": "Purchase Taxes and Charges Template",
+    "title": "Standard (18%)",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Purchase Taxes and Charges",
+        "charge_type": "On Net Total",
+        "category": "Total",
+        "add_deduct_tax": "Add",
+        "description": "Input VAT",
+        "account_head": "Input VAT - {abbr}",
+        "cost_center": "Main - {abbr}",
+        "account_currency": "TZS"
+      }
+    ]
+  },
+  {
+    "doctype": "Purchase Taxes and Charges Template",
+    "title": "Zero Rated",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Purchase Taxes and Charges",
+        "charge_type": "On Net Total",
+        "category": "Total",
+        "add_deduct_tax": "Add",
+        "description": "Input VAT",
+        "account_head": "Input VAT - {abbr}",
+        "cost_center": "Main - {abbr}",
+        "account_currency": "TZS"
+      }
+    ]
+  }
+]

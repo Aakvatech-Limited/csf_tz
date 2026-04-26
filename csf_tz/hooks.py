@@ -122,6 +122,7 @@ after_install = [
     "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
+    "csf_tz.utils.setup.execute",
 ]
 
 after_migrate = [

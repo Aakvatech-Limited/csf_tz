@@ -1,0 +1,192 @@
+[
+  {
+    "doctype": "Salary Structure",
+    "name": "TZ Standard",
+    "company": "{company}",
+    "currency": "TZS",
+    "payroll_frequency": "Monthly",
+    "is_active": "Yes",
+    "earnings": [
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Basic",
+        "abbr": "B",
+        "formula": "base",
+        "amount_based_on_formula": 1,
+        "depends_on_payment_days": 1,
+        "is_tax_applicable": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NSSF Expense",
+        "abbr": "NSSFExp",
+        "formula": "gross_pay*0.1",
+        "condition": "deduct_nssf == 1",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NHIF Expense",
+        "abbr": "NSSFExp_1",
+        "formula": "base * 0.03 if (base >= 666666.667) else 20000",
+        "condition": "custom_deduct_nhif == 1",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "WCF Expense",
+        "abbr": "WCFExp",
+        "formula": "gross_pay*0.005",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "SDL Expense",
+        "abbr": "SDLExp",
+        "formula": "gross_pay*0.035",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "HESLB Expense",
+        "abbr": "HESLBExp",
+        "formula": "gross_pay*0.15",
+        "condition": "custom_deduct_heslb == 1",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Duty Allowance",
+        "abbr": "DA",
+        "formula": "custom_duty_allowance",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Housing Allowance",
+        "abbr": "HA",
+        "formula": "custom_housing_allowance",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Transport Allowance",
+        "abbr": "TA",
+        "formula": "custom_transport_allowance",
+        "amount_based_on_formula": 1
+      }
+    ],
+    "deductions": [
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Mid Month Advance",
+        "abbr": "MMA",
+        "formula": "custom_mid_month_advance",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NSSF Employer",
+        "abbr": "NSSFE",
+        "formula": "gross_pay*0.1",
+        "condition": "deduct_nssf == 1",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NSSF Employee",
+        "abbr": "NSSFEmp",
+        "formula": "gross_pay*0.1",
+        "condition": "deduct_nssf == 1",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NHIF Employer",
+        "abbr": "NHIFE",
+        "formula": "base * 0.03 if (base >= 666666.667) else 20000",
+        "condition": "custom_deduct_nhif == 1",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "NHIF Employee",
+        "abbr": "NHIFEmp",
+        "formula": "base * 0.03 if (base >= 666666.667) else 20000",
+        "condition": "custom_deduct_nhif == 1",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "Taxable Income",
+        "abbr": "TI",
+        "formula": "gross_pay - NSSFEmp",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1,
+        "statistical_component": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "WCF Payable",
+        "abbr": "WCFP",
+        "formula": "gross_pay*0.005",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "SDL Payable",
+        "abbr": "SDLP",
+        "formula": "gross_pay*0.035",
+        "amount_based_on_formula": 1,
+        "do_not_include_in_total": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "HESLB Payable",
+        "abbr": "HP",
+        "formula": "gross_pay*0.15",
+        "condition": "custom_deduct_heslb == 1",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "PAYE Payable",
+        "abbr": "PAYEP",
+        "formula": "((TI) - 270000) * 0.08",
+        "condition": "(TI >= 270000) and (TI < 520000)",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "PAYE Payable",
+        "abbr": "PAYEP",
+        "formula": "((TI - 520000) * 0.2) + 20000",
+        "condition": "(TI >= 520000) and (TI < 760000)",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "PAYE Payable",
+        "abbr": "PAYEP",
+        "formula": "((TI - 760000) * 0.25) + 68000",
+        "condition": "(TI >= 760000) and (TI < 1000000)",
+        "amount_based_on_formula": 1
+      },
+      {
+        "doctype": "Salary Detail",
+        "salary_component": "PAYE Payable",
+        "abbr": "PAYEP",
+        "formula": "((TI - 1000000) * 0.3) + 128000",
+        "condition": "(TI >= 1000000)",
+        "amount_based_on_formula": 1
+      }
+    ]
+  }
+]

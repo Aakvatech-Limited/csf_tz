@@ -943,7 +943,27 @@ def execute():
             }
         ]
     }
-    fields = {doctype: values for doctype, values in fields.items() if frappe.db.exists("DocType", doctype)}
+    valid_fields = {}
+    for doctype, values in fields.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+
+        filtered_values = []
+        for value in values:
+            if value.get("fieldtype") == "Link" and value.get("options"):
+                if not frappe.db.exists("DocType", value["options"]):
+                    frappe.logger().warning(
+                        f"Skipping custom field {doctype}.{value.get('fieldname')} because Link options "
+                        f"{value['options']} do not exist."
+                    )
+                    continue
+
+            filtered_values.append(value)
+
+        if filtered_values:
+            valid_fields[doctype] = filtered_values
+
+    fields = valid_fields
     if not fields:
         return
 

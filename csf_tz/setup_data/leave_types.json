@@ -1,0 +1,50 @@
+[
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Annual Leave",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "expire_carry_forwarded_leaves_after_days": 180,
+    "max_leaves_allowed": 28.0,
+    "maximum_carry_forwarded_leaves": 28.0,
+    "rounding": "0.25"
+  },
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Sick Leave Full",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "max_leaves_allowed": 63.0
+  },
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Sick Leave Half",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "max_leaves_allowed": 63.0
+  },
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Compassionate Leave",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "max_leaves_allowed": 4.0,
+    "rounding": "0.5"
+  },
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Paternity Leave",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "max_leaves_allowed": 3.0,
+    "rounding": "0.5"
+  },
+  {
+    "doctype": "Leave Type",
+    "leave_type_name": "Maternity Leave",
+    "allocate_on_day": "Last Day",
+    "earned_leave_frequency": "Monthly",
+    "max_leaves_allowed": 100.0,
+    "rounding": "0.5"
+  }
+]
