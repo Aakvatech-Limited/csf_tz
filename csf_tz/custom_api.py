@@ -1749,23 +1749,6 @@ def make_withholding_tax_gl_entries_for_sales(doc, method):
         frappe.msgprint(_(si_msgprint))
 
 
-# Email Salary Slip
-@frappe.whitelist()
-def get_payroll_employees(payroll_entry):
-    employees = frappe.db.sql(
-        f""" SELECT employee FROM `tabPayroll Employee Detail` WHERE parent='{payroll_entry}' """,
-        as_dict=True,
-    )
-    return employees
-
-
-@frappe.whitelist()
-def validate_payroll_entry_field(payroll_entry):
-    payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
-    if payroll_entry.docstatus != 1:
-        return False
-
-
 def auto_close_dn():
     """
     Mark delivery note as closed per customer, depending on the days specified on customer
