@@ -24,6 +24,7 @@ This repository contains the customizations and configurations necessary to adap
 
 * **Stock Management Tools** \- Utilise the Item Barcode Update Tool for precise inventory control.  
 * **Inter-Company Stock Transfers** \- Simplify stock movements between branches or entities with the Inter Company Stock Transfer feature.
+* **Stock Management Tools** \- Utilise the Item Barcode Update Tool and Dynamic Price List Assignment for precise inventory control.  
 
 ### **Comprehensive Payroll and HR Management**
 
