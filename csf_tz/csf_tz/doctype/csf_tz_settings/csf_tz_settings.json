@@ -23,7 +23,6 @@
   "allow_batch_splitting",
   "item_qty_poppup_message",
   "validate_grand_total_vs_payment_amount_on_sales_invoice",
-  "target_warehouse_based_price_list",
   "enable_write_off_jv_si",
   "auto_stock_reconciliation",
   "enable_write_off_jv_pi",
@@ -218,12 +217,6 @@
    "fieldname": "override_fetch_shift_details",
    "fieldtype": "Check",
    "label": "Override Fetch Shift Details"
-  },
-  {
-   "default": "0",
-   "fieldname": "target_warehouse_based_price_list",
-   "fieldtype": "Check",
-   "label": "Enable Target Warehouse Based Buying Price List"
   },
   {
    "default": "0",
