@@ -208,6 +208,7 @@ doc_events = {
         "validate": ["csf_tz.custom_api.target_warehouse_based_price_list",
                      "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
         ],
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Material Request": {
         "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
@@ -290,9 +291,6 @@ scheduler_events = {
     "cron": {
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
-        ],
-        "0 */6 * * *": [
-            "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
         ],
         "0 */2 * * *": [
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",

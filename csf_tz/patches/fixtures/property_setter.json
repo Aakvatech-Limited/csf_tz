@@ -715,23 +715,6 @@
   },
   {
     "default_value": null,
-    "doc_type": "Document Attachment",
-    "docstatus": 0,
-    "doctype": "Property Setter",
-    "doctype_or_field": "DocField",
-    "field_name": "attachment",
-    "modified": "2020-10-26 15:43:41.704785",
-    "name": "Document Attachment-attachment-in_list_view",
-    "parent": null,
-    "parentfield": null,
-    "parenttype": null,
-    "property": "in_list_view",
-    "property_type": "Check",
-    "row_name": null,
-    "value": "1"
-  },
-  {
-    "default_value": null,
     "doc_type": "Operation",
     "docstatus": 0,
     "doctype": "Property Setter",
