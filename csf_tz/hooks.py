@@ -241,11 +241,7 @@ doc_events = {
         "before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
     },
     "Salary Slip": {
-        "before_insert": [
-            "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
-            "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_insert",
-        ],
-        "before_save": "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_update",
+        "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
     },
     "Attendance": {
         "validate": "csf_tz.csftz_hooks.attendance.process_overtime",
