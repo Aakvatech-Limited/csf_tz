@@ -5,6 +5,5 @@ Meal Count
 Stanbic
 KCB
 Trade In
-Feedback
 VFD Providers
 VFD Settings
