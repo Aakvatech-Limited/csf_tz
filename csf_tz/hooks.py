@@ -286,9 +286,6 @@ scheduler_events = {
     # 	"csf_tz.tasks.all"
     # ],
     "cron": {
-        "* * * * *": [
-            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
-        ],
         "0 */2 * * *": [
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
         ],
