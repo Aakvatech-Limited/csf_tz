@@ -89,18 +89,6 @@ def get_data():
 					"doctype": "Sales Invoice",
 					"is_query_report": True
 				},
-				{
-					"type": "report",
-					"name": "Purchase Reports by Tax Category",
-					"doctype": "Purchase Invoice",
-					"is_query_report": True
-				},
-				{
-					"type": "report",
-					"name": "Purchases by Tax Category Summary",
-					"doctype": "Purchase Invoice",
-					"is_query_report": True
-				},
 			],
 		},
 		{

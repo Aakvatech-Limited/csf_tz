@@ -712,6 +712,20 @@
     "property_type": "Check",
     "row_name": null,
     "value": "1"
+    "doc_type": "Piecework Type",
+    "docstatus": 0,
+    "doctype": "Property Setter",
+    "doctype_or_field": "DocType",
+    "field_name": null,
+    "modified": "2021-02-12 13:14:23.468895",
+    "name": "Piecework Type-search_fields",
+    "parent": null,
+    "parentfield": null,
+    "parenttype": null,
+    "property": "search_fields",
+    "property_type": "Data",
+    "row_name": null,
+    "value": "task_name"
   },
   {
     "default_value": null,

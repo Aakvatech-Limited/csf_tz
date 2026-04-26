@@ -41,14 +41,12 @@ doctype_js = {
     "Payment Entry": "csf_tz/payment_entry.js",
     "Sales Invoice": [
         "csf_tz/sales_invoice.js",
-        "authotp/api/sales_invoice.js",
         "vfd_support/sales_invoice.js",
     ],
     "Sales Order": "csf_tz/sales_order.js",
     "Delivery Note": "csf_tz/delivery_note.js",
     "Customer": [
         "csf_tz/customer.js",
-        "authotp/api/customer.js",
         "vfd_support/customer.js",
     ],
     "Supplier": "csf_tz/supplier.js",
@@ -119,7 +117,6 @@ after_install = [
     "csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
     "csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
-    "csf_tz.patches.custom_fields.auth_otp_custom_fields.execute",
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
     "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
     "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
@@ -165,7 +162,6 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",
-            "csf_tz.authotp.api.sales_invoice.before_submit",
             "csf_tz.vfd_support.sales_invoice.vfd_validation",
         ],
         "on_submit": [
@@ -209,9 +205,10 @@ doc_events = {
         "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
+        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list",
                      "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
         ],
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Material Request": {
         "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
@@ -238,20 +235,13 @@ doc_events = {
     "Student Applicant": {
         "on_update_after_submit": "csf_tz.csftz_hooks.student_applicant.make_student_applicant_fees",
     },
-    "Custom DocPerm": {
-        "validate": "csf_tz.csftz_hooks.custom_docperm.grant_dependant_access",
-    },
     "Payroll Entry": {
         "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
         "before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
         "before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
     },
     "Salary Slip": {
-        "before_insert": [
-            "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
-            "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_insert",
-        ],
-        "before_save": "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_update",
+        "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
     },
     "Attendance": {
         "validate": "csf_tz.csftz_hooks.attendance.process_overtime",
@@ -294,12 +284,9 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
-    "cron": { 
+    "cron": {
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
-        ],
-        "0 */6 * * *": [
-            "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
         ],
         "0 */2 * * *": [
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",

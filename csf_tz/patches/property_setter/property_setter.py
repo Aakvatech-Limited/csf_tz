@@ -285,6 +285,10 @@ def execute():
                 "property": "in_list_view",
                 "property_type": "Check",
                 "value": "1"
+                "doctype": "Piecework Type",
+                "property": "search_fields",
+                "property_type": "Data",
+                "value": "task_name"
             },
             {
                 "doctype": "Operation",
