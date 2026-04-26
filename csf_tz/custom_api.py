@@ -1749,23 +1749,6 @@ def make_withholding_tax_gl_entries_for_sales(doc, method):
         frappe.msgprint(_(si_msgprint))
 
 
-# Email Salary Slip
-@frappe.whitelist()
-def get_payroll_employees(payroll_entry):
-    employees = frappe.db.sql(
-        f""" SELECT employee FROM `tabPayroll Employee Detail` WHERE parent='{payroll_entry}' """,
-        as_dict=True,
-    )
-    return employees
-
-
-@frappe.whitelist()
-def validate_payroll_entry_field(payroll_entry):
-    payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
-    if payroll_entry.docstatus != 1:
-        return False
-
-
 def auto_close_dn():
     """
     Mark delivery note as closed per customer, depending on the days specified on customer
@@ -2728,39 +2711,6 @@ def make_salary_components_and_structure(abbr ):
     else:
         frappe.msgprint('Salary Components and Structure are already created.')
 
-
-def target_warehouse_based_price_list(doc, method):
-    check = frappe.db.get_single_value(
-        "CSF TZ Settings", "target_warehouse_based_price_list"
-    )
-    if check:
-        for item in doc.items:
-            if item.item_code is None or item.warehouse is None:
-                frappe.throw(
-                    f"Both Item Code {item.item_code} and Warehouse {item.warehouse} are required."
-                )
-            price_list = frappe.db.get_value(
-                "Dynamic Price List Assignment",
-                {"supplier": doc.supplier, "warehouse": item.warehouse},
-                "price_list",
-            )
-            if not price_list:
-                frappe.throw(
-                    f"Price List not found. Please create one in Dynamic Price List Assignment for Supplier {doc.supplier} and Warehouse {item.warehouse}"
-                )
-
-            rate = frappe.db.get_value(
-                "Item Price",
-                {"item_code": item.item_code, "price_list": price_list},
-                "price_list_rate",
-            )
-            if not rate:
-                frappe.throw(
-                    f"Price List not found for Item {item.item_code}. Please create one."
-                )
-            item.price_list_rate = rate
-            item.rate = rate
-            item.amount = item.qty * rate
 
 @frappe.whitelist()
 def get_item_prices_custom_po(filters=None, start=0, limit=20):
