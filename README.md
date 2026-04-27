@@ -22,8 +22,6 @@ This repository contains the customizations and configurations necessary to adap
 
 ### **Enhanced Inventory and Stock Management**
 
-* **Stock Management Tools** \- Utilise the Item Barcode Update Tool for precise inventory control.  
-
 ### **Comprehensive Payroll and HR Management**
 
 * **Employee Data and Payroll** \- Manage payroll and employee data changes with features like Employee Data Change Request.  

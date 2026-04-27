@@ -157,9 +157,6 @@ after_migrate = [
 # Hook on document methods and events
 
 doc_events = {
-    "Open Invoice Exchange Rate Revaluation": {
-        "validate": "csf_tz.custom_api.getInvoiceExchangeRate"
-    },
     "Sales Invoice": {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",

@@ -20,16 +20,6 @@ def get_data():
 			],
 		},
 		{
-			"label": _("Corporate Compliance"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Open Invoice Exchange Rate Revaluation",
-					"description": _("Open Invoice Exchange Rate Revaluation for period end P & L visibility."),
-				},
-			],
-		},
-		{
 			"label": _("Tax Analytics"),
 			"items": [
 				{
