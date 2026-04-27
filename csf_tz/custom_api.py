@@ -422,32 +422,6 @@ def get_item_prices_custom(filters=None, start=0, limit=20):
 
 
 @frappe.whitelist()
-def get_repack_template(template_name, qty):
-    template_doc = frappe.get_doc("Repack Template", template_name)
-    rows = []
-    rows.append(
-        {
-            "item_code": template_doc.item_code,
-            "item_uom": template_doc.item_uom,
-            "qty": cint(qty),
-            "item_template": 1,
-            "s_warehouse": template_doc.default_warehouse,
-        }
-    )
-    for i in template_doc.repack_template_details:
-        rows.append(
-            {
-                "item_code": i.item_code,
-                "item_uom": i.item_uom,
-                "qty": cint(float(i.qty / template_doc.qty) * float(qty)),
-                "item_template": 0,
-                "t_warehouse": i.default_target_warehouse,
-            }
-        )
-    return rows
-
-
-@frappe.whitelist()
 def create_delivery_note(doc=None, method=None, doc_name=None):
     if not doc:
         doc = frappe.get_doc("Sales Invoice", doc_name)

@@ -135,16 +135,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Other features"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Repack Template",
-					"description": _("Quick BOM feature for repacking. Making many items of one item"),
-				},
-			],
-		},
-		{
 			"label": _("Settings"),
 			"items": [
 				{

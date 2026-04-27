@@ -678,31 +678,6 @@ def execute():
         ],
         "Stock Entry":[
             {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fieldname": "repack_template",
-                "fieldtype": "Link",
-                "insert_after": "purchase_receipt_no",
-                "label": "Repack Template",
-                "options": "Repack Template"
-            },
-            {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fetch_from": "repack_template.item_uom",
-                "fieldname": "item_uom",
-                "fieldtype": "Data",
-                "insert_after": "repack_template",
-                "label": "Item UOM",
-                "read_only": 1,
-                "translatable": 1
-            },
-            {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fieldname": "repack_qty",
-                "fieldtype": "Float",
-                "insert_after": "item_uom",
-                "label": "Repack Qty",
-            },
-            {
                 "depends_on": "eval: doc.stock_entry_type == \"Send to Warehouse\"",
                 "fieldname": "final_destination",
                 "fieldtype": "Select",

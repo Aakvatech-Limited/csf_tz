@@ -398,13 +398,6 @@ def execute():
                 "value": "1"
             },
             {
-                "doctype": "Stock Entry",
-                "field_name": "from_warehouse",
-                "property": "fetch_from",
-                "property_type": "Small Text",
-                "value": "repack_template.default_warehouse"
-            },
-            {
                 "doctype": "Payment Schedule",
                 "field_name": "payment_amount",
                 "property": "options",

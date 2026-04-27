@@ -987,23 +987,6 @@
   },
   {
     "default_value": null,
-    "doc_type": "Stock Entry",
-    "docstatus": 0,
-    "doctype": "Property Setter",
-    "doctype_or_field": "DocField",
-    "field_name": "from_warehouse",
-    "modified": "2020-06-23 16:15:02.913991",
-    "name": "Stock Entry-from_warehouse-fetch_from",
-    "parent": null,
-    "parentfield": null,
-    "parenttype": null,
-    "property": "fetch_from",
-    "property_type": "Small Text",
-    "row_name": null,
-    "value": "repack_template.default_warehouse"
-  },
-  {
-    "default_value": null,
     "doc_type": "Payment Schedule",
     "docstatus": 0,
     "doctype": "Property Setter",
