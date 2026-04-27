@@ -319,13 +319,6 @@ def execute():
         ],
         "Journal Entry":[
             {
-                "fieldname": "expense_record",
-                "fieldtype": "Link",
-                "label": "Expense Record",
-                "options": "Expense Record",
-                "read_only": 1
-            },
-            {
                 "allow_on_submit": 1,
                 "fieldname": "import_file",
                 "fieldtype": "Link",
@@ -455,14 +448,6 @@ def execute():
             },
         ],
         "Purchase Invoice":[
-            {
-                "fieldname": "expense_record",
-                "fieldtype": "Link",
-                "insert_after": "amended_from",
-                "label": "Expense Record",
-                "options": "Expense Record",
-                "read_only": 1
-            },
             {
                 "fieldname": "reference",
                 "fieldtype": "Section Break",

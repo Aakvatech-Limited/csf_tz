@@ -30,21 +30,6 @@ def get_data():
 			],
 		},
 		{
-			"label": _("Petty Expense"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Expense Record",
-					"description": _("Petty expenses for Section. Intelligent expense transactions."),
-				},
-				{
-					"type": "doctype",
-					"name": "Expense Type",
-					"description": _("Expense type to make petty expenses and linking to expense accounts."),
-				},
-			],
-		},
-		{
 			"label": _("Tax Analytics"),
 			"items": [
 				{

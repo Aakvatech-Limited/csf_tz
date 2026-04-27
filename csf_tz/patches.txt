@@ -8,7 +8,6 @@ csf_tz.patches.remove_core_doctype_custom_docperm
 csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item
 csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn
 csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary
-csf_tz.patches.custom_fields.auth_otp_custom_fields
 csf_tz.patches.custom_fields.payroll_approval_custom_fields
 csf_tz.patches.custom_fields.attendance_overtime_calculation_custom_fields
 csf_tz.patches.add_custom_fields_for_employee_advance
@@ -25,8 +24,4 @@ csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature
 csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields
 csf_tz.patches.migrate_vfd_providers_to_csf_tz
 execute:frappe.delete_doc_if_exists("Report", "Stock Ledger Mismatch")
-csf_tz.patches.delete_versions_for_vehicle_fine_record_and_parking_bill
-csf_tz.patches.remove_vehicle_sync_task_log_setting
 csf_tz.patches.remove_ot_component_custom_fields
-execute:frappe.delete_doc_if_exists("DocType", "Employee OT Component", force=True)
-execute:frappe.delete_doc_if_exists("DocType", "Salary Slip OT Component", force=True)

@@ -23,13 +23,10 @@ This repository contains the customizations and configurations necessary to adap
 ### **Enhanced Inventory and Stock Management**
 
 * **Stock Management Tools** \- Utilise the Item Barcode Update Tool for precise inventory control.  
-* **Inter-Company Stock Transfers** \- Simplify stock movements between branches or entities with the Inter Company Stock Transfer feature.
-* **Stock Management Tools** \- Utilise the Item Barcode Update Tool and Dynamic Price List Assignment for precise inventory control.  
 
 ### **Comprehensive Payroll and HR Management**
 
-* **Employee Data and Payroll** \- Manage payroll, employee data changes, and salary slip distribution with features like Employee Data Change Request and Email Salary Slips.  
-* **Piecework and Salary Disbursement** \- Customise payroll processes to include piecework payments and diverse salary components, enhancing labour management.
+* **Employee Data and Payroll** \- Manage payroll and employee data changes with features like Employee Data Change Request.  
 
 ### **Document and Record Management**
 
@@ -46,7 +43,6 @@ This repository contains the customizations and configurations necessary to adap
 
 ### **Automated Reporting and Logs**
 
-* **Scheduled Reports** \- Automate regular reports with Scheduled Auto Email Report for timely decision-making.  
 * **Operational Logs** \- Maintain comprehensive logs of critical business activities with QR Code Log and CSF API Response Log.
 
 ## **Workspace Preview**
