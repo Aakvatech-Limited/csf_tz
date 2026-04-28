@@ -86,6 +86,7 @@ def execute():
 			doc = resolve_links(doc, company, abbr)
 			existing_name = get_existing_name(spec["doctype"], doc, spec["identity_fields"])
 			if existing_name:
+				promote_to_group_if_needed(spec, existing_name, doc)
 				submit_if_needed(spec, existing_name)
 				continue
 
@@ -177,6 +178,17 @@ def get_existing_name(doctype: str, doc: dict, identity_fields: tuple[str, ...])
 		return None
 
 	return frappe.db.get_value(doctype, filters, "name", order_by="creation asc")
+
+
+def promote_to_group_if_needed(spec: dict, name: str, doc: dict):
+	if spec["doctype"] != "Account" or not doc.get("is_group"):
+		return
+	if frappe.db.get_value("Account", name, "is_group"):
+		return
+	account = frappe.get_doc("Account", name)
+	account.flags.ignore_permissions = True
+	account.is_group = 1
+	account.save()
 
 
 def submit_if_needed(spec: dict, name: str):
