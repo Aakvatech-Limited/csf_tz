@@ -132,5 +132,4 @@ def get_fine(number_plate=None, reference=None):
             doc.status = "PAID"
             doc.save()
 
-    frappe.db.commit()
     return fine_list

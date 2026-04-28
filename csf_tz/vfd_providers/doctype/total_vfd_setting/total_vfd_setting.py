@@ -191,7 +191,6 @@ def post_fiscal_receipt(
         frappe.db.set_value(
             "Sales Invoice", doc.name, "vfd_verification_url", data.get("verificationLink"),
         )
-        frappe.db.commit()
 
     return {"data": data, "vfd_provider": "TotalVFD", "preview": preview}
 

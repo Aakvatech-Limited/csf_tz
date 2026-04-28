@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Timestamp
 from frappe.utils import flt
 
 
@@ -43,7 +44,6 @@ def get_incorrect_data(data):
 
 
 def get_stock_ledger_entries(report_filters):
-    filters = {"is_cancelled": 0}
     fields = [
         "name",
         "voucher_type",
@@ -58,15 +58,21 @@ def get_stock_ledger_entries(report_filters):
         "batch_no",
     ]
 
+    sle = frappe.qb.DocType("Stock Ledger Entry")
+    query = (
+        frappe.qb.from_(sle)
+        .select(*(getattr(sle, field) for field in fields))
+        .where(sle.is_cancelled == 0)
+    )
+
     for field in ["warehouse", "item_code", "company"]:
         if report_filters.get(field):
-            filters[field] = report_filters.get(field)
+            query = query.where(getattr(sle, field) == report_filters.get(field))
 
-    return frappe.get_all(
-        "Stock Ledger Entry",
-        fields=fields,
-        filters=filters,
-        order_by="timestamp(posting_date, posting_time) asc, creation asc",
+    return (
+        query.orderby(Timestamp(sle.posting_date, sle.posting_time))
+        .orderby(sle.creation)
+        .run(as_dict=True)
     )
 
 
@@ -85,4 +91,3 @@ def process_incorrect_balance_qty():
         doc.allow_negative_stock = 1
         doc.docstatus = 1
         doc.insert(ignore_permissions=True)
-        frappe.db.commit()

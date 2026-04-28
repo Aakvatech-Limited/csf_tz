@@ -502,14 +502,15 @@ def execute():
             }
     ]
     for property in properties:
+        doctype = property.get("doctype")
+        if not doctype or not frappe.db.exists("DocType", doctype):
+            continue
         make_property_setter(
-            property.get("doctype"),
+            doctype,
             property.get("fieldname"),
             property.get("property"),
             property.get("value"),
             property.get("property_type"),
             for_doctype=False,
-            validate_fields_for_doctype=False
-    )
-
-frappe.db.commit()          
+            validate_fields_for_doctype=False,
+        )

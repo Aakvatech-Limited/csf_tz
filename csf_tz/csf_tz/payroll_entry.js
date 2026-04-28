@@ -11,7 +11,7 @@ frappe.ui.form.on("Payroll Entry", {
                 // Redirect with filter
 				const report_name = "Salary Register";
 
-				let report_url = `/app/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
+				let report_url = `/desk/query-report/${encodeURIComponent(report_name)}?from_date=${encodeURIComponent(frm.doc.start_date)}&to_date=${encodeURIComponent(frm.doc.end_date)}${frm.doc.company ? `&company=${encodeURIComponent(frm.doc.company)}` : ""}&payroll_entry=${encodeURIComponent(frm.doc.name)}`;
 
 				window.open(report_url, "_blank");
             }).addClass('btn-primary');

@@ -134,11 +134,11 @@ def get_items(filters):
 		
 		if conditions:
 			query += " AND ".join(conditions)
-			items = frappe.db.sql_list(query, filters)
-	
+			items = frappe.db.sql(query, filters, pluck="name")
+
 	# Case 3: No filters, get all items
 	else:
-		items = frappe.db.sql_list("SELECT name FROM `tabItem`")
+		items = frappe.db.sql("SELECT name FROM `tabItem`", pluck="name")
 	
 	return items
 

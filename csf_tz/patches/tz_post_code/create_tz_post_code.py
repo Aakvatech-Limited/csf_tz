@@ -48,9 +48,6 @@ def execute():
             print(error_msg)
             total_errors += 1
 
-    # Final commit
-    frappe.db.commit()
-
     print(
         f"Processing completed. Total records processed: {total_processed}, Total errors: {total_errors}"
     )
@@ -130,9 +127,6 @@ def process_json_file(
                 error_msg = f"Error processing record in {json_file_path}: {str(e)}"
                 frappe.log_error("Record Processing Error", error_msg)
                 error_count += 1
-
-        # Commit after each file
-        frappe.db.commit()
 
     except Exception as e:
         error_msg = f"Error reading JSON file {json_file_path}: {str(e)}"

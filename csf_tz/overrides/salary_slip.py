@@ -80,7 +80,7 @@ class SalarySlip(_SalarySlip):
                 "reference_doctype": self.doctype,
                 "reference_name": self.name,
             }
-            if not frappe.flags.in_test:
+            if not frappe.in_test:
                 enqueue(
                     method=frappe.sendmail,
                     queue="short",

@@ -22,5 +22,7 @@ csf_tz.patches.update_payware_settings_values_to_csf_tz_settings
 csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature
 csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields
 csf_tz.patches.migrate_vfd_providers_to_csf_tz
+csf_tz.patches.remove_stale_authotp_custom_fields
+csf_tz.patches.cleanup_invalid_v16_custom_field_links
 execute:frappe.delete_doc_if_exists("Report", "Stock Ledger Mismatch")
 csf_tz.patches.remove_ot_component_custom_fields

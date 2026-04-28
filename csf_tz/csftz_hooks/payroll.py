@@ -344,15 +344,19 @@ def get_amounts_summary(payroll_entry):
     totals_map = {}
 
     if slip_names and component_names:
-        component_totals = frappe.get_all(
-            "Salary Detail",
-            filters={
-                "parent": ("in", slip_names),
-                "salary_component": ("in", component_names),
-            },
-            fields=["salary_component", "sum(amount) as total"],
-            group_by="salary_component",
-        )
+        from frappe.query_builder.functions import Sum
+
+        SalaryDetail = frappe.qb.DocType("Salary Detail")
+        component_totals = (
+            frappe.qb.from_(SalaryDetail)
+            .select(
+                SalaryDetail.salary_component,
+                Sum(SalaryDetail.amount).as_("total"),
+            )
+            .where(SalaryDetail.parent.isin(slip_names))
+            .where(SalaryDetail.salary_component.isin(component_names))
+            .groupby(SalaryDetail.salary_component)
+        ).run(as_dict=True)
         totals_map = {row.salary_component: flt(row.total) for row in component_totals}
 
     for component in tracked_components:

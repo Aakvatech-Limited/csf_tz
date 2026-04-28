@@ -414,7 +414,7 @@
  "restrict_to_domain": "Education",
  "search_fields": "student, student_name",
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "title_field": "student_name"
 }

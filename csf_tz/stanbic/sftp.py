@@ -227,4 +227,3 @@ def process_download_files():
             print("Error processing the file", file, str(e))
         if doc_changed:
             pain_doc.save()
-            frappe.db.commit()

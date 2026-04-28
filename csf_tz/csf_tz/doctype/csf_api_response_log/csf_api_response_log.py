@@ -28,5 +28,4 @@ def add_log(
     doc.user_id = frappe.session.user
     doc.status_code = status_code or ""
     doc.save(ignore_permissions=True)
-    frappe.db.commit()
     return doc.name
