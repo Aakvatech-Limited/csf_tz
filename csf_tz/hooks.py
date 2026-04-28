@@ -41,14 +41,12 @@ doctype_js = {
     "Payment Entry": "csf_tz/payment_entry.js",
     "Sales Invoice": [
         "csf_tz/sales_invoice.js",
-        "authotp/api/sales_invoice.js",
         "vfd_support/sales_invoice.js",
     ],
     "Sales Order": "csf_tz/sales_order.js",
     "Delivery Note": "csf_tz/delivery_note.js",
     "Customer": [
         "csf_tz/customer.js",
-        "authotp/api/customer.js",
         "vfd_support/customer.js",
     ],
     "Supplier": "csf_tz/supplier.js",
@@ -115,16 +113,15 @@ doctype_list_js = {
 after_install = [
     "csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
     "csf_tz.patches.remove_stock_entry_qty_field.execute",
-    "csf_tz.patches.remove_core_doctype_custom_docperm.execute",
     "csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
     "csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
-    "csf_tz.patches.custom_fields.auth_otp_custom_fields.execute",
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
     "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
     "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
     "csf_tz.utils.create_custom_fields.execute",
     "csf_tz.utils.create_property_setter.execute",
+    "csf_tz.utils.setup.execute",
 ]
 
 after_migrate = [
@@ -159,13 +156,9 @@ after_migrate = [
 # Hook on document methods and events
 
 doc_events = {
-    "Open Invoice Exchange Rate Revaluation": {
-        "validate": "csf_tz.custom_api.getInvoiceExchangeRate"
-    },
     "Sales Invoice": {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",
-            "csf_tz.authotp.api.sales_invoice.before_submit",
             "csf_tz.vfd_support.sales_invoice.vfd_validation",
         ],
         "on_submit": [
@@ -209,9 +202,10 @@ doc_events = {
         "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
+        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list",
                      "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
         ],
+        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Material Request": {
         "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
@@ -238,20 +232,13 @@ doc_events = {
     "Student Applicant": {
         "on_update_after_submit": "csf_tz.csftz_hooks.student_applicant.make_student_applicant_fees",
     },
-    "Custom DocPerm": {
-        "validate": "csf_tz.csftz_hooks.custom_docperm.grant_dependant_access",
-    },
     "Payroll Entry": {
         "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
         "before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
         "before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
     },
     "Salary Slip": {
-        "before_insert": [
-            "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
-            "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_insert",
-        ],
-        "before_save": "csf_tz.csftz_hooks.payroll.generate_component_in_salary_slip_update",
+        "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
     },
     "Attendance": {
         "validate": "csf_tz.csftz_hooks.attendance.process_overtime",
@@ -294,18 +281,11 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
-    "cron": { 
-        "* * * * *": [
-            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
-        ],
-        "0 */6 * * *": [
-            "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
-        ],
+    "cron": {
         "0 */2 * * *": [
             "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
         ],
         "*/15 * * * *": [
-            "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.reset_cycle",
             "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
@@ -331,8 +311,6 @@ scheduler_events = {
         "csf_tz.bank_api.reconciliation",
         "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
         "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
-        "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.seed_vehicle_sync_queue",
-
     ],
     # "hourly": [
     # 	"csf_tz.tasks.hourly"

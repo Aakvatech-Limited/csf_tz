@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from erpnext.setup.utils import get_exchange_rate
 import frappe
 from frappe import _
 import frappe.permissions
@@ -44,128 +43,6 @@ def generate_qrcode(qrcode_data):
 @frappe.whitelist()
 def app_error_log(title, error):
     frappe.log(traceback.format_exc())
-
-
-@frappe.whitelist()
-def getInvoiceExchangeRate(date, currency):
-    try:
-        exchange_rate = get_exchange_rate(
-            currency, frappe.defaults.get_global_default("currency"), str(date)
-        )
-        return exchange_rate
-
-    except Exception as e:
-        error_log = app_error_log(frappe.session.user, str(e))
-
-
-@frappe.whitelist()
-def getInvoice(currency, name):
-    try:
-        doc = frappe.get_doc("Open Invoice Exchange Rate Revaluation", name)
-        # company_currency = frappe.get_value("Company",doc.company,"default_currency")
-        sinv_details = frappe.get_all(
-            "Sales Invoice",
-            filters=[
-                ["Sales Invoice", "currency", "=", str(currency)],
-                ["Sales Invoice", "party_account_currency", "!=", str(currency)],
-                ["Sales Invoice", "company", "=", doc.company],
-                ["Sales Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "customer",
-            ],
-        )
-        pinv_details = frappe.get_all(
-            "Purchase Invoice",
-            filters=[
-                ["Purchase Invoice", "currency", "=", str(currency)],
-                ["Purchase Invoice", "party_account_currency", "!=", str(currency)],
-                ["Purchase Invoice", "company", "=", doc.company],
-                ["Purchase Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "supplier",
-            ],
-        )
-        doc.inv_err_detail = []
-        doc.save()
-        if sinv_details:
-            count = 1
-            for sinv in sinv_details:
-                if not flt(sinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        sinv.name,
-                        "Sales Invoice",
-                        sinv.conversion_rate,
-                        sinv.currency,
-                        sinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        if pinv_details:
-            for pinv in pinv_details:
-                if not flt(pinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        pinv.name,
-                        "Purchase Invoice",
-                        pinv.conversion_rate,
-                        pinv.currency,
-                        pinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        return sinv_details
-
-    except Exception as e:
-        app_error_log(frappe.session.user, str(e))
-
-
-def addChildItem(
-    name,
-    inv_no,
-    invoice_type,
-    invoice_exchange_rate,
-    invoice_currency,
-    invoice_amount,
-    current_exchange,
-    idx,
-):
-    gain_loss = (flt(invoice_amount) * flt(invoice_exchange_rate)) - (
-        flt(invoice_amount) * flt(current_exchange)
-    )
-    child_doc = frappe.get_doc(
-        dict(
-            doctype="Inv ERR Detail",
-            parent=name,
-            parenttype="Open Invoice Exchange Rate Revaluation",
-            parentfield="inv_err_detail",
-            invoice_number=inv_no,
-            invoice_type=invoice_type,
-            invoice_exchange_rate=invoice_exchange_rate,
-            invoice_currency=invoice_currency,
-            invoice_gain_or_loss=gain_loss,
-            invoice_amount=invoice_amount,
-            idx=idx,
-        )
-    ).insert()
 
 
 @frappe.whitelist()
@@ -419,32 +296,6 @@ def get_item_prices_custom(filters=None, start=0, limit=20):
         elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
             prices_list.append(item_dict)
     return prices_list
-
-
-@frappe.whitelist()
-def get_repack_template(template_name, qty):
-    template_doc = frappe.get_doc("Repack Template", template_name)
-    rows = []
-    rows.append(
-        {
-            "item_code": template_doc.item_code,
-            "item_uom": template_doc.item_uom,
-            "qty": cint(qty),
-            "item_template": 1,
-            "s_warehouse": template_doc.default_warehouse,
-        }
-    )
-    for i in template_doc.repack_template_details:
-        rows.append(
-            {
-                "item_code": i.item_code,
-                "item_uom": i.item_uom,
-                "qty": cint(float(i.qty / template_doc.qty) * float(qty)),
-                "item_template": 0,
-                "t_warehouse": i.default_target_warehouse,
-            }
-        )
-    return rows
 
 
 @frappe.whitelist()
@@ -1749,23 +1600,6 @@ def make_withholding_tax_gl_entries_for_sales(doc, method):
         frappe.msgprint(_(si_msgprint))
 
 
-# Email Salary Slip
-@frappe.whitelist()
-def get_payroll_employees(payroll_entry):
-    employees = frappe.db.sql(
-        f""" SELECT employee FROM `tabPayroll Employee Detail` WHERE parent='{payroll_entry}' """,
-        as_dict=True,
-    )
-    return employees
-
-
-@frappe.whitelist()
-def validate_payroll_entry_field(payroll_entry):
-    payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
-    if payroll_entry.docstatus != 1:
-        return False
-
-
 def auto_close_dn():
     """
     Mark delivery note as closed per customer, depending on the days specified on customer
@@ -2728,39 +2562,6 @@ def make_salary_components_and_structure(abbr ):
     else:
         frappe.msgprint('Salary Components and Structure are already created.')
 
-
-def target_warehouse_based_price_list(doc, method):
-    check = frappe.db.get_single_value(
-        "CSF TZ Settings", "target_warehouse_based_price_list"
-    )
-    if check:
-        for item in doc.items:
-            if item.item_code is None or item.warehouse is None:
-                frappe.throw(
-                    f"Both Item Code {item.item_code} and Warehouse {item.warehouse} are required."
-                )
-            price_list = frappe.db.get_value(
-                "Dynamic Price List Assignment",
-                {"supplier": doc.supplier, "warehouse": item.warehouse},
-                "price_list",
-            )
-            if not price_list:
-                frappe.throw(
-                    f"Price List not found. Please create one in Dynamic Price List Assignment for Supplier {doc.supplier} and Warehouse {item.warehouse}"
-                )
-
-            rate = frappe.db.get_value(
-                "Item Price",
-                {"item_code": item.item_code, "price_list": price_list},
-                "price_list_rate",
-            )
-            if not rate:
-                frappe.throw(
-                    f"Price List not found for Item {item.item_code}. Please create one."
-                )
-            item.price_list_rate = rate
-            item.rate = rate
-            item.amount = item.qty * rate
 
 @frappe.whitelist()
 def get_item_prices_custom_po(filters=None, start=0, limit=20):

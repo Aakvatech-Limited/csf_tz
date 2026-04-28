@@ -22,17 +22,12 @@ This repository contains the customizations and configurations necessary to adap
 
 ### **Enhanced Inventory and Stock Management**
 
-* **Stock Management Tools** \- Utilise the Item Barcode Update Tool and Dynamic Price List Assignment for precise inventory control.  
-* **Inter-Company Stock Transfers** \- Simplify stock movements between branches or entities with the Inter Company Stock Transfer feature.
-
 ### **Comprehensive Payroll and HR Management**
 
-* **Employee Data and Payroll** \- Manage payroll, employee data changes, and salary slip distribution with features like Employee Data Change Request and Email Salary Slips.  
-* **Piecework and Salary Disbursement** \- Customise payroll processes to include piecework payments and diverse salary components, enhancing labour management.
+* **Employee Data and Payroll** \- Manage payroll and employee data changes with features like Employee Data Change Request.  
 
 ### **Document and Record Management**
 
-* **Secure Document Handling** \- Manage document attachments securely with Attachment Type and File Attachment features, ensuring safe storage and retrieval.  
 * **Visitor and Vehicle Management** \- Efficiently track visitors and manage vehicle-related activities with Visitors Registration Card, Vehicle Fine Record, and Vehicle Service Log.
 
 ### **Localised Data and Settings**
@@ -43,11 +38,9 @@ This repository contains the customizations and configurations necessary to adap
 ### **Project and Maintenance Management**
 
 * **Project Tracking** \- Manage projects with tools like Mokasi Project, Mokasi Equipment Name, and Mokasi Activity, ideal for project-based businesses.  
-* **Maintenance Services** \- Track and manage maintenance requests and services with Maintenance Request and Maintenance Services Table.
 
 ### **Automated Reporting and Logs**
 
-* **Scheduled Reports** \- Automate regular reports with Scheduled Auto Email Report for timely decision-making.  
 * **Operational Logs** \- Maintain comprehensive logs of critical business activities with QR Code Log and CSF API Response Log.
 
 ## **Workspace Preview**
