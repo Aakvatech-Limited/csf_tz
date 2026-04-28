@@ -171,4 +171,3 @@ def set_negative_rates_for_items():
         frappe.log_error(message=str(e), title="Error Setting Allow Negative Rates for Items")
         print(f"An error occurred: {e}")
 
-

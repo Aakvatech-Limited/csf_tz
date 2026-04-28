@@ -120,14 +120,16 @@ def get_repayments(filters):
 
 	repayments_from_salaries = frappe.get_all("Loan Repayment", 
 		filters={"loan_type": "Staff Loan", "repay_from_salary": 1, "docstatus": 1, "applicant": employee},
-		fields=["Distinct(against_loan) as against_loan"],
-		order_by="posting_date"
+		fields=["against_loan"],
+		order_by="posting_date",
+		distinct=True,
 	)
 
 	repayments_not_from_salaries = frappe.get_all("Loan Repayment", 
 		filters={"loan_type": "Staff Loan", "repay_from_salary": 0, "docstatus": 1, "applicant": employee},
-		fields=["Distinct(against_loan) as against_loan"],
-		order_by="posting_date"
+		fields=["against_loan"],
+		order_by="posting_date",
+		distinct=True,
 	)
 	
 	all_repayments = repayments_from_salaries + repayments_not_from_salaries
