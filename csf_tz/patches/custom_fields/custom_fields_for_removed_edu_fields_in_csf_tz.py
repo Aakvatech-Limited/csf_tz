@@ -267,19 +267,6 @@ def execute():
                 "precision": "",
                 "translatable": 1
             },
-            {
-                "fieldname": "employee_salary_component_limits",
-                "fieldtype": "Section Break",
-                "insert_after": "heslb_f4_index_number",
-                "label": "Employee Salary Component Limits",
-            },
-            {
-                "fieldname": "employee_salary_component_limit",
-                "fieldtype": "Table",
-                "insert_after": "employee_salary_component_limits",
-                "label": "Employee Salary Component Limit",
-                "options": "Employee Salary Component Limit"
-            },
         ],
         "Item":[
             {

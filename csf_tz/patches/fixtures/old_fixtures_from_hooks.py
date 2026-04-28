@@ -136,8 +136,6 @@ fixtures = [
                     "Vehicle Service-spare_name",
                     "Fees-base_grand_total",
                     "Fees-advance_paid",
-                    "Employee-employee_salary_component_limits",
-                    "Employee-employee_salary_component_limit",
                     "Employee-heslb_f4_index_number",
                     "Sales Invoice Item-is_ignored_in_pending_qty",
                     "Sales Invoice-authotp",
