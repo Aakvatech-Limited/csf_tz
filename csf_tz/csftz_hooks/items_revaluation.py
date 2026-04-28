@@ -44,32 +44,36 @@ def get_incorrect_data(data):
 
 
 def get_stock_ledger_entries(report_filters):
+    fields = [
+        "name",
+        "voucher_type",
+        "voucher_no",
+        "item_code",
+        "actual_qty",
+        "posting_date",
+        "posting_time",
+        "company",
+        "warehouse",
+        "qty_after_transaction",
+        "batch_no",
+    ]
+
     sle = frappe.qb.DocType("Stock Ledger Entry")
     query = (
         frappe.qb.from_(sle)
-        .select(
-            sle.name,
-            sle.voucher_type,
-            sle.voucher_no,
-            sle.item_code,
-            sle.actual_qty,
-            sle.posting_date,
-            sle.posting_time,
-            sle.company,
-            sle.warehouse,
-            sle.qty_after_transaction,
-            sle.batch_no,
-        )
+        .select(*(getattr(sle, field) for field in fields))
         .where(sle.is_cancelled == 0)
-        .orderby(Timestamp(sle.posting_date, sle.posting_time))
-        .orderby(sle.creation)
     )
 
     for field in ["warehouse", "item_code", "company"]:
         if report_filters.get(field):
             query = query.where(getattr(sle, field) == report_filters.get(field))
 
-    return query.run(as_dict=True)
+    return (
+        query.orderby(Timestamp(sle.posting_date, sle.posting_time))
+        .orderby(sle.creation)
+        .run(as_dict=True)
+    )
 
 
 def process_incorrect_balance_qty():

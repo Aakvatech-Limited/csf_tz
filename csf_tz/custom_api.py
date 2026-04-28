@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from erpnext.setup.utils import get_exchange_rate
 import frappe
 from frappe import _
 import frappe.permissions
@@ -44,128 +43,6 @@ def generate_qrcode(qrcode_data):
 @frappe.whitelist()
 def app_error_log(title, error):
     frappe.log(traceback.format_exc())
-
-
-@frappe.whitelist()
-def getInvoiceExchangeRate(date, currency):
-    try:
-        exchange_rate = get_exchange_rate(
-            currency, frappe.defaults.get_global_default("currency"), str(date)
-        )
-        return exchange_rate
-
-    except Exception as e:
-        error_log = app_error_log(frappe.session.user, str(e))
-
-
-@frappe.whitelist()
-def getInvoice(currency, name):
-    try:
-        doc = frappe.get_doc("Open Invoice Exchange Rate Revaluation", name)
-        # company_currency = frappe.get_value("Company",doc.company,"default_currency")
-        sinv_details = frappe.get_all(
-            "Sales Invoice",
-            filters=[
-                ["Sales Invoice", "currency", "=", str(currency)],
-                ["Sales Invoice", "party_account_currency", "!=", str(currency)],
-                ["Sales Invoice", "company", "=", doc.company],
-                ["Sales Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "customer",
-            ],
-        )
-        pinv_details = frappe.get_all(
-            "Purchase Invoice",
-            filters=[
-                ["Purchase Invoice", "currency", "=", str(currency)],
-                ["Purchase Invoice", "party_account_currency", "!=", str(currency)],
-                ["Purchase Invoice", "company", "=", doc.company],
-                ["Purchase Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "supplier",
-            ],
-        )
-        doc.inv_err_detail = []
-        doc.save()
-        if sinv_details:
-            count = 1
-            for sinv in sinv_details:
-                if not flt(sinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        sinv.name,
-                        "Sales Invoice",
-                        sinv.conversion_rate,
-                        sinv.currency,
-                        sinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        if pinv_details:
-            for pinv in pinv_details:
-                if not flt(pinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        pinv.name,
-                        "Purchase Invoice",
-                        pinv.conversion_rate,
-                        pinv.currency,
-                        pinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        return sinv_details
-
-    except Exception as e:
-        app_error_log(frappe.session.user, str(e))
-
-
-def addChildItem(
-    name,
-    inv_no,
-    invoice_type,
-    invoice_exchange_rate,
-    invoice_currency,
-    invoice_amount,
-    current_exchange,
-    idx,
-):
-    gain_loss = (flt(invoice_amount) * flt(invoice_exchange_rate)) - (
-        flt(invoice_amount) * flt(current_exchange)
-    )
-    child_doc = frappe.get_doc(
-        dict(
-            doctype="Inv ERR Detail",
-            parent=name,
-            parenttype="Open Invoice Exchange Rate Revaluation",
-            parentfield="inv_err_detail",
-            invoice_number=inv_no,
-            invoice_type=invoice_type,
-            invoice_exchange_rate=invoice_exchange_rate,
-            invoice_currency=invoice_currency,
-            invoice_gain_or_loss=gain_loss,
-            invoice_amount=invoice_amount,
-            idx=idx,
-        )
-    ).insert()
 
 
 @frappe.whitelist()
@@ -419,32 +296,6 @@ def get_item_prices_custom(filters=None, start=0, limit=20):
         elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
             prices_list.append(item_dict)
     return prices_list
-
-
-@frappe.whitelist()
-def get_repack_template(template_name, qty):
-    template_doc = frappe.get_doc("Repack Template", template_name)
-    rows = []
-    rows.append(
-        {
-            "item_code": template_doc.item_code,
-            "item_uom": template_doc.item_uom,
-            "qty": cint(qty),
-            "item_template": 1,
-            "s_warehouse": template_doc.default_warehouse,
-        }
-    )
-    for i in template_doc.repack_template_details:
-        rows.append(
-            {
-                "item_code": i.item_code,
-                "item_uom": i.item_uom,
-                "qty": cint(float(i.qty / template_doc.qty) * float(qty)),
-                "item_template": 0,
-                "t_warehouse": i.default_target_warehouse,
-            }
-        )
-    return rows
 
 
 @frappe.whitelist()
@@ -1142,7 +993,7 @@ def get_list_pending_sales_invoice(invoice_name=None, warehouse=None):
 
 def create_delivery_note_for_all_pending_sales_invoice(doc=None, method=None):
     company_list = frappe.get_all(
-        "Company", fiters={"enabled_auto_create_delivery_notes": 1}, pluck="name"
+        "Company", filters={"enabled_auto_create_delivery_notes": 1}, pluck="name"
     )
     invoices = get_list_pending_sales_invoice()
     for i in invoices:
@@ -1745,23 +1596,6 @@ def make_withholding_tax_gl_entries_for_sales(doc, method):
             )
         )
         frappe.msgprint(_(si_msgprint))
-
-
-# Email Salary Slip
-@frappe.whitelist()
-def get_payroll_employees(payroll_entry):
-    employees = frappe.db.sql(
-        f""" SELECT employee FROM `tabPayroll Employee Detail` WHERE parent='{payroll_entry}' """,
-        as_dict=True,
-    )
-    return employees
-
-
-@frappe.whitelist()
-def validate_payroll_entry_field(payroll_entry):
-    payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
-    if payroll_entry.docstatus != 1:
-        return False
 
 
 def auto_close_dn():
@@ -2725,39 +2559,6 @@ def make_salary_components_and_structure(abbr ):
         frappe.msgprint('Salary Components and Structure are already created.')
 
 
-def target_warehouse_based_price_list(doc, method):
-    check = frappe.db.get_single_value(
-        "CSF TZ Settings", "target_warehouse_based_price_list"
-    )
-    if check:
-        for item in doc.items:
-            if item.item_code is None or item.warehouse is None:
-                frappe.throw(
-                    f"Both Item Code {item.item_code} and Warehouse {item.warehouse} are required."
-                )
-            price_list = frappe.db.get_value(
-                "Dynamic Price List Assignment",
-                {"supplier": doc.supplier, "warehouse": item.warehouse},
-                "price_list",
-            )
-            if not price_list:
-                frappe.throw(
-                    f"Price List not found. Please create one in Dynamic Price List Assignment for Supplier {doc.supplier} and Warehouse {item.warehouse}"
-                )
-
-            rate = frappe.db.get_value(
-                "Item Price",
-                {"item_code": item.item_code, "price_list": price_list},
-                "price_list_rate",
-            )
-            if not rate:
-                frappe.throw(
-                    f"Price List not found for Item {item.item_code}. Please create one."
-                )
-            item.price_list_rate = rate
-            item.rate = rate
-            item.amount = item.qty * rate
-
 @frappe.whitelist()
 def get_item_prices_custom_po(filters=None, start=0, limit=20):
     if isinstance(filters, str):  # If filters is a string, deserialize it
@@ -3066,20 +2867,20 @@ def create_write_off_jv_si(sales_invoice, account):
     if not si.outstanding_amount or si.outstanding_amount <= 0:
         frappe.throw("No outstanding amount to write off")
 
+    outstanding_amount = flt(si.outstanding_amount)
     jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
+    jv.voucher_type = "Write Off Entry"
     jv.company = si.company
     jv.posting_date = si.posting_date
+    jv.multi_currency = 1
 
     # Handle exchange rate
     exchange_rate = flt(si.conversion_rate or 1)
-    if exchange_rate != 1:
-        jv.multi_currency = 1
 
     # CREDIT - Debtors account
     jv.append("accounts", {
         "account": si.debit_to,
-        "credit_in_account_currency": flt(si.outstanding_amount),
+        "credit_in_account_currency": outstanding_amount,
         "party_type": "Customer",
         "party": si.customer,
         "reference_type": "Sales Invoice",
@@ -3090,14 +2891,13 @@ def create_write_off_jv_si(sales_invoice, account):
     # DEBIT - Write Off account (no reference!)
     jv.append("accounts", {
         "account": account,
-        "debit_in_account_currency": flt(si.outstanding_amount),
+        "debit_in_account_currency": outstanding_amount,
         "exchange_rate": exchange_rate if exchange_rate != 1 else None
     })
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
-
-    frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
+    jv.flags.ignore_permissions = True
+    jv.insert()
+    jv.submit()
 
     return jv.name
 
@@ -3116,20 +2916,20 @@ def create_write_off_jv_pi(purchase_invoice, account):
     if not pi.outstanding_amount or pi.outstanding_amount <= 0:
         frappe.throw("No outstanding amount to write off")
 
+    outstanding_amount = flt(pi.outstanding_amount)
     jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
+    jv.voucher_type = "Write Off Entry"
     jv.company = pi.company
     jv.posting_date = pi.posting_date
+    jv.multi_currency = 1
 
     # Handle exchange rate
     exchange_rate = flt(pi.conversion_rate or 1)
-    if exchange_rate != 1:
-        jv.multi_currency = 1
 
     # DEBIT - Creditors account
     jv.append("accounts", {
         "account": pi.credit_to,
-        "debit_in_account_currency": flt(pi.outstanding_amount),
+        "debit_in_account_currency": outstanding_amount,
         "party_type": "Supplier",
         "party": pi.supplier,
         "reference_type": "Purchase Invoice",
@@ -3140,14 +2940,13 @@ def create_write_off_jv_pi(purchase_invoice, account):
     # CREDIT - Write Off account (no reference!)
     jv.append("accounts", {
         "account": account,
-        "credit_in_account_currency": flt(pi.outstanding_amount),
+        "credit_in_account_currency": outstanding_amount,
         "exchange_rate": exchange_rate if exchange_rate != 1 else None
     })
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
-
-    frappe.db.set_value("Purchase Invoice", pi.name, "outstanding_amount", 0)
+    jv.flags.ignore_permissions = True
+    jv.insert()
+    jv.submit()
 
     return jv.name
 
@@ -3166,70 +2965,79 @@ def create_write_off_jv_pe(payment_entry, account):
     if not pe.unallocated_amount or pe.unallocated_amount <= 0:
         frappe.throw("No unallocated amount to write off")
 
+    if pe.docstatus != 1:
+        frappe.throw("Payment Entry must be submitted before writing off the unallocated amount")
+
+    if pe.payment_type not in ("Receive", "Pay"):
+        frappe.throw("Write-off is only supported for Receive and Pay Payment Entries")
+
+    write_off_amount = flt(pe.unallocated_amount)
+    party_account = pe.paid_from if pe.payment_type == "Receive" else pe.paid_to
+    exchange_rate = (
+        flt(pe.source_exchange_rate or 1)
+        if pe.payment_type == "Receive"
+        else flt(pe.target_exchange_rate or 1)
+    )
+    company_cost_center = frappe.get_cached_value("Company", pe.company, "cost_center")
+
     jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
+    jv.voucher_type = "Write Off Entry"
     jv.company = pe.company
     jv.posting_date = pe.posting_date
+    jv.user_remark = _("Write off for Payment Entry {0}").format(pe.name)
+    jv.multi_currency = 1
 
-    # Handle exchange rate - Payment Entry uses paid_from_account_currency or paid_to_account_currency
-    exchange_rate = 1
-    if pe.payment_type == "Receive":
-        exchange_rate = flt(pe.source_exchange_rate or 1)
-    else:
-        exchange_rate = flt(pe.target_exchange_rate or 1)
-
-    if exchange_rate != 1:
-        jv.multi_currency = 1
-
-    # Determine the party account based on payment type
-    if pe.payment_type == "Receive":
-        party_account = pe.paid_from
-        party_type = "Customer"
-        party = pe.party if pe.party_type == "Customer" else None
-    else:  # Pay
-        party_account = pe.paid_to
-        party_type = "Supplier"
-        party = pe.party if pe.party_type == "Supplier" else None
-
-    # DEBIT - Party account (if Receive) or CREDIT - Party account (if Pay)
     if pe.payment_type == "Receive":
         jv.append("accounts", {
             "account": party_account,
-            "debit_in_account_currency": flt(pe.unallocated_amount),
-            "party_type": party_type,
-            "party": party,
-            "reference_type": "Payment Entry",
-            "reference_name": pe.name,
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+            "party_type": pe.party_type,
+            "party": pe.party,
+            "debit_in_account_currency": write_off_amount,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None,
         })
-    else:
-        jv.append("accounts", {
-            "account": party_account,
-            "credit_in_account_currency": flt(pe.unallocated_amount),
-            "party_type": party_type,
-            "party": party,
-            "reference_type": "Payment Entry",
-            "reference_name": pe.name,
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
-        })
-
-    # CREDIT - Write Off account (if Receive) or DEBIT - Write Off account (if Pay)
-    if pe.payment_type == "Receive":
         jv.append("accounts", {
             "account": account,
-            "credit_in_account_currency": flt(pe.unallocated_amount),
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+            "credit_in_account_currency": write_off_amount,
+            "cost_center": pe.cost_center or company_cost_center,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None,
         })
     else:
         jv.append("accounts", {
             "account": account,
-            "debit_in_account_currency": flt(pe.unallocated_amount),
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
+            "debit_in_account_currency": write_off_amount,
+            "cost_center": pe.cost_center or company_cost_center,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None,
+        })
+        jv.append("accounts", {
+            "account": party_account,
+            "party_type": pe.party_type,
+            "party": pe.party,
+            "credit_in_account_currency": write_off_amount,
+            "exchange_rate": exchange_rate if exchange_rate != 1 else None,
         })
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
+    jv.flags.ignore_permissions = True
+    jv.insert()
+    jv.submit()
 
-    frappe.db.set_value("Payment Entry", pe.name, "unallocated_amount", 0)
+    pe.append("references", {
+        "reference_doctype": "Journal Entry",
+        "reference_name": jv.name,
+        "total_amount": write_off_amount,
+        "outstanding_amount": write_off_amount,
+        "allocated_amount": write_off_amount,
+    })
+
+    pe.flags.ignore_permissions = True
+    pe.flags.ignore_validate_update_after_submit = True
+    pe.setup_party_account_field()
+    pe.set_missing_values()
+    pe.set_missing_ref_details(force=True)
+    pe.set_amounts()
+    pe.save()
+    pe.reload()
+
+    if flt(pe.unallocated_amount) > 0.0001:
+        frappe.throw("Payment Entry unallocated amount is still greater than zero after write-off")
 
     return jv.name

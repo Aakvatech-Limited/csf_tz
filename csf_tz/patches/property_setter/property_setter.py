@@ -280,19 +280,6 @@ def execute():
                 "value": "company.default_letter_head"
             },
             {
-                "doctype": "Piecework Type",
-                "property": "search_fields",
-                "property_type": "Data",
-                "value": "task_name"
-            },
-            {
-                "doctype": "Document Attachment",
-                "field_name": "attachment",
-                "property": "in_list_view",
-                "property_type": "Check",
-                "value": "1"
-            },
-            {
                 "doctype": "Operation",
                 "property": "image_field",
                 "property_type": "Data",
@@ -411,13 +398,6 @@ def execute():
                 "value": "1"
             },
             {
-                "doctype": "Stock Entry",
-                "field_name": "from_warehouse",
-                "property": "fetch_from",
-                "property_type": "Small Text",
-                "value": "repack_template.default_warehouse"
-            },
-            {
                 "doctype": "Payment Schedule",
                 "field_name": "payment_amount",
                 "property": "options",
@@ -522,14 +502,15 @@ def execute():
             }
     ]
     for property in properties:
+        doctype = property.get("doctype")
+        if not doctype or not frappe.db.exists("DocType", doctype):
+            continue
         make_property_setter(
-            property.get("doctype"),
+            doctype,
             property.get("fieldname"),
             property.get("property"),
             property.get("value"),
             property.get("property_type"),
             for_doctype=False,
-            validate_fields_for_doctype=False
-    )
-
-frappe.db.commit()          
+            validate_fields_for_doctype=False,
+        )

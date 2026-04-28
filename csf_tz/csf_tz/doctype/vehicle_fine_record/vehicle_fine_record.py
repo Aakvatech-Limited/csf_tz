@@ -131,4 +131,5 @@ def get_fine(number_plate=None, reference=None):
             doc = frappe.get_doc("Vehicle Fine Record", payload)
             doc.status = "PAID"
             doc.save()
+
     return fine_list

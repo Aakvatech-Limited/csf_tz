@@ -243,8 +243,8 @@ def get_items(filters):
 
     items = []
     if conditions:
-        items = frappe.db.sql_list("""select name from `tabItem` item where {}"""
-                                .format(" and ".join(conditions)), filters)
+        items = frappe.db.sql("""select name from `tabItem` item where {}"""
+                                .format(" and ".join(conditions)), filters, pluck="name")
     return items
 
 

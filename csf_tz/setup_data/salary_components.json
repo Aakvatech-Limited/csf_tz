@@ -1,0 +1,293 @@
+[
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NSSF Expense",
+    "salary_component_abbr": "NSSFExp",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NSSF Expense - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "SDL Expense",
+    "salary_component_abbr": "SDLExp",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "SDL Expense - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "WCF Expense",
+    "salary_component_abbr": "WCFExp",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "WCF Expense - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NHIF Expense",
+    "salary_component_abbr": "NSSFExp_1",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NHIF Expense - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "HESLB Expense",
+    "salary_component_abbr": "HESLBExp",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "HESLB Expense - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NSSF Employer",
+    "salary_component_abbr": "NSSFE",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NSSF Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NSSF Employee",
+    "salary_component_abbr": "NSSFEmp",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NSSF Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NHIF Employee",
+    "salary_component_abbr": "NHIFEmp",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NHIF Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "NHIF Employer",
+    "salary_component_abbr": "NHIFE",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "NHIF Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "SDL Payable",
+    "salary_component_abbr": "SDLP",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "SDL Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "WCF Payable",
+    "salary_component_abbr": "WCFP",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "WCF Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "HESLB Payable",
+    "salary_component_abbr": "HP",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "HESLB Payable - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Basic",
+    "salary_component_abbr": "B",
+    "type": "Earning",
+    "description": "Basic",
+    "depends_on_payment_days": 1,
+    "is_tax_applicable": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "Salary - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Duty Allowance",
+    "salary_component_abbr": "DA",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "Salary - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Housing Allowance",
+    "salary_component_abbr": "HA",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "Salary - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Transport Allowance",
+    "salary_component_abbr": "TA",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "Salary - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Mid Month Advance",
+    "salary_component_abbr": "MMA",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "Salary - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "Taxable Income",
+    "salary_component_abbr": "TI",
+    "type": "Earning",
+    "amount_based_on_formula": 1,
+    "do_not_include_in_total": 1,
+    "remove_if_zero_valued": 1,
+    "statistical_component": 1,
+    "depends_on_payment_days": 0
+  },
+  {
+    "doctype": "Salary Component",
+    "salary_component": "PAYE Payable",
+    "salary_component_abbr": "PAYEP",
+    "type": "Deduction",
+    "amount_based_on_formula": 1,
+    "remove_if_zero_valued": 1,
+    "accounts": [
+      {
+        "doctype": "Salary Component Account",
+        "company": "{company}",
+        "account": "PAYE Payable - {abbr}"
+      }
+    ]
+  }
+]

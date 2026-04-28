@@ -230,14 +230,6 @@ def execute():
                 "label": "Is Billing Contact",
             },
         ],
-        "Custom DocPerm":[
-            {
-                "fieldname": "dependent",
-                "fieldtype": "Check",
-                "insert_after": "parent",
-                "label": "Dependent",
-            },
-        ],
         "Customer":[
             {
                 "bold": 1,
@@ -275,19 +267,6 @@ def execute():
                 "precision": "",
                 "translatable": 1
             },
-            {
-                "fieldname": "employee_salary_component_limits",
-                "fieldtype": "Section Break",
-                "insert_after": "heslb_f4_index_number",
-                "label": "Employee Salary Component Limits",
-            },
-            {
-                "fieldname": "employee_salary_component_limit",
-                "fieldtype": "Table",
-                "insert_after": "employee_salary_component_limits",
-                "label": "Employee Salary Component Limit",
-                "options": "Employee Salary Component Limit"
-            },
         ],
         "Item":[
             {
@@ -319,21 +298,6 @@ def execute():
         ],
         "Journal Entry":[
             {
-                "fieldname": "expense_record",
-                "fieldtype": "Link",
-                "label": "Expense Record",
-                "options": "Expense Record",
-                "read_only": 1
-            },
-            {
-                "allow_on_submit": 1,
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "clearance_date",
-                "label": "Import File",
-                "options": "Import File"
-            },
-            {
                 "fieldname": "from_date",
                 "fieldtype": "Date",
                 "insert_after": "auto_repeat",
@@ -360,15 +324,6 @@ def execute():
                 "insert_after": "referance_doctype",
                 "fieldtype": "Dynamic Link",
                 "options": "referance_doctype",
-            },
-        ],
-        "Landed Cost Voucher":[
-            {
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "sec_break1",
-                "label": "Import File",
-                "options": "Import File"
             },
         ],
         "Material Request Item":[
@@ -456,26 +411,10 @@ def execute():
         ],
         "Purchase Invoice":[
             {
-                "fieldname": "expense_record",
-                "fieldtype": "Link",
-                "insert_after": "amended_from",
-                "label": "Expense Record",
-                "options": "Expense Record",
-                "read_only": 1
-            },
-            {
                 "fieldname": "reference",
                 "fieldtype": "Section Break",
                 "insert_after": "language",
                 "label": "Reference",
-            },
-            {
-                "allow_on_submit": 1,
-                "fieldname": "import_file",
-                "fieldtype": "Link",
-                "insert_after": "reference",
-                "label": "Import File",
-                "options": "Import File"
             },
         ],
         "Purchase Invoice Item":[
@@ -692,31 +631,6 @@ def execute():
             },
         ],
         "Stock Entry":[
-            {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fieldname": "repack_template",
-                "fieldtype": "Link",
-                "insert_after": "purchase_receipt_no",
-                "label": "Repack Template",
-                "options": "Repack Template"
-            },
-            {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fetch_from": "repack_template.item_uom",
-                "fieldname": "item_uom",
-                "fieldtype": "Data",
-                "insert_after": "repack_template",
-                "label": "Item UOM",
-                "read_only": 1,
-                "translatable": 1
-            },
-            {
-                "depends_on": "eval:doc.purpose==\"Repack\"",
-                "fieldname": "repack_qty",
-                "fieldtype": "Float",
-                "insert_after": "item_uom",
-                "label": "Repack Qty",
-            },
             {
                 "depends_on": "eval: doc.stock_entry_type == \"Send to Warehouse\"",
                 "fieldname": "final_destination",
@@ -943,7 +857,27 @@ def execute():
             }
         ]
     }
-    fields = {doctype: values for doctype, values in fields.items() if frappe.db.exists("DocType", doctype)}
+    valid_fields = {}
+    for doctype, values in fields.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+
+        filtered_values = []
+        for value in values:
+            if value.get("fieldtype") == "Link" and value.get("options"):
+                if not frappe.db.exists("DocType", value["options"]):
+                    frappe.logger().warning(
+                        f"Skipping custom field {doctype}.{value.get('fieldname')} because Link options "
+                        f"{value['options']} do not exist."
+                    )
+                    continue
+
+            filtered_values.append(value)
+
+        if filtered_values:
+            valid_fields[doctype] = filtered_values
+
+    fields = valid_fields
     if not fields:
         return
 

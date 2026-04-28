@@ -14,7 +14,6 @@ def create_order_log(method, status, request_json, response, reference):
     doc.request_data = json.dumps(request_json, indent=4)
     doc.response_data = json.dumps(response, indent=4)
     doc.insert(ignore_permissions=True)
-    frappe.db.commit()
 
 
 @frappe.whitelist()
