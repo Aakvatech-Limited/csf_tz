@@ -40,7 +40,6 @@ def set_callback_token(doc, method):
     doc.bank_reference = reference.replace("-", "").replace("FEE" + doc.abbr, "")
     if method == "invoice_submission":
         doc.save()
-        frappe.db.commit()
 
 
 def get_nmb_token(company):

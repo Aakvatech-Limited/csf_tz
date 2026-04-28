@@ -48,7 +48,7 @@ def execute():
                 "fieldname": "vfd_details",
                 "label": "VFD Details",
                 "fieldtype": "Section Break",
-                "insert_after": "authotp",
+                "insert_after": "generate_vfd",
                 "collapsible": 1,
                 "no_copy": 1,
                 "depends_on": 'eval: !in_list(frappe.user_roles, "Healthcare Receptionist")',

@@ -4,7 +4,6 @@
 
 csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz
 csf_tz.patches.remove_stock_entry_qty_field
-csf_tz.patches.remove_core_doctype_custom_docperm
 csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item
 csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn
 csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary
@@ -23,5 +22,7 @@ csf_tz.patches.update_payware_settings_values_to_csf_tz_settings
 csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature
 csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields
 csf_tz.patches.migrate_vfd_providers_to_csf_tz
+csf_tz.patches.remove_stale_authotp_custom_fields
+csf_tz.patches.cleanup_invalid_v16_custom_field_links
 execute:frappe.delete_doc_if_exists("Report", "Stock Ledger Mismatch")
 csf_tz.patches.remove_ot_component_custom_fields

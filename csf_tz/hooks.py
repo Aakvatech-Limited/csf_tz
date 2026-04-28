@@ -12,6 +12,15 @@ app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext"]
 
+add_to_apps_screen = [
+    {
+        "name": "csf_tz",
+        "logo": "/assets/csf_tz/images/tanzania-workspace.png",
+        "title": "CSF TZ",
+        "route": "/desk/workspace/Tanzania",
+    }
+]
+
 
 # Override Document Class
 override_doctype_class = {
@@ -70,7 +79,6 @@ doctype_js = {
         "kcb/payroll_entry.js",
     ],
     "Salary Slip": "csf_tz/salary_slip.js",
-    "Landed Cost Voucher": "csf_tz/landed_cost_voucher.js",
     "Additional Salary": "csf_tz/additional_salary.js",
     "BOM": "csf_tz/bom_addittional_costs.js",
     "Travel Request": "csf_tz/travel_request.js",
@@ -113,7 +121,6 @@ doctype_list_js = {
 after_install = [
     "csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
     "csf_tz.patches.remove_stock_entry_qty_field.execute",
-    "csf_tz.patches.remove_core_doctype_custom_docperm.execute",
     "csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
     "csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
@@ -203,10 +210,10 @@ doc_events = {
         "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list",
-                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
+        "validate": [
+            "csf_tz.custom_api.target_warehouse_based_price_list",
+            "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
         ],
-        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Material Request": {
         "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",

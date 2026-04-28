@@ -304,7 +304,5 @@ def enqueue_approve(kwargs):
         if doc.workflow_state == "Pending":
             try:
                 apply_workflow(doc, "Approve")
-                frappe.db.commit()
             except Exception as e:
                 frappe.log_error(e)
-
