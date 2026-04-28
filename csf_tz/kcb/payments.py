@@ -14,7 +14,7 @@ def _get_bank_account_details(bank_account_name: str | None) -> dict:
     return frappe.get_value(
         "Bank Account",
         bank_account_name,
-        ["bank_account_no", "branch_code", "bank"],
+        ["bank_account_no", "kcb_beneficiary_clearing_code", "bank"],
         as_dict=True,
     ) or {}
 
@@ -85,6 +85,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
 
     missing_party_accounts = []
     missing_clearing_codes = []
+    invalid_clearing_codes = []
 
     doc = frappe.new_doc("KCB Payments Initiation")
     doc.posting_date = nowdate()
@@ -96,12 +97,16 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     for pe in pe_docs:
         party_bank_details = _get_bank_account_details(pe.party_bank_account)
         beneficiary_account = party_bank_details.get("bank_account_no")
-        beneficiary_clearing_code = party_bank_details.get("branch_code")
+        beneficiary_clearing_code = party_bank_details.get(
+            "kcb_beneficiary_clearing_code"
+        )
 
         if not beneficiary_account:
             missing_party_accounts.append(pe.name)
         if not beneficiary_clearing_code:
             missing_clearing_codes.append(pe.name)
+        elif len(str(beneficiary_clearing_code).strip()) != 6:
+            invalid_clearing_codes.append(pe.name)
 
         row = doc.append("kcb_payments_initiation_info", {})
         row.source_doctype = "Payment Entry"
@@ -111,10 +116,11 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
-        row.transaction_code = "FT"
+        # KCB transaction codes: 59 Supplier, 58 Salaries, 487 RTGS, 75 SWIFT, 79 EAPS
+        row.transaction_code = "59"
         row.my_ref = pe.name
         row.beneficiary_ref = pe.name
-        row.payment_purpose = pe.remarks or _("Supplier Payment")
+        row.payment_purpose = "Supplier Payment"
 
         total_amount += pe.paid_amount or 0
 
@@ -126,8 +132,14 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
         )
     if missing_clearing_codes:
         frappe.throw(
-            _("Missing bank branch/clearing code for: {0}").format(
+            _("Missing beneficiary clearing code for: {0}").format(
                 ", ".join(missing_clearing_codes)
+            )
+        )
+    if invalid_clearing_codes:
+        frappe.throw(
+            _("Beneficiary clearing code must be 6 characters for: {0}").format(
+                ", ".join(invalid_clearing_codes)
             )
         )
 
@@ -168,6 +180,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
 
     missing_employee_accounts = []
     missing_clearing_codes = []
+    invalid_clearing_codes = []
 
     doc = frappe.new_doc("KCB Payments Initiation")
     doc.posting_date = payroll_entry.posting_date or nowdate()
@@ -179,12 +192,14 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     for slip in slips:
         employee = frappe.get_doc("Employee", slip.employee)
         beneficiary_account = employee.bank_ac_no
-        beneficiary_clearing_code = employee.bank_code
+        beneficiary_clearing_code = employee.kcb_beneficiary_clearing_code
 
         if not beneficiary_account:
             missing_employee_accounts.append(employee.name)
         if not beneficiary_clearing_code:
             missing_clearing_codes.append(employee.name)
+        elif len(str(beneficiary_clearing_code).strip()) != 6:
+            invalid_clearing_codes.append(employee.name)
 
         row = doc.append("kcb_payments_initiation_info", {})
         row.source_doctype = "Payroll Entry"
@@ -194,7 +209,8 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
-        row.transaction_code = "FT"
+        # KCB transaction codes: 58 Salaries
+        row.transaction_code = "58"
         row.my_ref = slip.name
         row.beneficiary_ref = slip.name
         row.payment_purpose = _("Salary")
@@ -209,8 +225,14 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
         )
     if missing_clearing_codes:
         frappe.throw(
-            _("Missing employee bank/clearing code for: {0}").format(
+            _("Missing employee beneficiary clearing code for: {0}").format(
                 ", ".join(missing_clearing_codes)
+            )
+        )
+    if invalid_clearing_codes:
+        frappe.throw(
+            _("Employee beneficiary clearing code must be 6 characters for: {0}").format(
+                ", ".join(invalid_clearing_codes)
             )
         )
 
