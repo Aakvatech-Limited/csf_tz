@@ -4,6 +4,8 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import Criterion
+from frappe.utils import getdate
 from erpnext.accounts.party import get_party_account
 
 
@@ -139,3 +141,44 @@ class CSFTZBankCharges(Document):
             frappe.throw(
                 _("An error occurred during payment reconciliation: {0}").format(str(e))
             )
+
+
+@frappe.whitelist()
+def get_matched_bank_transactions(bank_account, from_date, to_date):
+    if not bank_account:
+        frappe.throw(_("Bank Account is required."))
+
+    from_date = getdate(from_date)
+    to_date = getdate(to_date)
+
+    if from_date > to_date:
+        frappe.throw(_("From Date cannot be after To Date."))
+
+    patterns = frappe.get_all(
+        "Bank Charges Pattern",
+        filters={"bank_account": bank_account},
+        pluck="bank_charges_pattern",
+    )
+    patterns = [p for p in patterns if p]
+
+    if not patterns:
+        frappe.throw(
+            _("No Bank Charges Patterns found for {0}. Please configure them first.").format(
+                bank_account
+            )
+        )
+
+    BT = frappe.qb.DocType("Bank Transaction")
+    like_conditions = [BT.description.like(p) for p in patterns]
+
+    return (
+        frappe.qb.from_(BT)
+        .select(BT.name, BT.date, BT.withdrawal, BT.description, BT.reference_number)
+        .where(BT.bank_account == bank_account)
+        .where(BT.date >= from_date)
+        .where(BT.date <= to_date)
+        .where(BT.docstatus == 1)
+        .where(BT.withdrawal > 0)
+        .where(Criterion.any(like_conditions))
+        .orderby(BT.date)
+    ).run(as_dict=True)
