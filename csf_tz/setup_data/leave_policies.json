@@ -1,0 +1,54 @@
+[
+  {
+    "doctype": "Leave Policy",
+    "title": "Leave Policy For Men",
+    "leave_policy_details": [
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Annual Leave",
+        "annual_allocation": 28.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Sick Leave Full",
+        "annual_allocation": 63.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Compassionate Leave",
+        "annual_allocation": 4.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Paternity Leave",
+        "annual_allocation": 3.0
+      }
+    ]
+  },
+  {
+    "doctype": "Leave Policy",
+    "title": "Leave Policy For Women",
+    "leave_policy_details": [
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Annual Leave",
+        "annual_allocation": 28.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Sick Leave Full",
+        "annual_allocation": 63.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Compassionate Leave",
+        "annual_allocation": 4.0
+      },
+      {
+        "doctype": "Leave Policy Detail",
+        "leave_type": "Maternity Leave",
+        "annual_allocation": 100.0
+      }
+    ]
+  }
+]

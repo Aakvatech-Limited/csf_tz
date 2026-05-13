@@ -1,0 +1,22 @@
+{
+  "branches": ["version-15"],
+  "plugins": [
+    ["@semantic-release/commit-analyzer", {
+      "preset": "conventionalcommits"
+    }],
+    ["@semantic-release/release-notes-generator", {
+      "preset": "conventionalcommits"
+    }],
+    ["@semantic-release/changelog", {
+      "changelogFile": "CHANGELOG.md"
+    }],
+    ["@semantic-release/exec", {
+      "prepareCmd": "sed -i 's/^__version__ = .*/__version__ = \"${nextRelease.version}\"/' csf_tz/__init__.py"
+    }],
+    ["@semantic-release/git", {
+      "assets": ["CHANGELOG.md", "csf_tz/__init__.py"],
+      "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    "@semantic-release/github"
+  ]
+}

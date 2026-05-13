@@ -1,0 +1,116 @@
+[
+  {
+    "doctype": "Item Tax Template",
+    "title": "Standard (18%) Sales Tax",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Output VAT - {abbr}",
+        "tax_rate": 18.0
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Standard (18%) Purchase Tax",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Input VAT - {abbr}",
+        "tax_rate": 18.0
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Special Rate Sales Tax",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Output VAT - {abbr}",
+        "tax_rate": 10.0
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Special Rate Purchase Tax",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Input VAT - {abbr}",
+        "tax_rate": 10.0
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Zero Rated Sales VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Output VAT - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Zero Rated Purchase VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Input VAT - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Special Rate Purchase VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Input VAT - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Special Rate Sales VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Output VAT - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Exempt Purchase VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Input VAT - {abbr}"
+      }
+    ]
+  },
+  {
+    "doctype": "Item Tax Template",
+    "title": "Exempt VAT",
+    "company": "{company}",
+    "taxes": [
+      {
+        "doctype": "Item Tax Template Detail",
+        "tax_type": "Output VAT - {abbr}"
+      }
+    ]
+  }
+]

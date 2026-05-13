@@ -20,31 +20,6 @@ def get_data():
 			],
 		},
 		{
-			"label": _("Corporate Compliance"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Open Invoice Exchange Rate Revaluation",
-					"description": _("Open Invoice Exchange Rate Revaluation for period end P & L visibility."),
-				},
-			],
-		},
-		{
-			"label": _("Petty Expense"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Expense Record",
-					"description": _("Petty expenses for Section. Intelligent expense transactions."),
-				},
-				{
-					"type": "doctype",
-					"name": "Expense Type",
-					"description": _("Expense type to make petty expenses and linking to expense accounts."),
-				},
-			],
-		},
-		{
 			"label": _("Tax Analytics"),
 			"items": [
 				{
@@ -87,18 +62,6 @@ def get_data():
 					"type": "report",
 					"name": "Credit Note List",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
-				},
-				{
-					"type": "report",
-					"name": "Purchase Reports by Tax Category",
-					"doctype": "Purchase Invoice",
-					"is_query_report": True
-				},
-				{
-					"type": "report",
-					"name": "Purchases by Tax Category Summary",
-					"doctype": "Purchase Invoice",
 					"is_query_report": True
 				},
 			],
@@ -160,16 +123,6 @@ def get_data():
 					"is_query_report": True
 				},
 			]
-		},
-		{
-			"label": _("Other features"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Repack Template",
-					"description": _("Quick BOM feature for repacking. Making many items of one item"),
-				},
-			],
 		},
 		{
 			"label": _("Settings"),

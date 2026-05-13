@@ -280,19 +280,6 @@ def execute():
                 "value": "company.default_letter_head"
             },
             {
-                "doctype": "Piecework Type",
-                "property": "search_fields",
-                "property_type": "Data",
-                "value": "task_name"
-            },
-            {
-                "doctype": "Document Attachment",
-                "field_name": "attachment",
-                "property": "in_list_view",
-                "property_type": "Check",
-                "value": "1"
-            },
-            {
                 "doctype": "Operation",
                 "property": "image_field",
                 "property_type": "Data",
@@ -409,13 +396,6 @@ def execute():
                 "property": "in_standard_filter",
                 "property_type": "Check",
                 "value": "1"
-            },
-            {
-                "doctype": "Stock Entry",
-                "field_name": "from_warehouse",
-                "property": "fetch_from",
-                "property_type": "Small Text",
-                "value": "repack_template.default_warehouse"
             },
             {
                 "doctype": "Payment Schedule",
