@@ -3,14 +3,14 @@
         padding-left: 10mm;
         padding-right: 5mm;
         padding-top: 0mm;
-        font-size: 13pt;	
+        font-size: 13pt;
         font-family: Arial, Helvetica, sans-serif;
      }
-     
+
      .print-format td, .print-format th {
         vertical-align: top !important;
         padding: 2px !important;
-     
+
      }
 
      @media screen {
@@ -19,7 +19,7 @@
 		        height: 11in;
 		    }
 	  }
-     
+
      .table-bordered > thead > tr > th.no-line {
      border:border: 1px solid black; !important;
      border-right: none !important;
@@ -28,7 +28,7 @@
      border-right-style: none !important;
      border-left-style: none !important;
      }
-     
+
      .table-bordered{
        border:none;
      }
@@ -36,11 +36,11 @@
     {% var start_date = filters.from_date  %}
     {% var end_date = filters.to_date  %}
     {% var tin = data[0][ __("TIN")]  %}
-    
+
     {% if ( end_date[5]+ end_date[6] == "06") { %}
     {% var tick1 = "X" %}
     {% } %}
-    
+
     {% if ( end_date[5]+ end_date[6] == "12") { %}
     {% var tick2 = "X" %}
     {% } %}
@@ -121,7 +121,7 @@
                   <td style="vertical-align: middle !important; font-weight: bold; border: 1px solid black; text-align: center;">{%= tin[10] %}</td>
                 </tr>
                 </tbody>
-              </table>      
+              </table>
             </td>
           </tr>
           <tr>
@@ -241,7 +241,7 @@
                 <tr>
                   <td colspan=4>
                     <font style="font-size: 60%; font-weight: bold; color: grey;">
-                    <br><br><br><br>ITX 230.01.E – Withholding Tax Statement 
+                    <br><br><br><br>ITX 230.01.E – Withholding Tax Statement
                     <!-- <br><center>Page 1 of 2</center> -->
                     </font>
                   </td>
@@ -252,7 +252,7 @@
           </tr>
         </tbody>
     </table>
-  <div class="page-break"></div>  
+  <div class="page-break"></div>
     <table cellspacing=0 cellpadding=0>
       <colgroup>
          <col style="width: 50%" />
@@ -333,15 +333,15 @@
         </TR>
       </THEAD>
       <TBODY>
-        {% 
+        {%
           var post_add=0;
           var gross_total=0;
           var tax_withheld=0;
         %}
-        {% for(var i=0, l=data.length; i<l; i++) { %} 
+        {% for(var i=0, l=data.length; i<l; i++) { %}
           {% if (i+1 != l) { %}
             <TR>
-              {% 
+              {%
                 var gross_total = gross_total + data[i][ __("Gross Payment")];
                 var tax_withheld = tax_withheld + data[i][ __("Tax Withheld")];
               %}
@@ -360,6 +360,6 @@
               <TH style="text-align: right;">{%= tax_withheld.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) %}</TH>
             </TR>
           {% } %}
-        {% } %}     
+        {% } %}
       </TBODY>
     </TABLE>

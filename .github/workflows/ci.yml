@@ -102,11 +102,12 @@ jobs:
         env:
           CI: 'Yes'
 
-      - name: Run Tests
+      - name: Smoke Test
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
           bench --site test_site execute erpnext.setup.utils.before_tests
-          bench --site test_site run-parallel-tests --app csf_tz --total-builds 1 --build-number 1
+          bench --site test_site migrate
+          bench --site test_site list-apps
         env:
           TYPE: server

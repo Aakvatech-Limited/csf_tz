@@ -3,4 +3,3 @@
 
 // Budget check for Journal Entry is now handled server-side via doc_events hooks
 // See apps/csf_tz/csf_tz/hooks.py and apps/csf_tz/csf_tz/budget_check.py
-

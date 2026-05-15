@@ -116,11 +116,8 @@ def get_data(filters):
 			{
 				"sn": idx,
 				"employee_tin": employee_details.get("employee_tin"),
-				"employee_name": employee_details.get("employee_name")
-				or slip.employee_name,
-				"national_identification_number": employee_details.get(
-					"national_identification_number"
-				),
+				"employee_name": employee_details.get("employee_name") or slip.employee_name,
+				"national_identification_number": employee_details.get("national_identification_number"),
 				"type_of_employment": employee_details.get("type_of_employment"),
 				"residential_status": employee_details.get("residential_status"),
 				"social_security_number": employee_details.get("social_security_number"),

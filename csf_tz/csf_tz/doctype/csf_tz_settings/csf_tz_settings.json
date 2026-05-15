@@ -36,8 +36,6 @@
   "column_break_wdzp",
   "check_budget_in_mr",
   "check_budget_in_je",
-  "trade_in_settings_section",
-  "enable_trade_in",
   "sales_invoice_qty_settings_section",
   "override_sales_invoice_qty",
   "payroll_overrides_section",
@@ -302,18 +300,6 @@
    "fieldname": "override_sales_invoice_qty",
    "fieldtype": "Check",
    "label": "Override Sales Invoice Qty"
-  },
-  {
-   "fieldname": "trade_in_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Trade In Settings"
-  },
-  {
-   "default": "0",
-   "description": "Enable this feature to handle trade-in items directly within Sales Invoices.",
-   "fieldname": "enable_trade_in",
-   "fieldtype": "Check",
-   "label": "Enable Trade In"
   },
   {
    "default": "0",

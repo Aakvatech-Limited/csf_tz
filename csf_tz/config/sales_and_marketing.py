@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
+
 from frappe import _
+
 
 def get_data():
 	return [
@@ -21,19 +23,14 @@ def get_data():
 					"type": "doctype",
 					"name": "Customer Loan Assistance",
 					"description": _("Customer Loan Assistance."),
-				}
-			]
+				},
+			],
 		},
 		{
 			"label": _("Sales"),
 			"icon": "fa fa-star",
 			"items": [
-				{
-					"type": "page",
-					"name": "pos",
-					"label": _("POS"),
-					"description": _("Point of Sale")
-				},
+				{"type": "page", "name": "pos", "label": _("POS"), "description": _("Point of Sale")},
 				{
 					"type": "doctype",
 					"name": "Quotation",
@@ -48,8 +45,8 @@ def get_data():
 					"type": "doctype",
 					"name": "Sales Invoice",
 					"description": _("Sales Invoices."),
-				}
-			]
+				},
+			],
 		},
 		{
 			"label": _("Lead Follow Up"),
@@ -58,29 +55,24 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
-					"label": _('Due Follow Up Communications'),
+					"label": _("Due Follow Up Communications"),
 					"name": "Due Communications",
-					"doctype": "Lead"
+					"doctype": "Lead",
 				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Due Demonstrations",
-					"doctype": "Lead"
-				},
+				{"type": "report", "is_query_report": True, "name": "Due Demonstrations", "doctype": "Lead"},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Loan Assistance Report",
-					"doctype": "Customer Loan Assistance"
+					"doctype": "Customer Loan Assistance",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Item Wise Leads Report",
-					"doctype": "Quotation"
+					"doctype": "Quotation",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Stock and Pricing"),
@@ -89,20 +81,20 @@ def get_data():
 					"type": "doctype",
 					"name": "Item Price",
 					"description": _("Multiple Item prices."),
-					"route": "Report/Item Price"
+					"route": "Report/Item Price",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Stock Balance",
-					"doctype": "Stock Ledger Entry"
+					"doctype": "Stock Ledger Entry",
 				},
 				{
 					"type": "doctype",
 					"name": "Past Serial No",
 					"description": _("Past Serial No."),
-				}
-			]
+				},
+			],
 		},
 		{
 			"label": _("Marketing Reports"),
@@ -114,12 +106,7 @@ def get_data():
 					"route": "List/Lead/Kanban/Sales Pipeline",
 					"label": _("Sales Pipeline"),
 				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Lead Details",
-					"doctype": "Lead"
-				},
+				{"type": "report", "is_query_report": True, "name": "Lead Details", "doctype": "Lead"},
 				{
 					"type": "page",
 					"name": "sales-funnel",
@@ -130,41 +117,36 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Customer Addresses And Contacts",
-					"doctype": "Contact"
+					"doctype": "Contact",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Inactive Customers",
-					"doctype": "Sales Order"
+					"doctype": "Sales Order",
 				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Campaign Efficiency",
-					"doctype": "Lead"
-				},
+				{"type": "report", "is_query_report": True, "name": "Campaign Efficiency", "doctype": "Lead"},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Lead Owner Efficiency",
-					"doctype": "Lead"
+					"doctype": "Lead",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"label": _("Follow Up Communications Report"),
 					"name": "Communications",
-					"doctype": "Lead"
+					"doctype": "Lead",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"label": _("Demonstrations Report"),
 					"name": "Demonstrations",
-					"doctype": "Lead"
-				}
-			]
+					"doctype": "Lead",
+				},
+			],
 		},
 		{
 			"label": _("Sales Reports"),
@@ -174,63 +156,63 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Items Marked For Delivery",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Sales Person-wise Transaction Summary",
-					"doctype": "Sales Order"
+					"doctype": "Sales Order",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Item-wise Sales History",
-					"doctype": "Item"
+					"doctype": "Item",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Sales Order Trends",
-					"doctype": "Sales Order"
+					"doctype": "Sales Order",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Supplier-Wise Sales Analytics",
-					"doctype": "Stock Ledger Entry"
+					"doctype": "Stock Ledger Entry",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Payment Plan Report",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Item Wise Sales Order",
-					"doctype": "Sales Order"
+					"doctype": "Sales Order",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Payment Plan Summary",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Sales Type Report",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Spare Sales Report",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Customer Reports"),
@@ -241,16 +223,16 @@ def get_data():
 					"is_query_report": True,
 					"name": "Brand Sales Report",
 					"label": "Brandwise Customer Details",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Previous Ams Customer Report",
 					"label": "Old Customers Details",
-					"doctype": "Sales Invoice"
+					"doctype": "Sales Invoice",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Setup"),
@@ -263,7 +245,7 @@ def get_data():
 					"link": "Tree/Customer Group",
 					"description": _("Manage Customer Group Tree."),
 				},
-                {
+				{
 					"type": "doctype",
 					"name": "Item Installation Procedures",
 				},
@@ -276,9 +258,9 @@ def get_data():
 					"type": "doctype",
 					"name": "Loan Procedures",
 					"label": "Supplier Loan Procedures",
-					"description": _("Loan Procedures.")
-				}
-			]
+					"description": _("Loan Procedures."),
+				},
+			],
 		},
 		{
 			"label": _("Sales Analytics"),
@@ -301,15 +283,14 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Quotation Trends",
-					"doctype": "Quotation"
+					"doctype": "Quotation",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Sales Order Trends",
-					"doctype": "Sales Order"
+					"doctype": "Sales Order",
 				},
-			]
-		}
-		
+			],
+		},
 	]

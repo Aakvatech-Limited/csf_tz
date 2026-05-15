@@ -15,6 +15,7 @@ QUnit.test("test: Purchase And Stock Management Test", function (assert) {
 			{key: 'value'}
 		]),
 		() => {
+			// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 			assert.equal(cur_frm.doc.key, 'value');
 		},
 		() => done()

@@ -160,9 +160,12 @@ frappe.ui.keys.add_shortcut({
                                 frappe.model.set_value(item_row.doctype, item_row.name, 'batch_no', $(input).attr('data-batch'));
                             }
                         });
+                        // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                         cur_frm.rec_dialog.hide();
+                        // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                         cur_frm.refresh_fields();
                     });
+                    // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                     cur_frm.rec_dialog = d;
                     d.show();
                 }

@@ -29,9 +29,9 @@ frappe.ui.form.on('Student Applicant', {
 		frappe.db.get_value('Fee Structure', frm.doc.fee_structure, ["company"], function(value1) {
 			frappe.db.get_value('Company', value1.company, ["send_fee_details_to_bank"], function(value2) {
 				frm.send_fee_details_to_bank = value2.send_fee_details_to_bank || 0;
-				
+
 			});
 		});
     },
-	
+
 });

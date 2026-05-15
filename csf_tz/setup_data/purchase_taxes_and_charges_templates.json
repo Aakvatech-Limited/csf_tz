@@ -54,6 +54,7 @@
     "doctype": "Purchase Taxes and Charges Template",
     "title": "Standard (18%)",
     "company": "{company}",
+    "is_default": 1,
     "taxes": [
       {
         "doctype": "Purchase Taxes and Charges",
@@ -63,7 +64,8 @@
         "description": "Input VAT",
         "account_head": "Input VAT - {abbr}",
         "cost_center": "Main - {abbr}",
-        "account_currency": "TZS"
+        "account_currency": "TZS",
+        "rate": 18
       }
     ]
   },

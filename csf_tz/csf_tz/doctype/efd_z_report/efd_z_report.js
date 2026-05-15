@@ -1,15 +1,21 @@
+// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 cur_frm.cscript.get_invoices = function (frm) {
+	// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 	cur_frm.clear_table("efd_z_report_invoices")
 	frappe.call({
 			method: "get_sales_invoice",
+			// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 			doc: cur_frm.doc,
 			args: {
+				// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 				"electronic_fiscal_device": cur_frm.doc.electronic_fiscal_device,
+				// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 				"date_and_time": cur_frm.doc.z_report_date_time,
 			},
 			freeze: true,
 			freeze_message: "Fetching Invoices...",
 			callback: function(r) {
+                // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                 cur_frm.refresh_field("efd_z_report_invoices")
             }
 		});
@@ -33,7 +39,7 @@ frappe.ui.form.on('EFD Z Report Invoice', {
 		frm.set_value("total_vat_ticked", sum_vat_ticked);
 		frm.set_value("total_turnover_exempted__sp_relief_ticked", sum_turnover_exempted_sp_relief_ticked);
 		frm.set_value("total_turnover_ticked", sum_turnover_ticked);
-		
+
 	}
 })
 

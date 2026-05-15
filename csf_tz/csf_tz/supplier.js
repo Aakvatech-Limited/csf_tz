@@ -4,7 +4,7 @@
 
 
 frappe.ui.form.on("Supplier", {
-	
+
 
 	refresh: function(frm) {
 
@@ -15,7 +15,7 @@ frappe.ui.form.on("Supplier", {
 					{party_type:'Supplier', party:frm.doc.name});
 			});
 
-		} 
+		}
 	},
-	
+
 });

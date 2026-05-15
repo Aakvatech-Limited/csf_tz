@@ -7,5 +7,5 @@ frappe.ui.form.on('Stock Reconciliation', {
         });
         refresh_field("items");
 	},
-	
+
 })

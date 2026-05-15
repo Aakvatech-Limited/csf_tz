@@ -29,7 +29,7 @@ frappe.ui.form.on("Program Enrollment Tool", {
                         }
                     });
                 } else {
-                    frappe.msgprint("No students to enroll")
+                    frappe.msgprint(__("No students to enroll"))
                 }
             })
         }

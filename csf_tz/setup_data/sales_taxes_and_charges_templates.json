@@ -45,13 +45,15 @@
     "doctype": "Sales Taxes and Charges Template",
     "title": "Standard (18%)",
     "company": "{company}",
+    "is_default": 1,
     "taxes": [
       {
         "doctype": "Sales Taxes and Charges",
         "charge_type": "On Net Total",
         "description": "VAT @ 18.0",
         "account_head": "Output VAT - {abbr}",
-        "cost_center": "Main - {abbr}"
+        "cost_center": "Main - {abbr}",
+        "rate": 18
       }
     ]
   }

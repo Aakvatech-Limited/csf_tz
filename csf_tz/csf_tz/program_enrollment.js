@@ -25,7 +25,7 @@ frappe.ui.form.on("Program Enrollment", {
     student_category: function () {
         frappe.ui.form.trigger("program");
     },
-    
+
     validate: function (frm) {
         if (( !frm.doc.fees || !frm.doc.fees.length) && frm.doc.student_category) {
             frm.trigger("program");

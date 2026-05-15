@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from . import __version__ as app_version
 
 app_name = "csf_tz"
 app_title = "CSF TZ"
@@ -13,20 +12,20 @@ app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext"]
 
 add_to_apps_screen = [
-    {
-        "name": "csf_tz",
-        "logo": "/assets/csf_tz/images/tanzania-workspace.png",
-        "title": "CSF TZ",
-        "route": "/desk/workspace/Tanzania",
-    }
+	{
+		"name": "csf_tz",
+		"logo": "/assets/csf_tz/images/tanzania-workspace.png",
+		"title": "CSF TZ",
+		"route": "/desk/workspace/Tanzania",
+	}
 ]
 
 
 # Override Document Class
 override_doctype_class = {
-    "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
-    "Additional Salary": "csf_tz.overrides.additional_salary.AdditionalSalary",
-    "Leave Encashment": "csf_tz.overrides.leave_encashment.LeaveEncashment",
+	"Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
+	"Additional Salary": "csf_tz.overrides.additional_salary.AdditionalSalary",
+	"Leave Encashment": "csf_tz.overrides.leave_encashment.LeaveEncashment",
 }
 
 # Includes in <head>
@@ -47,49 +46,49 @@ app_include_js = "csf_tz.bundle.js"
 
 # include js in doctype views
 doctype_js = {
-    "Payment Entry": "csf_tz/payment_entry.js",
-    "Sales Invoice": [
-        "csf_tz/sales_invoice.js",
-        "vfd_support/sales_invoice.js",
-    ],
-    "Sales Order": "csf_tz/sales_order.js",
-    "Delivery Note": "csf_tz/delivery_note.js",
-    "Customer": [
-        "csf_tz/customer.js",
-        "vfd_support/customer.js",
-    ],
-    "Supplier": "csf_tz/supplier.js",
-    "Stock Entry": "csf_tz/stock_entry.js",
-    "Account": "csf_tz/account.js",
-    "Warehouse": "csf_tz/warehouse.js",
-    "Company": "csf_tz/company.js",
-    "Stock Reconciliation": "csf_tz/stock_reconciliation.js",
-    "Fees": "csf_tz/fees.js",
-    "Program Enrollment Tool": "csf_tz/program_enrollment_tool.js",
-    "Purchase Invoice": "csf_tz/purchase_invoice.js",
-    "Quotation": "csf_tz/quotation.js",
-    "Purchase Receipt": "csf_tz/purchase_receipt.js",
-    "Purchase Order": "csf_tz/purchase_order.js",
-    "Student Applicant": "csf_tz/student_applicant.js",
-    "Bank Reconciliation": "csf_tz/bank_reconciliation.js",
-    "Program Enrollment": "csf_tz/program_enrollment.js",
-    "Payroll Entry": [
-        "csf_tz/payroll_entry.js",
-        "stanbic/payroll_entry.js",
-        "kcb/payroll_entry.js",
-    ],
-    "Salary Slip": "csf_tz/salary_slip.js",
-    "Additional Salary": "csf_tz/additional_salary.js",
-    "BOM": "csf_tz/bom_addittional_costs.js",
-    "Travel Request": "csf_tz/travel_request.js",
-    "Employee Advance": "csf_tz/employee_advance.js",
-    "Employee": "csf_tz/employee_contact_qr.js",
-    "Material Request": "csf_tz/material_request.js",
+	"Payment Entry": "csf_tz/payment_entry.js",
+	"Sales Invoice": [
+		"csf_tz/sales_invoice.js",
+		"vfd_support/sales_invoice.js",
+	],
+	"Sales Order": "csf_tz/sales_order.js",
+	"Delivery Note": "csf_tz/delivery_note.js",
+	"Customer": [
+		"csf_tz/customer.js",
+		"vfd_support/customer.js",
+	],
+	"Supplier": "csf_tz/supplier.js",
+	"Stock Entry": "csf_tz/stock_entry.js",
+	"Account": "csf_tz/account.js",
+	"Warehouse": "csf_tz/warehouse.js",
+	"Company": "csf_tz/company.js",
+	"Stock Reconciliation": "csf_tz/stock_reconciliation.js",
+	"Fees": "csf_tz/fees.js",
+	"Program Enrollment Tool": "csf_tz/program_enrollment_tool.js",
+	"Purchase Invoice": "csf_tz/purchase_invoice.js",
+	"Quotation": "csf_tz/quotation.js",
+	"Purchase Receipt": "csf_tz/purchase_receipt.js",
+	"Purchase Order": "csf_tz/purchase_order.js",
+	"Student Applicant": "csf_tz/student_applicant.js",
+	"Bank Reconciliation": "csf_tz/bank_reconciliation.js",
+	"Program Enrollment": "csf_tz/program_enrollment.js",
+	"Payroll Entry": [
+		"csf_tz/payroll_entry.js",
+		"stanbic/payroll_entry.js",
+		"kcb/payroll_entry.js",
+	],
+	"Salary Slip": "csf_tz/salary_slip.js",
+	"Additional Salary": "csf_tz/additional_salary.js",
+	"BOM": "csf_tz/bom_addittional_costs.js",
+	"Travel Request": "csf_tz/travel_request.js",
+	"Employee Advance": "csf_tz/employee_advance.js",
+	"Employee": "csf_tz/employee_contact_qr.js",
+	"Material Request": "csf_tz/material_request.js",
 }
 doctype_list_js = {
-    "Payment Entry": "csf_tz/payment_entry_list.js",
-    "Custom Field": "csf_tz/custom_field.js",
-    "Property Setter": "csf_tz/property_setter.js",
+	"Payment Entry": "csf_tz/payment_entry_list.js",
+	"Custom Field": "csf_tz/custom_field.js",
+	"Property Setter": "csf_tz/property_setter.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -119,26 +118,25 @@ doctype_list_js = {
 
 # before_install = "csf_tz.install.before_install"
 after_install = [
-    "csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
-    "csf_tz.patches.remove_stock_entry_qty_field.execute",
-    "csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
-    "csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
-    "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
-    "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
-    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
-    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
-    "csf_tz.utils.create_custom_fields.execute",
-    "csf_tz.utils.create_property_setter.execute",
-    "csf_tz.utils.setup.execute",
+	"csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
+	"csf_tz.patches.remove_stock_entry_qty_field.execute",
+	"csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
+	"csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
+	"csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
+	"csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
+	"csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+	"csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
+	"csf_tz.utils.create_custom_fields.execute",
+	"csf_tz.utils.create_property_setter.execute",
+	"csf_tz.utils.setup.execute",
 ]
 
 after_migrate = [
-    "csf_tz.utils.create_custom_fields.execute",
-    "csf_tz.utils.create_property_setter.execute",
-    "csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
-    "csf_tz.patches.custom_fields.create_custom_fields_for_trade_in_feature.execute",
-    "csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
-    "csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
+	"csf_tz.utils.create_custom_fields.execute",
+	"csf_tz.utils.create_property_setter.execute",
+	"csf_tz.patches.update_payware_settings_values_to_csf_tz_settings.execute",
+	"csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
+	"csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
 ]
 
 # Desk Notifications
@@ -164,172 +162,167 @@ after_migrate = [
 # Hook on document methods and events
 
 doc_events = {
-    "Sales Invoice": {
-        "before_submit": [
-            "csf_tz.custom_api.validate_grand_total",
-            "csf_tz.vfd_support.sales_invoice.vfd_validation",
-        ],
-        "on_submit": [
-            "csf_tz.custom_api.validate_net_rate",
-            "csf_tz.custom_api.create_delivery_note",
-            "csf_tz.custom_api.check_submit_delivery_note",
-            "csf_tz.custom_api.make_withholding_tax_gl_entries_for_sales",
-            "csf_tz.custom_api.create_trade_in_stock_entry",
-            "csf_tz.vfd_support.utils.autogenerate_vfd",
-        ],
-        "validate": [
-            "csf_tz.custom_api.check_validate_delivery_note",
-            "csf_tz.custom_api.validate_items_remaining_qty",
-            "csf_tz.custom_api.calculate_price_reduction",
-            "csf_tz.custom_api.validate_trade_in_serial_no_and_batch",
-            "csf_tz.custom_api.validate_trade_in_sales_percentage",
-        ],
-        "before_cancel": [
-            "csf_tz.vfd_support.sales_invoice.validate_cancel",
-            "csf_tz.custom_api.check_cancel_delivery_note",
-        ],
-        "before_insert": "csf_tz.custom_api.batch_splitting",
-    },
-    "Customer": {
-        "validate": "csf_tz.vfd_support.utils.clean_and_update_tax_id_info",
-    },
-    "Delivery Note": {
-        "on_submit": "csf_tz.custom_api.update_delivery_on_sales_invoice",
-        "before_cancel": "csf_tz.custom_api.update_delivery_on_sales_invoice",
-    },
-    "Account": {
-        "on_update": "csf_tz.custom_api.create_indirect_expense_item",
-        "after_insert": "csf_tz.custom_api.create_indirect_expense_item",
-    },
-    "Purchase Invoice": {
-        "on_submit": [
-            "csf_tz.custom_api.make_withholding_tax_gl_entries_for_purchase",
-            "csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
-        ],
-        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
-        "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
-    },
-    "Purchase Order": {
-        "validate": [
-            "csf_tz.custom_api.target_warehouse_based_price_list",
-            "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
-        ],
-    },
-    "Material Request": {
-        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
-    },
-    "Journal Entry": {
-        "before_save": "csf_tz.csftz_hooks.budget.check_budget_for_journal_entry",
-    },
-    "Fees": {
-        "before_insert": "csf_tz.custom_api.set_fee_abbr",
-        "after_insert": "csf_tz.bank_api.set_callback_token",
-        "on_submit": "csf_tz.bank_api.invoice_submission",
-        "before_cancel": "csf_tz.custom_api.on_cancel_fees",
-    },
-    "Program Enrollment": {
-        "onload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
-        "refresh": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
-        "reload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
-        "before_submit": "csf_tz.csftz_hooks.program_enrollment.validate_submit_program_enrollment",
-    },
-    "Stock Entry": {
-        "validate": "csf_tz.custom_api.calculate_total_net_weight",
-        "before_save": "csf_tz.csftz_hooks.stock.import_from_bom",
-    },
-    "Student Applicant": {
-        "on_update_after_submit": "csf_tz.csftz_hooks.student_applicant.make_student_applicant_fees",
-    },
-    "Payroll Entry": {
-        "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
-        "before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
-        "before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
-    },
-    "Salary Slip": {
-        "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
-    },
-    "Attendance": {
-        "validate": "csf_tz.csftz_hooks.attendance.process_overtime",
-    },
-    "Employee Checkin": {
-        "validate": "csf_tz.csftz_hooks.employee_checkin.validate",
-    },
-    "Leave Encashment": {
-        "validate": "csf_tz.csftz_hooks.leave_encashment.validate_flags",
-    },
-    "Additional Salary": {
-        "on_submit": "csf_tz.csftz_hooks.additional_salary.create_additional_salary_journal",
-        "before_validate": "csf_tz.csftz_hooks.additional_salary.set_employee_base_salary_in_hours",
-    },
-    "Employee Advance": {
-        "on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
-    },
-    "Payment Entry": {
-        "validate": "csf_tz.csftz_hooks.payment_entry.validate",
-        "before_submit": [
-            "csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
-            "csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
-        ],
-        "on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_payment_to_import_tracker",
-        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_payment_from_import_tracker",
-    },
-    "Landed Cost Voucher": {
-        "validate": [
-            "csf_tz.csftz_hooks.landed_cost_voucher.total_amount",
-        ],
-        "on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_lcv_to_import_tracker",
-        "on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_lcv_from_import_tracker",
-    },
+	"Sales Invoice": {
+		"before_submit": [
+			"csf_tz.custom_api.validate_grand_total",
+			"csf_tz.vfd_support.sales_invoice.vfd_validation",
+		],
+		"on_submit": [
+			"csf_tz.custom_api.validate_net_rate",
+			"csf_tz.custom_api.create_delivery_note",
+			"csf_tz.custom_api.check_submit_delivery_note",
+			"csf_tz.custom_api.make_withholding_tax_gl_entries_for_sales",
+			"csf_tz.vfd_support.utils.autogenerate_vfd",
+		],
+		"validate": [
+			"csf_tz.custom_api.check_validate_delivery_note",
+			"csf_tz.custom_api.validate_items_remaining_qty",
+			"csf_tz.custom_api.calculate_price_reduction",
+		],
+		"before_cancel": [
+			"csf_tz.vfd_support.sales_invoice.validate_cancel",
+			"csf_tz.custom_api.check_cancel_delivery_note",
+		],
+		"before_insert": "csf_tz.custom_api.batch_splitting",
+	},
+	"Customer": {
+		"validate": "csf_tz.vfd_support.utils.clean_and_update_tax_id_info",
+	},
+	"Delivery Note": {
+		"on_submit": "csf_tz.custom_api.update_delivery_on_sales_invoice",
+		"before_cancel": "csf_tz.custom_api.update_delivery_on_sales_invoice",
+	},
+	"Account": {
+		"on_update": "csf_tz.custom_api.create_indirect_expense_item",
+		"after_insert": "csf_tz.custom_api.create_indirect_expense_item",
+	},
+	"Purchase Invoice": {
+		"on_submit": [
+			"csf_tz.custom_api.make_withholding_tax_gl_entries_for_purchase",
+			"csf_tz.csftz_hooks.exchange_calculations.create_import_tracker",
+		],
+		"on_cancel": "csf_tz.csftz_hooks.exchange_calculations.cancel_import_tracker",
+		"validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
+	},
+	"Purchase Order": {
+		"validate": [
+			"csf_tz.custom_api.target_warehouse_based_price_list",
+			"csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
+		],
+	},
+	"Material Request": {
+		"before_save": "csf_tz.csftz_hooks.budget.check_budget_for_material_request",
+	},
+	"Journal Entry": {
+		"before_save": "csf_tz.csftz_hooks.budget.check_budget_for_journal_entry",
+	},
+	"Fees": {
+		"before_insert": "csf_tz.custom_api.set_fee_abbr",
+		"after_insert": "csf_tz.bank_api.set_callback_token",
+		"on_submit": "csf_tz.bank_api.invoice_submission",
+		"before_cancel": "csf_tz.custom_api.on_cancel_fees",
+	},
+	"Program Enrollment": {
+		"onload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
+		"refresh": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
+		"reload": "csf_tz.csftz_hooks.program_enrollment.create_course_enrollments_override",
+		"before_submit": "csf_tz.csftz_hooks.program_enrollment.validate_submit_program_enrollment",
+	},
+	"Stock Entry": {
+		"validate": "csf_tz.custom_api.calculate_total_net_weight",
+		"before_save": "csf_tz.csftz_hooks.stock.import_from_bom",
+	},
+	"Student Applicant": {
+		"on_update_after_submit": "csf_tz.csftz_hooks.student_applicant.make_student_applicant_fees",
+	},
+	"Payroll Entry": {
+		"before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
+		"before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
+		"before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
+	},
+	"Salary Slip": {
+		"before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip",
+	},
+	"Attendance": {
+		"validate": "csf_tz.csftz_hooks.attendance.process_overtime",
+	},
+	"Employee Checkin": {
+		"validate": "csf_tz.csftz_hooks.employee_checkin.validate",
+	},
+	"Leave Encashment": {
+		"validate": "csf_tz.csftz_hooks.leave_encashment.validate_flags",
+	},
+	"Additional Salary": {
+		"on_submit": "csf_tz.csftz_hooks.additional_salary.create_additional_salary_journal",
+		"before_validate": "csf_tz.csftz_hooks.additional_salary.set_employee_base_salary_in_hours",
+	},
+	"Employee Advance": {
+		"on_submit": "csf_tz.csftz_hooks.employee_advance_payment_and_expense.execute",
+	},
+	"Payment Entry": {
+		"validate": "csf_tz.csftz_hooks.payment_entry.validate",
+		"before_submit": [
+			"csf_tz.csftz_hooks.bank_charges_payment_entry.validate_bank_charges_account",
+			"csf_tz.csftz_hooks.bank_charges_payment_entry.create_bank_charges_journal",
+		],
+		"on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_payment_to_import_tracker",
+		"on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_payment_from_import_tracker",
+	},
+	"Landed Cost Voucher": {
+		"validate": [
+			"csf_tz.csftz_hooks.landed_cost_voucher.total_amount",
+		],
+		"on_submit": "csf_tz.csftz_hooks.exchange_calculations.link_lcv_to_import_tracker",
+		"on_cancel": "csf_tz.csftz_hooks.exchange_calculations.unlink_lcv_from_import_tracker",
+	},
 }
 
 # Scheduled Tasks
 # ---------------
 
 scheduler_events = {
-    # "all": [
-    # 	"csf_tz.tasks.all"
-    # ],
-    "cron": {
-        "0 */2 * * *": [
-            "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
-        ],
-        "*/15 * * * *": [
-            "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
-            "csf_tz.stanbic.sftp.sync_all_stanbank_files",
-            "csf_tz.stanbic.sftp.process_download_files",
-            "csf_tz.vfd_support.utils.posting_all_vfd_invoices",
-        ],
-        "*/10 * * * *": [
-            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_access_token",
-        ],
-        "0 */12 * * *": [
-            "csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_refresh_token",
-        ],
-        # Routine for every day 3:30am at night
-        "30 3 * * *": [
-            "csf_tz.custom_api.auto_close_dn",
-        ],
-        # Routine for every day 3:40am at night
-        "40 3 * * *": [
-            "csf_tz.csftz_hooks.material_request.auto_close_material_request",
-        ],
-    },
-    "daily": [
-        "csf_tz.custom_api.create_delivery_note_for_all_pending_sales_invoice",
-        "csf_tz.bank_api.reconciliation",
-        "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
-        "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
-    ],
-    # "hourly": [
-    # 	"csf_tz.tasks.hourly"
-    # ],
-    "weekly": [
-        "csf_tz.custom_api.make_stock_reconciliation_for_all_pending_material_request"
-    ],
-    "monthly": [
-        # "csf_tz.tasks.monthly",
-        "csf_tz.csf_tz.doctype.tz_insurance_cover_note.tz_insurance_cover_note.update_covernote_docs"
-    ],
+	# "all": [
+	# 	"csf_tz.tasks.all"
+	# ],
+	"cron": {
+		"0 */2 * * *": [
+			"csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.check_fine_all_vehicles",
+		],
+		"*/15 * * * *": [
+			"csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
+			"csf_tz.stanbic.sftp.sync_all_stanbank_files",
+			"csf_tz.stanbic.sftp.process_download_files",
+			"csf_tz.vfd_support.utils.posting_all_vfd_invoices",
+		],
+		"*/10 * * * *": [
+			"csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_access_token",
+		],
+		"0 */12 * * *": [
+			"csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings.get_refresh_token",
+		],
+		# Routine for every day 3:30am at night
+		"30 3 * * *": [
+			"csf_tz.custom_api.auto_close_dn",
+		],
+		# Routine for every day 3:40am at night
+		"40 3 * * *": [
+			"csf_tz.csftz_hooks.material_request.auto_close_material_request",
+		],
+	},
+	"daily": [
+		"csf_tz.custom_api.create_delivery_note_for_all_pending_sales_invoice",
+		"csf_tz.bank_api.reconciliation",
+		"csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
+		"csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
+	],
+	# "hourly": [
+	# 	"csf_tz.tasks.hourly"
+	# ],
+	"weekly": ["csf_tz.custom_api.make_stock_reconciliation_for_all_pending_material_request"],
+	"monthly": [
+		# "csf_tz.tasks.monthly",
+		"csf_tz.csf_tz.doctype.tz_insurance_cover_note.tz_insurance_cover_note.update_covernote_docs"
+	],
 }
 
 jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
@@ -343,5 +336,4 @@ jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-}
+override_whitelisted_methods = {}
