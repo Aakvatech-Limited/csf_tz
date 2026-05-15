@@ -15,6 +15,19 @@ import json
 from time import sleep
 
 
+def _get_vehicle_doc_by_plate(plate):
+    if not plate:
+        return None
+
+    return frappe.get_value("Vehicle", {"number_plate": plate}, "name") or frappe.get_value(
+        "Vehicle", {"license_plate": plate}, "name"
+    )
+
+
+def _get_vehicle_lookup_plate(vehicle):
+    return vehicle.get("number_plate") or vehicle.get("license_plate") or vehicle.get("name")
+
+
 class VehicleFineRecord(Document):
     def validate(self):
         """
@@ -26,9 +39,7 @@ class VehicleFineRecord(Document):
         """
         try:
             if self.vehicle:
-                vehicle_name = frappe.get_value(
-                    "Vehicle", {"number_plate": self.vehicle}, "name"
-                )
+                vehicle_name = _get_vehicle_doc_by_plate(self.vehicle)
                 if vehicle_name:
                     self.vehicle_doc = vehicle_name
                 else:
@@ -42,7 +53,7 @@ class VehicleFineRecord(Document):
 
 def check_fine_all_vehicles(batch_size=20):
     plate_list = frappe.get_all(
-        "Vehicle", fields=["name", "number_plate"], limit_page_length=0
+        "Vehicle", fields=["name", "number_plate", "license_plate"], limit_page_length=0
     )
     all_fine_list = []
     total_vehicles = len(plate_list)
@@ -53,7 +64,7 @@ def check_fine_all_vehicles(batch_size=20):
             # Enqueue get_fine(number_plate=vehicle["number_plate"] or vehicle["name"])
             frappe.enqueue(
                 "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                number_plate=vehicle["number_plate"] or vehicle["name"],
+                number_plate=_get_vehicle_lookup_plate(vehicle),
             )
 
             fine_list = []
