@@ -1,6 +1,5 @@
 frappe.require([
-    '/assets/csf_tz/js/csfUtlis.js',
-    '/assets/csf_tz/js/shortcuts.js'
+    '/assets/csf_tz/js/csfUtlis.js'
 ]);
 
 frappe.ui.form.on("Sales Order", {
@@ -85,33 +84,3 @@ frappe.ui.form.on("Sales Order", {
     },
 });
 
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+q',
-    action: () => {
-        ctrlQ("Sales Order Item");
-    },
-    page: this.page,
-    description: __('Select Item Warehouse'),
-    ignore_inputs: true,
-});
-
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+i',
-    action: () => {
-        ctrlI("Sales Order Item");
-    },
-    page: this.page,
-    description: __('Select Customer Item Price'),
-    ignore_inputs: true,
-});
-
-
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+u',
-    action: () => {
-        ctrlU("Sales Order Item");
-    },
-    page: this.page,
-    description: __('Select Item Price'),
-    ignore_inputs: true,
-});

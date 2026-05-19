@@ -1,7 +1,3 @@
-frappe.require([
-    '/assets/csf_tz/js/shortcuts.js'
-]);
-
 frappe.ui.form.on("Purchase Invoice", {
     supplier: function(frm) {
         if (!frm.doc.supplier) {

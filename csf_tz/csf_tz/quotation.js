@@ -1,7 +1,3 @@
-frappe.require([
-    '/assets/csf_tz/js/shortcuts.js'
-]);
-
 frappe.ui.form.on("Quotation", {
     refresh: (frm) => {
         frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {

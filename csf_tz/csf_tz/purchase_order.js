@@ -1,8 +1,3 @@
-frappe.require([
-    '/assets/csf_tz/js/shortcuts.js',
-    '/assets/csf_tz/js/po_shortcuts.js'
-]);
-
 frappe.ui.form.on("Purchase Order", {
     refresh: (frm) => {
         frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
@@ -49,25 +44,4 @@ frappe.ui.form.on("Purchase Order", {
             };
         });
     },
-});
-
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+i',
-    action: () => {
-        ctrlI("Purchase Order Item");
-    },
-    page: this.page,
-    description: __('Select Customer Item Price'),
-    ignore_inputs: true,
-});
-
-
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+u',
-    action: () => {
-        ctrlU("Purchase Order Item");
-    },
-    page: this.page,
-    description: __('Select Item Price'),
-    ignore_inputs: true,
 });

@@ -1,7 +1,3 @@
-frappe.require([
-    '/assets/csf_tz/js/shortcuts.js'
-]);
-
 frappe.ui.form.on("Material Request", {
     refresh: (frm) => {
         frappe.db.get_single_value("CSF TZ Settings", "limit_uom_as_item_uom").then(limit_uom_as_item_uom => {
@@ -20,15 +16,4 @@ frappe.ui.form.on("Material Request", {
             }
         });
     },
-});
-
-
-frappe.ui.keys.add_shortcut({
-    shortcut: 'ctrl+q',
-    action: () => {
-        ctrlQ("Material Request Item");
-    },
-    page: this.page,
-    description: __('Select Item Warehouse'),
-    ignore_inputs: true,
 });
