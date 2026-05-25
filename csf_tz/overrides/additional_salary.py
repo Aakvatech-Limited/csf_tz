@@ -16,7 +16,7 @@ class AdditionalSalary(_AdditionalSalary):
 
 		allow_negative = frappe.db.get_value(
 			"Salary Component",
-			{"name": self.salary_component, "type": "Earning"},
+			{"name": self.salary_component},
 			"allow_negative",
 		)
 		if not allow_negative:
