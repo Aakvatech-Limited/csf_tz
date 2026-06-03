@@ -13,10 +13,10 @@ budget validation when documents are saved in draft status.
 """
 
 from __future__ import unicode_literals
+
 import frappe
-from frappe import _
-from frappe.utils import flt
 from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
+from frappe.utils import flt
 
 
 def validate_budget_on_draft(doc, method=None):
@@ -86,7 +86,7 @@ def is_budget_check_enabled(doctype):
 
 
 @frappe.whitelist()
-def check_budget_before_submit(doctype, docname, setting_field=None):
+def check_budget_before_submit(doctype: str, docname: str, setting_field: str = None):
 	"""
 	Check budget for a document in draft status.
 
@@ -114,7 +114,7 @@ def check_budget_before_submit(doctype, docname, setting_field=None):
 		"Journal Entry": "enable_budget_check_button_for_journal_entry",
 		"Material Request": "enable_budget_check_button_for_material_request",
 		"Purchase Order": "enable_budget_check_button_for_purchase_order",
-		"Purchase Invoice": "enable_budget_check_button_for_purchase_invoice"
+		"Purchase Invoice": "enable_budget_check_button_for_purchase_invoice",
 	}
 
 	# Check if doctype is supported
@@ -128,7 +128,7 @@ def check_budget_before_submit(doctype, docname, setting_field=None):
 	# Check if budget check feature is enabled for this doctype
 	if field_to_check:
 		try:
-			is_enabled = frappe.db.get_single_value('CSF TZ Settings', field_to_check)
+			is_enabled = frappe.db.get_single_value("CSF TZ Settings", field_to_check)
 			if not is_enabled:
 				return
 		except Exception:
@@ -181,7 +181,7 @@ def check_budget_for_journal_entry(doc):
 			}
 
 			# Add other accounting dimensions if present
-			if hasattr(account, 'project') and account.project:
+			if hasattr(account, "project") and account.project:
 				args["project"] = account.project
 
 			# Calculate expense amount (debit - credit)
@@ -219,15 +219,17 @@ def check_budget_for_buying_document(doc):
 		else:
 			posting_date = doc.get("posting_date") or doc.get("transaction_date")
 
-		args.update({
-			"doctype": doc.doctype,
-			"company": doc.company,
-			"posting_date": posting_date,
-		})
+		args.update(
+			{
+				"doctype": doc.doctype,
+				"company": doc.company,
+				"posting_date": posting_date,
+			}
+		)
 
 		# Ensure project field is included if present
 		# This is critical for project-based budget validation
-		if hasattr(item, 'project') and item.project:
+		if hasattr(item, "project") and item.project:
 			args["project"] = item.project
 
 		# Calculate the item amount for budget validation

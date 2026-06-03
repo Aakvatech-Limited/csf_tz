@@ -247,4 +247,3 @@ frappe.ui.form.SelectDialog = Class.extend({
         });
     },
 });
-

@@ -8,17 +8,17 @@ class JobCardsBuilder {
         this.page = page;
         this.init();
     }
-    
+
     init() {
         // Create Vuetify instance
         const vuetify = createVuetify();
-        
+
         // Create Vue app
         const app = createApp(JobCardsComponent);
-        
+
         // Use Vuetify
         app.use(vuetify);
-        
+
         // Mount the app
         this.vue = app.mount(this.$wrapper[0]);
     }

@@ -10,7 +10,7 @@ frappe.query_reports["Salary Register csf"] = {
           "csf_tz.csf_tz.report.salary_register_csf.salary_register_csf.approve",
         args: { data: report.data },
         callback: function (r) {
-          frappe.msgprint("Starting Approve Processing");
+          frappe.msgprint(__("Starting Approve Processing"));
           console.info(r.message);
         },
       });

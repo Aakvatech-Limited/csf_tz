@@ -27,7 +27,7 @@
                   Satus: {{ item.status }}
                 </v-list-item-subtitle>
                 <v-card-subtitle v-if="item.current_time">
-                  Current Time: 
+                  Current Time:
                   <span class="hours">{{ get_current(item.current_time).hours }}</span>
                   <span class="colon">:</span>
                   <span class="minutes">{{ get_current(item.current_time).minutes }}</span>

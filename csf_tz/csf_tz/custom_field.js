@@ -34,7 +34,7 @@ frappe.listview_settings['Custom Field'] = {
                     hide_days: doc.hide_days,
                     options: doc.options,
                     sort_options: doc.sort_options,
-                    fetch_if_empty: doc.fetch_if_empty, 
+                    fetch_if_empty: doc.fetch_if_empty,
                     fetch_from: doc.fetch_from,
                     collapsible: doc.collapsible,
                     non_negative: doc.non_negative,

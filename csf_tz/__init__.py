@@ -8,4 +8,4 @@ app_name = "csf_tz"
 
 
 def console(*data):
-    frappe.publish_realtime("out_to_console", data, user=frappe.session.user)
+	frappe.publish_realtime("out_to_console", data, user=frappe.session.user)

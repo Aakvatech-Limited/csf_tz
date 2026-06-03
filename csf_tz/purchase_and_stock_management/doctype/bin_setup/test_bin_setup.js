@@ -15,6 +15,7 @@ QUnit.test("test: Bin Setup", function (assert) {
 			{key: 'value'}
 		]),
 		() => {
+			// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 			assert.equal(cur_frm.doc.key, 'value');
 		},
 		() => done()

@@ -4,7 +4,7 @@
 
 
 frappe.ui.form.on("Customer", {
-	
+
 
 	refresh: function(frm) {
 
@@ -15,7 +15,7 @@ frappe.ui.form.on("Customer", {
 					{party_type:'Customer', party:frm.doc.name});
 			});
 
-		} 
+		}
 	},
-	
+
 });

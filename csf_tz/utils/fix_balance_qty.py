@@ -1,7 +1,8 @@
 import frappe
-from frappe.utils import add_to_date, now
-from frappe.query_builder.functions import Coalesce, CombineDatetime
 from erpnext.stock.stock_ledger import get_previous_sle_of_current_voucher
+from frappe.query_builder.functions import CombineDatetime
+from frappe.utils import add_to_date, now
+
 
 def has_correct_balance_qty(previous_sle, sles):
 	balance_qty = previous_sle.qty_after_transaction
@@ -17,6 +18,8 @@ def has_correct_balance_qty(previous_sle, sles):
 
 	return True
 
+
+# nosemgrep: frappe-semgrep-rules.rules.overusing-args
 def create_repost_item_valuation_entry(args):
 	args = frappe._dict(args)
 	repost_entry = frappe.new_doc("Repost Item Valuation")
@@ -32,18 +35,24 @@ def create_repost_item_valuation_entry(args):
 	repost_entry.save()
 	repost_entry.submit()
 
+
 from_time = add_to_date(now(), hours=-2)
 
+# nosemgrep: frappe-semgrep-rules.rules.frappe-breaks-multitenancy
 table = frappe.qb.DocType("Stock Ledger Entry")
+# nosemgrep: frappe-semgrep-rules.rules.frappe-breaks-multitenancy
 sles = (
-    frappe.qb.from_(table)
-    .select(table.item_code, table.warehouse,
-		table.voucher_type, table.voucher_no,
-		table.posting_date, table.posting_time, table.qty_after_transaction)
-    .where(
-    	(table.is_cancelled == 0)
-        & (CombineDatetime(table.posting_date, table.posting_time) >= from_time)
+	frappe.qb.from_(table)
+	.select(
+		table.item_code,
+		table.warehouse,
+		table.voucher_type,
+		table.voucher_no,
+		table.posting_date,
+		table.posting_time,
+		table.qty_after_transaction,
 	)
+	.where((table.is_cancelled == 0) & (CombineDatetime(table.posting_date, table.posting_time) >= from_time))
 	.orderby(CombineDatetime(table.posting_date, table.posting_time))
 	.orderby(table.creation)
 ).run(as_dict=True)

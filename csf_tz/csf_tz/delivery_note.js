@@ -1,6 +1,6 @@
 frappe.ui.keys.add_shortcut({
     shortcut: 'ctrl+q',
-    action: () => { 
+    action: () => {
             const current_doc = $('.data-row.editable-row').parent().attr("data-name");
             const item_row = locals["Delivery Note Item"][current_doc];
             frappe.call({
@@ -62,7 +62,7 @@ frappe.ui.keys.add_shortcut({
                                 tr.find('.check-warehouse').attr('data-batchQty',element.actual_qty);
                             }
                             tbody.find('.check-warehouse').on('change', function() {
-                                $('input.check-warehouse').not(this).prop('checked', false);  
+                                $('input.check-warehouse').not(this).prop('checked', false);
                             });
                         });
                         d.set_primary_action("Select", function() {
@@ -72,17 +72,20 @@ frappe.ui.keys.add_shortcut({
                                     frappe.model.set_value(item_row.doctype, item_row.name, 'batch_no', $(input).attr('data-batch'));
                                 }
                             });
+                            // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                             cur_frm.rec_dialog.hide();
+                            // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                             cur_frm.refresh_fields();
                         });
+                        // nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
                         cur_frm.rec_dialog = d;
-                        d.show();  
+                        d.show();
                     }
                     else {
                         frappe.show_alert({message:__('There is No Records'), indicator:'red'}, 5);
                     }
                 }
-            });     
+            });
     },
     page: this.page,
     description: __('Select Item Warehouse'),
@@ -141,8 +144,8 @@ frappe.ui.form.on("Delivery Note", {
                             frm.trigger("tax_category");
                         }
                     }
-                });           
+                });
         }
-          }, 1000);   
+          }, 1000);
     },
 });

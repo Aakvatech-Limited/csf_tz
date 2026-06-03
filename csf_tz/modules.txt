@@ -4,6 +4,5 @@ Sales And Marketing
 Meal Count
 Stanbic
 KCB
-Trade In
 VFD Providers
 VFD Settings

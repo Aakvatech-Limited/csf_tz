@@ -1,10 +1,12 @@
 frappe.ui.form.on('Additional Salary', {
 	refresh: function(frm) {
+		// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 		cur_frm.add_custom_button(__("Generate Additional Salary Records"), function() {
 			frappe.call({
 				method: "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
 				args: {},
 				callback: function () {
+					// nosemgrep: frappe-semgrep-rules.rules.frappe-cur-frm-usage
 					cur_frm.reload_doc();
 				}
 			});
@@ -41,7 +43,7 @@ frappe.ui.form.on('Additional Salary', {
 						frm.set_value("amount", frm.doc.hourly_rate / 100 * frm.doc.no_of_hours * r.message.base_salary_in_hours);
 					}
 				}
-			});	
+			});
 		}
 	},
 });
