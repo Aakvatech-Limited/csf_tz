@@ -44,76 +44,142 @@ def check_fine_all_vehicles(batch_size=20):
     plate_list = frappe.get_all(
         "Vehicle", fields=["name", "number_plate", "license_plate"], limit_page_length=0
     )
-    all_fine_list = []
     total_vehicles = len(plate_list)
 
-    for i in range(0, total_vehicles, batch_size):
-        batch_vehicles = plate_list[i : i + batch_size]
-        for vehicle in batch_vehicles:
-            # Enqueue get_fine(number_plate=vehicle["number_plate"] or vehicle["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                number_plate=vehicle["number_plate"] or vehicle["license_plate"] or vehicle["name"],
-            )
+    # Enqueue get_fine calls in the background for each vehicle
+    for vehicle in plate_list:
+        frappe.enqueue(
+            "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
+            number_plate=vehicle["number_plate"] or vehicle["license_plate"] or vehicle["name"],
+        )
+        sleep(0.5)  # Minimal delay to queue jobs efficiently
 
-            fine_list = []
-            # fine_list = get_fine(
-            #     number_plate=vehicle["number_plate"] or vehicle["name"]
-            # )
-            if fine_list and len(fine_list) > 0:
-                all_fine_list.extend(fine_list)
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+    frappe.logger().info(f"Enqueued fine checks for {total_vehicles} vehicles")
 
-    # Get all the references that are not paid
-    reference_list = frappe.get_all(
-        "Vehicle Fine Record",
-        filters={"status": ["!=", "PAID"], "reference": ["not in", all_fine_list]},
+    # Enqueue marking old records as PAID (will run after fine checks complete)
+    frappe.enqueue(
+        "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.mark_old_records_as_paid",
     )
 
-    for i in range(0, len(reference_list), batch_size):
-        batch_references = reference_list[i : i + batch_size]
-        for reference in batch_references:
-            # Enqueue get_fine(reference=reference["name"])
-            frappe.enqueue(
-                "csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record.get_fine",
-                reference=reference["vehicle"],
-            )
-            sleep(2)  # Sleep to avoid hitting the server too frequently
+    return {"message": f"Enqueued fine checks for {total_vehicles} vehicles"}
+
+
+def mark_old_records_as_paid(batch_size=20):
+    """
+    Mark Vehicle Fine Records as PAID if they're no longer in the TPF system
+    This function is called after all get_fine calls complete
+    """
+    try:
+        # Get all PENDING/UNPAID records
+        unpaid_records = frappe.get_all(
+            "Vehicle Fine Record",
+            filters={"status": ["!=", "PAID"]},
+            fields=["name", "vehicle", "reference"],
+            limit_page_length=0
+        )
+
+        marked_as_paid = 0
+        for i, record in enumerate(unpaid_records):
+            try:
+                # Check if this fine still exists in TPF
+                still_pending = get_fine(reference=record.get("reference"))
+                
+                # If not in pending list, mark as PAID
+                if not still_pending or record.get("reference") not in still_pending:
+                    frappe.db.set_value(
+                        "Vehicle Fine Record",
+                        record.get("name"),
+                        "status",
+                        "PAID"
+                    )
+                    marked_as_paid += 1
+                
+                if i % 5 == 0:
+                    sleep(1)  # Small delay every 5 records
+                    
+            except Exception as e:
+                frappe.log_error(
+                    title=f"Error checking fine {record.get('reference')}",
+                    message=frappe.get_traceback()
+                )
+                continue
+
+        frappe.db.commit()
+        frappe.logger().info(f"Marked {marked_as_paid} old records as PAID")
+
+    except Exception as e:
+        frappe.log_error(
+            title="Error in mark_old_records_as_paid",
+            message=frappe.get_traceback()
+        )
 
 
 @frappe.whitelist()
 def get_fine(number_plate=None, reference=None):
     if not number_plate and not reference:
-        print_out(
-            _("Please provide either number plate or reference"),
-            alert=True,
-            add_traceback=True,
-            to_error_log=True,
-        )
-        return
+        return []
 
+    # Log invalid plates as warning (not error) - once per vehicle
     if number_plate and len(number_plate) < 7:
-        print_out(
-            f"Please provide a valid number plate for {number_plate}",
-            alert=True,
-            add_traceback=True,
-            to_error_log=True,
-        )
-        return
+        frappe.logger().warning(f"Invalid number plate (too short): {number_plate}")
+        return []
 
     fine_list = []
     url = "https://tms.tpf.go.tz/api/OffenceCheck"
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    
+    # Headers required by TPF API
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "*/*",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        "Origin": "https://tms.tpf.go.tz",
+        "Referer": "https://tms.tpf.go.tz/",
+        "Connection": "keep-alive",
+    }
 
     payload = {"vehicle": number_plate or reference}
 
-    try:
-        sleep(2)  # Sleep to avoid hitting the server too frequently
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        frappe.log_error("HTTP error", str(e))
-        frappe.throw(f"Error contacting traffic system: {str(e)}")
+    max_retries = 3
+    retry_delay = 5
+    
+    for attempt in range(max_retries):
+        try:
+            sleep(retry_delay)
+            response = requests.post(url, json=payload, headers=headers, timeout=30)  # Increased timeout
+            response.raise_for_status()
+            break  # Success, exit retry loop
+            
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            # Retry transient network errors
+            if attempt < max_retries - 1:
+                retry_delay = 5 * (attempt + 1)  # 5s, 10s, 15s
+                continue
+            else:
+                frappe.logger().warning(f"Connection timeout for {number_plate or reference} after {max_retries} retries")
+                return []
+                
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 429:  # Too Many Requests - retry
+                if attempt < max_retries - 1:
+                    retry_delay = 10 * (attempt + 1)
+                    continue
+                else:
+                    frappe.logger().warning(f"Rate limit for {number_plate or reference} after {max_retries} retries")
+                    return []
+            elif response.status_code >= 500:  # 5xx Server errors - retry
+                if attempt < max_retries - 1:
+                    retry_delay = 10 * (attempt + 1)
+                    continue
+                else:
+                    frappe.logger().warning(f"Server error for {number_plate or reference} after {max_retries} retries")
+                    return []
+            else:  # 4xx errors - don't retry
+                frappe.log_error(title="TPF API Error", message=f"HTTP {response.status_code}: {str(e)}")
+                return []
+                
+        except requests.exceptions.RequestException as e:
+            frappe.log_error(title="TPF API Error", message=str(e))
+            return []
 
     try:
         result = response.json()
@@ -130,11 +196,45 @@ def get_fine(number_plate=None, reference=None):
             return fine_list
 
         filters = {"vehicle": vehicle_key, "status": ["!=", "PAID"], "reference": ["not in", fine_list]}
+        
+        # Get existing fine references to check for duplicates
+        existing_refs = frappe.get_all(
+            "Vehicle Fine Record",
+            filters={"vehicle": vehicle_key, "reference": ["in", fine_list]},
+            pluck="reference"
+        )
+
+        # Mark existing records NOT in current list as PAID
+        for record in frappe.get_all("Vehicle Fine Record", filters=filters, pluck="name"):
+            frappe.db.set_value("Vehicle Fine Record", record, "status", "PAID")
+
+        # Create NEW Vehicle Fine Records for pending fines that don't exist
+        for fine in data:
+            fine_ref = fine.get("reference")
+            if fine_ref and fine_ref not in existing_refs:
+                try:
+                    new_record = frappe.get_doc({
+                        "doctype": "Vehicle Fine Record",
+                        "vehicle": vehicle_key,
+                        "reference": fine_ref,
+                        "status": "PENDING",
+                        "amount": fine.get("amount"),
+                        "offence": fine.get("offence"),
+                        "fine_date": fine.get("date"),
+                    })
+                    new_record.insert(ignore_permissions=True)
+                except frappe.exceptions.DuplicateEntryError:
+                    pass  # Record already exists, continue
+                except Exception as e:
+                    frappe.log_error(
+                        title=f"Error creating fine record for {vehicle_key}",
+                        message=frappe.get_traceback()
+                    )
     else:
         filters = {"vehicle": vehicle_key, "status": ["!=", "PAID"]}
 
-    for record in frappe.get_all("Vehicle Fine Record", filters=filters, pluck="name"):
-        frappe.db.set_value("Vehicle Fine Record", record, "status", "PAID")
+        for record in frappe.get_all("Vehicle Fine Record", filters=filters, pluck="name"):
+            frappe.db.set_value("Vehicle Fine Record", record, "status", "PAID")
 
     frappe.db.commit()
     return fine_list
