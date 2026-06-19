@@ -177,7 +177,6 @@ doc_events = {
         ],
         "validate": [
             "csf_tz.custom_api.check_validate_delivery_note",
-            "csf_tz.custom_api.validate_items_remaining_qty",
             "csf_tz.custom_api.calculate_price_reduction",
             "csf_tz.custom_api.validate_trade_in_serial_no_and_batch",
             "csf_tz.custom_api.validate_trade_in_sales_percentage",
@@ -291,7 +290,6 @@ doc_events = {
 		],
 		"validate": [
 			"csf_tz.custom_api.check_validate_delivery_note",
-			"csf_tz.custom_api.validate_items_remaining_qty",
 			"csf_tz.custom_api.calculate_price_reduction",
 		],
 		"before_cancel": [
