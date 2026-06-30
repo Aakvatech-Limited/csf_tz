@@ -1,0 +1,14 @@
+{
+ "app": "csf_tz",
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "App",
+ "idx": 0,
+ "label": "CSF TZ",
+ "link": "/desk/csf_tz",
+ "link_type": "External",
+ "logo_url": "/assets/csf_tz/images/tanzania-workspace.png",
+ "name": "CSF TZ",
+ "roles": [],
+ "standard": 1
+}

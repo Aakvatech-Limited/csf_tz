@@ -1,17 +1,18 @@
 {
+ "app": "csf_tz",
  "charts": [],
- "content": "[{\"id\":\"tanzaniaHeader\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Tanzania Tax &amp; Payroll</b></span>\",\"col\":12}},{\"id\":\"tanzaniaSpacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"vfdIntegrationCard\",\"type\":\"card\",\"data\":{\"card_name\":\"VFD Integration\",\"col\":4}},{\"id\":\"taxSetupCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Tax Setup\",\"col\":4}},{\"id\":\"salesPurchaseCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales and Purchase\",\"col\":4}},{\"id\":\"payrollSetupCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Setup\",\"col\":4}},{\"id\":\"taxReportsCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Tax Reports\",\"col\":4}},{\"id\":\"payrollReportsCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Reports\",\"col\":4}}]",
- "creation": "2025-02-27 09:46:51.663865",
+ "content": "[{\"id\":\"scSettings\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CSF TZ Settings\",\"col\":3,\"link_to\":\"CSF TZ Settings\",\"type\":\"DocType\",\"doc_view\":\"List\",\"label\":\"CSF TZ Settings\",\"color\":\"Blue\",\"format\":\"Table\",\"icon\":null,\"stats_filter\":\"{}\"}},{\"id\":\"tanzaniaHeader\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Tanzania Tax &amp; Payroll</b></span>\",\"col\":12}},{\"id\":\"tanzaniaSpacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"vfdIntegrationCard\",\"type\":\"card\",\"data\":{\"card_name\":\"VFD Integration\",\"col\":4}},{\"id\":\"taxSetupCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Tax Setup\",\"col\":4}},{\"id\":\"salesPurchaseCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales and Purchase\",\"col\":4}},{\"id\":\"payrollSetupCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Setup\",\"col\":4}},{\"id\":\"taxReportsCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Tax Reports\",\"col\":4}},{\"id\":\"payrollReportsCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Reports\",\"col\":4}}]",
+ "creation": "2026-06-30 15:02:16.173841",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 1,
- "icon": "computer",
+ "icon": "globe",
  "idx": 0,
  "indicator_color": "",
  "is_hidden": 0,
- "label": "Tanzania",
+ "label": "CSF TZ",
  "links": [
   {
    "hidden": 0,
@@ -495,10 +496,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-18 16:28:18.980187",
+ "modified": "2026-06-30 14:56:00",
  "modified_by": "Administrator",
  "module": "CSF TZ",
- "name": "Tanzania",
+ "name": "csf_tz",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
@@ -506,6 +507,14 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 1.0,
- "shortcuts": [],
- "title": "Tanzania"
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "CSF TZ Settings",
+   "link_to": "CSF TZ Settings",
+   "type": "DocType"
+  }
+ ],
+ "title": "CSF TZ"
 }

@@ -16,7 +16,7 @@ add_to_apps_screen = [
 		"name": "csf_tz",
 		"logo": "/assets/csf_tz/images/tanzania-workspace.png",
 		"title": "CSF TZ",
-		"route": "/desk/workspace/Tanzania",
+		"route": "/desk/csf_tz",
 	}
 ]
 
