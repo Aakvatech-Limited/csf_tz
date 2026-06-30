@@ -564,22 +564,6 @@ def execute():
 		],
 		"Sales Invoice Item": [
 			{
-				"allow_on_submit": 1,
-				"fieldname": "is_ignored_in_pending_qty",
-				"fieldtype": "Check",
-				"insert_after": "item_code",
-				"label": "Is Ignored In Pending Qty",
-				"permlevel": 2,
-				"precision": "",
-			},
-			{
-				"default": "0",
-				"fieldname": "allow_over_sell",
-				"fieldtype": "Check",
-				"insert_after": "customer_item_code",
-				"label": "Allow Over Sell",
-			},
-			{
 				"fetch_from": "item_code.withholding_tax_rate_on_sales",
 				"fieldname": "withholding_tax_rate",
 				"fieldtype": "Percent",
