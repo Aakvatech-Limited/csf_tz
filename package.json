@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "vuetify": "^4.0.5"
+    "vuetify": "3.6.15"
   }
 }
