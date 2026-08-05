@@ -32,16 +32,10 @@ def process_overtime(doc, method):
 
     late_entry_grace_period = None
     early_exit_grace_period = None
-    if (
-        shift_type.enable_entry_grace_period == 1
-        and shift_type.late_entry_grace_period != None
-    ):
+    if shift_type.enable_late_entry_marking == 1 and shift_type.late_entry_grace_period != None:
         late_entry_grace_period = shift_type.late_entry_grace_period
 
-    if (
-        shift_type.enable_exit_grace_period == 1
-        and shift_type.early_exit_grace_period != None
-    ):
+    if shift_type.enable_early_exit_marking == 1 and shift_type.early_exit_grace_period != None:
         early_exit_grace_period = shift_type.early_exit_grace_period
 
     in_time = doc.in_time or "00:00:00"
