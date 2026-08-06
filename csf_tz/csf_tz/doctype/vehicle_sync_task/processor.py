@@ -85,11 +85,11 @@ def run_vehicle_batch():
             continue
 
         if status in {"rate_limited", "retryable_error"}:
-            attempts, _ = queue.bump_attempts(TASK_DOCTYPE, task)
+            current_attempts = frappe.db.get_value(TASK_DOCTYPE, task["name"], "attempts") or 0
             queue.schedule_next(
                 TASK_DOCTYPE,
                 task,
-                _backoff_seconds(attempts),
+                _backoff_seconds(current_attempts + 1),
                 result.get("message") or status,
             )
             errors += 1

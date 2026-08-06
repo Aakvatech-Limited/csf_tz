@@ -4,7 +4,7 @@ import frappe
 # ------------ CONFIGURATION ------------
 BATCH_SIZE = 1
 TIME_BUDGET_SEC = 50
-MAX_ATTEMPTS = 4
+MAX_ATTEMPTS = 2
 BASE_BACKOFF = 300
 BACKOFF_JITTER = 0.2
 SUCCESS_INTERVAL_SECONDS = 60 * 60 * 2
@@ -22,6 +22,21 @@ def _jitter(seconds):
     jitter_factor = 1 + (random_factor * BACKOFF_JITTER)
     return int(seconds * jitter_factor)
 
+def get_pending_cycle_delay(doctype):
+    try:
+        Task = frappe.qb.DocType(doctype)
+        pending = (
+            frappe.qb.from_(Task)
+            .select(Task.name)
+            .where(
+                (Task.status == "Pending") &
+                ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))
+            )
+        ).run()
+        return max(len(pending), 1) * 60
+    except Exception:
+        return 60
+
 # ------------ CORE QUEUE OPERATIONS ------------
 def claim_batch(doctype, limit=BATCH_SIZE):
     try:
@@ -34,12 +49,26 @@ def claim_batch(doctype, limit=BATCH_SIZE):
             .where(
                 (Task.status == "Pending") &
                 ((Task.next_run_at.isnull()) | (Task.next_run_at <= now)) &
-                ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))  # ← IGNORE DELETED TASKS
+                ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))
             )
             .orderby(Task.priority, order=frappe.qb.terms.Order.desc)
             .orderby(Task.name)
             .limit(limit)
         ).run(as_dict=True)
+
+        if not rows:
+            rows = (
+                frappe.qb.from_(Task)
+                .select(Task.name)
+                .where(
+                    (Task.status == "Failed") &
+                    (Task.next_run_at <= now) &
+                    ((Task.is_deleted.isnull()) | (Task.is_deleted == 0))
+                )
+                .orderby(Task.priority, order=frappe.qb.terms.Order.desc)
+                .orderby(Task.name)
+                .limit(limit)
+            ).run(as_dict=True)
 
         if not rows:
             return []
@@ -80,16 +109,22 @@ def mark_done(doctype, task):
             message=f"Error marking task {task.get('name')} as done in {doctype}: {str(e)}"
         )
 
-def mark_failed(doctype, task, err_msg):
+def mark_failed(doctype, task, err_msg, next_run_at=None, reset_attempts=False):
     try:
-        frappe.db.set_value(doctype, task["name"], {
+        values = {
             "status": "Failed",
             "last_error": err_msg[:1000],
             "last_run_at": _now(),
             "claimed_by": "",
             "claimed_at": None,
-            "next_run_at": None,
-        })
+            "next_run_at": next_run_at,
+        }
+        if reset_attempts:
+            values.update({
+                "attempts": 0,
+                "backoff_exp": 0,
+            })
+        frappe.db.set_value(doctype, task["name"], values)
     except Exception as e:
         frappe.log_error(
             title="Queue Mark Failed Error",
@@ -119,10 +154,18 @@ def bump_attempts(doctype, task):
 def schedule_next(doctype, task, backoff_seconds, error_msg=""):
     try:
         attempts, _ = bump_attempts(doctype, task)
+        cycle_delay = get_pending_cycle_delay(doctype)
+        next_delay = max(backoff_seconds, cycle_delay)
+        next_run = frappe.utils.add_to_date(_now(), seconds=_jitter(next_delay))
         if attempts >= MAX_ATTEMPTS:
-            mark_failed(doctype, task, error_msg or "Max attempts exceeded")
+            mark_failed(
+                doctype,
+                task,
+                error_msg or "Max attempts exceeded",
+                next_run_at=next_run,
+                reset_attempts=True,
+            )
             return
-        next_run = frappe.utils.add_to_date(_now(), seconds=_jitter(backoff_seconds))
         frappe.db.set_value(doctype, task["name"], {
             "status": "Pending",
             "claimed_by": "",
