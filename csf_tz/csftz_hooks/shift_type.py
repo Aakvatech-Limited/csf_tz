@@ -14,6 +14,9 @@ def skip_version_on_checkin_sync(doc, method=None):
     The biometric checkin sync updates this timestamp on every run, which would
     otherwise create a Version record for each sync.
     """
+    if not doc.has_value_changed(CHECKIN_SYNC_FIELD):
+        return
+
     if not _is_checkin_sync_request():
         return
 
