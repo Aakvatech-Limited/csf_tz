@@ -2898,23 +2898,39 @@ def validate_trade_in_serial_no_and_batch(doc, method):
         if row.item_code == "Trade In" and row.custom_trade_in_item:
             has_batch_no = frappe.db.get_value("Item", row.custom_trade_in_item, "has_batch_no")
             if has_batch_no and not row.custom_trade_in_batch_no:
-                error_messages.append(f"Batch No. is mandatory for Item {row.custom_trade_in_item} in row {row.idx}.")
+                error_messages.append(f"<b>Row {row.idx}:</b> Batch No. is mandatory for Item <b>{row.custom_trade_in_item}</b>.")
             
             has_serial_no = frappe.db.get_value("Item", row.custom_trade_in_item, "has_serial_no")
             if has_serial_no:
                 if not row.custom_trade_in_serial_no:
-                    error_messages.append(f"Serial Numbers are mandatory for Item {row.custom_trade_in_item} in row {row.idx}.")
+                    error_messages.append(f"<b>Row {row.idx}:</b> Serial Numbers are mandatory for Item <b>{row.custom_trade_in_item}</b>.")
                 else:
-                    serial_numbers = row.custom_trade_in_serial_no.split("\n")
+                    serial_numbers = [s.strip() for s in row.custom_trade_in_serial_no.split("\n") if s.strip()]
                     if len(serial_numbers) != row.custom_trade_in_qty:
                         error_messages.append(
-                            f"Serial Numbers count ({len(serial_numbers)}) does not match "
-                            f"the Trade-In Quantity ({row.custom_trade_in_qty}) for Item {row.custom_trade_in_item} in row {row.idx}."
+                            f"<b>Row {row.idx}:</b> Serial Numbers count ({len(serial_numbers)}) does not match "
+                            f"the Trade-In Quantity ({row.custom_trade_in_qty}) for Item <b>{row.custom_trade_in_item}</b>."
                         )
+                    for sn in serial_numbers:
+                        existing_sn = frappe.db.get_value("Serial No", sn, ["name", "warehouse", "status"], as_dict=True)
+                        if existing_sn and (existing_sn.get("warehouse") or existing_sn.get("status") == "Active"):
+                            wh_info = existing_sn.get("warehouse") or "Active Stock"
+                            error_messages.append(
+                                f"<b>Row {row.idx} ({row.custom_trade_in_item}):</b> Serial No <code><b>{sn}</b></code> is already present in warehouse stock (<b>{wh_info}</b>).<br>"
+                                f"&nbsp;&nbsp;&nbsp;<i>Note: Trade-In cannot receive a serial number that is already active in inventory. Please verify the serial number provided by the customer.</i>"
+                            )
     if error_messages:
+        formatted_msgs = "".join([f"<li style='margin-bottom: 10px;'>{msg}</li>" for msg in error_messages])
         frappe.throw(
-            title="Validation Errors",
-            msg="<br>".join(error_messages),
+            title="Trade-In Validation Error",
+            msg=f"""
+                <div style='font-size: 13px; line-height: 1.5;'>
+                    <p style='margin-bottom: 10px;'><b>Unable to process Trade-In due to the following issue(s):</b></p>
+                    <ul style='padding-left: 18px; margin-bottom: 0;'>
+                        {formatted_msgs}
+                    </ul>
+                </div>
+            """,
         )
 
 @trade_in_flag_check
