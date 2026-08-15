@@ -2249,6 +2249,50 @@ def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, comp
 	return prices_list
 
 
+def trade_in_flag_check(func):
+	def wrapper(doc, method=None, *args, **kwargs):
+		if not getattr(doc, "custom_is_trade_in", False):
+			return
+		return func(doc, method, *args, **kwargs)
+
+	return wrapper
+
+
+@trade_in_flag_check
+def validate_trade_in_serial_no_and_batch(doc, method=None):
+	for row in doc.items:
+		if row.item_code == "Trade In" and row.custom_trade_in_item:
+			has_serial_no = frappe.db.get_value("Item", row.custom_trade_in_item, "has_serial_no")
+			if has_serial_no:
+				if not row.custom_trade_in_serial_no:
+					frappe.throw(
+						title=_("Trade-In Validation Error"),
+						msg=_("<b>Row {0}:</b> Serial Numbers are mandatory for Item <b>{1}</b>.").format(
+							row.idx, row.custom_trade_in_item
+						),
+					)
+
+				serial_nos = [s.strip() for s in row.custom_trade_in_serial_no.split("\n") if s.strip()]
+				if len(serial_nos) != row.custom_trade_in_qty:
+					frappe.throw(
+						title=_("Trade-In Validation Error"),
+						msg=_(
+							"<b>Row {0}:</b> Serial Numbers count ({1}) does not match Trade-In Quantity ({2}) for Item <b>{3}</b>."
+						).format(row.idx, len(serial_nos), row.custom_trade_in_qty, row.custom_trade_in_item),
+					)
+
+				for sn in serial_nos:
+					existing_sn = frappe.db.get_value("Serial No", sn, ["name", "warehouse", "status"], as_dict=True)
+					if existing_sn and (existing_sn.get("warehouse") or existing_sn.get("status") == "Active"):
+						wh = existing_sn.get("warehouse") or "Active Stock"
+						frappe.throw(
+							title=_("Trade-In Validation Error"),
+							msg=_(
+								"<b>Row {0} ({1}):</b> Serial No <code><b>{2}</b></code> is already present in warehouse stock (<b>{3}</b>)."
+							).format(row.idx, row.custom_trade_in_item, sn, wh),
+						)
+
+
 @frappe.whitelist()
 def create_write_off_jv_si(sales_invoice: Any, account: Any):
 	settings = frappe.get_single("CSF TZ Settings")

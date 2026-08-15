@@ -170,6 +170,7 @@ doc_events = {
 		"validate": [
 			"csf_tz.custom_api.check_validate_delivery_note",
 			"csf_tz.custom_api.calculate_price_reduction",
+			"csf_tz.custom_api.validate_trade_in_serial_no_and_batch",
 		],
 		"before_cancel": [
 			"csf_tz.vfd_support.sales_invoice.validate_cancel",
