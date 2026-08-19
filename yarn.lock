@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-vuetify@^4.0.5:
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-4.0.5.tgz#bcaf674d2d5c9ebb6cf0517b733bbb4922e94cb3"
-  integrity sha512-pFysKOHuY3dROTVh9PdlhVz50ZR0E5/goY5ecTXc8F8tajUA2ee3xZ8Lqs1WtEw/X3w93wx/LogyjgaQCAL/Ig==
+vuetify@3.6.15:
+  version "3.6.15"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.6.15.tgz#de7784289c5ffa64cd56de6f824816fbb6aacdf8"
+  integrity sha512-lg5Si+vX0hQpO4EzI9f+8JNVHbjV//E99yKif7OuWLENDk1TQx2tfqCdZvb5AnAeqyiqVJVgOQp4uYHgGjTFAw==
