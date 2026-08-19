@@ -19,6 +19,7 @@ dependencies = [
     "pyotp",
     "qrcode",
     "xmltodict",
+    "selcom-apigw-client",
 ]
 
 [build-system]
