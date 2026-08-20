@@ -41,8 +41,9 @@ repos:
     hooks:
       - id: frappe-semgrep
         name: semgrep (frappe rules)
-        entry: semgrep --config /home/dev/frappe-semgrep-rules/rules --error --skip-unknown-extensions
-        language: system
+        entry: bash -c 'if [ ! -d frappe-semgrep-rules/.git ]; then rm -rf frappe-semgrep-rules && GIT_TEMPLATE_DIR="" git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules; fi && semgrep scan --config ./frappe-semgrep-rules/rules --error --skip-unknown-extensions --quiet "$@"' --
+        language: python
+        additional_dependencies: ["semgrep"]
         types_or: [python, javascript]
         pass_filenames: true
         require_serial: true
