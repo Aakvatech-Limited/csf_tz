@@ -29,6 +29,11 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Run pre-commit on changed files
+        # frappe-semgrep is skipped here: it is a local hook pointing at a rules
+        # checkout that only exists on developer machines. The dedicated
+        # "Run Semgrep rules" step below covers semgrep in CI.
+        env:
+          SKIP: frappe-semgrep
         run: |
           pre-commit run \
             --show-diff-on-failure \

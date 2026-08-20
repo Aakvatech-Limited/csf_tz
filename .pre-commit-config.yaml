@@ -46,9 +46,6 @@ repos:
         types_or: [python, javascript]
         pass_filenames: true
         require_serial: true
-        # CSF TZ Settings keeps read for the "All" role because desk client scripts
-        # call frappe.db.get_single_value on it; JSON cannot carry a nosemgrep comment.
-        exclude: '^csf_tz/csf_tz/doctype/csf_tz_settings/csf_tz_settings\.json$'
 
       - id: commit-msg-length
         name: check commit message length

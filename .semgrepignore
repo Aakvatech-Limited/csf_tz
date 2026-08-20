@@ -1,0 +1,10 @@
+# Semgrep's default ignores are not inherited once this file exists.
+.git/
+node_modules/
+__pycache__/
+
+# CSF TZ Settings keeps read for the "All" role because desk client scripts call
+# frappe.db.get_single_value on it (payment_entry.js, material_request.js,
+# sales_order.js and others), and that call enforces read permission. JSON cannot
+# carry a nosemgrep comment, so the waiver has to live here.
+csf_tz/csf_tz/doctype/csf_tz_settings/csf_tz_settings.json
