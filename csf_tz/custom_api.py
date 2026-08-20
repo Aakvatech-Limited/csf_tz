@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import base64
 import io
 import json
@@ -119,9 +117,7 @@ def get_app_branch(app):
 	import subprocess
 
 	try:
-		branch = subprocess.check_output(
-			"cd ../apps/{0} && git rev-parse --abbrev-ref HEAD".format(app), shell=True
-		)
+		branch = subprocess.check_output(f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD", shell=True)
 		branch = branch.decode("utf-8")
 		branch = branch.strip()
 		return branch
@@ -167,8 +163,8 @@ def get_item_info(item_code: Any):
 
 @frappe.whitelist()
 def get_item_prices(item_code: Any, currency: Any, customer: Any = None, company: Any = None):
-	item_code = "'{0}'".format(item_code)
-	currency = "'{0}'".format(currency)
+	item_code = f"'{item_code}'"
+	currency = f"'{currency}'"
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
@@ -178,21 +174,18 @@ def get_item_prices(item_code: Any, currency: Any, customer: Any = None, company
 	else:
 		conditions = ""
 
-	query = (
-		""" SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty, SIT.rate
+	query = f""" SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty, SIT.rate
             FROM `tabSales Invoice` AS SI
             INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
             WHERE
-                SIT.item_code = {0}
+                SIT.item_code = {item_code}
                 AND SIT.parent = SI.name
                 AND SI.docstatus=%s
-                AND SI.currency = {2}
+                AND SI.currency = {currency}
                 AND SI.is_return != 1
-                AND SI.company = '{3}'
-                {1}
-            ORDER by SI.posting_date DESC""".format(item_code, conditions, currency, company)
-		% (1)
-	)
+                AND SI.company = '{company}'
+                {conditions}
+            ORDER by SI.posting_date DESC""" % (1)
 
 	items = frappe.db.sql(query, as_dict=True)
 	for item in items:
@@ -229,8 +222,8 @@ def get_item_prices_custom(filters: Any = None, start: Any = 0, limit: Any = 20)
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
-	item_code = "'{0}'".format(filters.get("item_code", ""))
-	currency = "'{0}'".format(filters.get("currency", ""))
+	item_code = "'{}'".format(filters.get("item_code", ""))
+	currency = "'{}'".format(filters.get("currency", ""))
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
@@ -238,28 +231,26 @@ def get_item_prices_custom(filters: Any = None, start: Any = 0, limit: Any = 20)
 
 	if "posting_date" in filters:
 		posting_date = filters["posting_date"]
-		from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-		to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-		conditions += "AND DATE(SI.posting_date) BETWEEN {start} AND {end}".format(
-			start=from_date, end=to_date
-		)
+		from_date = f"'{posting_date[1][0]}'"
+		to_date = f"'{posting_date[1][1]}'"
+		conditions += f"AND DATE(SI.posting_date) BETWEEN {from_date} AND {to_date}"
 	if customer:
 		conditions += " AND SI.customer = '%s'" % customer
 
 	# TODO: refactor to parameterized query; inputs are pre-quoted upstream
 	# nosemgrep: frappe-sql-format-injection
-	query = """ SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty,  SIT.rate
+	query = f""" SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty,  SIT.rate
                 FROM `tabSales Invoice` AS SI
                 INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
                 WHERE
-                    SIT.item_code = {0}
+                    SIT.item_code = {item_code}
                     AND SIT.parent = SI.name
                     AND SI.docstatus= 1
-                    AND SI.currency = {2}
+                    AND SI.currency = {currency}
                     AND SI.is_return != 1
-                    AND SI.company = '{3}'
-                    {1}
-                ORDER by SI.posting_date DESC""".format(item_code, conditions, currency, company)
+                    AND SI.company = '{company}'
+                    {conditions}
+                ORDER by SI.posting_date DESC"""
 
 	items = frappe.db.sql(query, as_dict=True)
 	for item in items:
@@ -584,11 +575,9 @@ def get_pending_sales_invoice(*args):
 		conditions += " AND SI.name = '%s'" % args[1]
 	if "posting_date" in filters:
 		posting_date = filters["posting_date"]
-		from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-		to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-		conditions += "AND DATE(SI.posting_date) BETWEEN {start} AND {end}".format(
-			start=from_date, end=to_date
-		)
+		from_date = f"'{posting_date[1][0]}'"
+		to_date = f"'{posting_date[1][1]}'"
+		conditions += f"AND DATE(SI.posting_date) BETWEEN {from_date} AND {to_date}"
 	if "customer" in filters:
 		conditions += " AND SI.customer = '%s'" % filters["customer"]
 	if "company" in filters:
@@ -786,7 +775,7 @@ def make_stock_reconciliation_for_all_pending_material_request(*args):
 				data[mat_req_doc.company][item.warehouse].append(item_dict)
 
 	for key, value in data.items():
-		for key1, value1 in value.items():
+		for _key1, value1 in value.items():
 			if len(value1) > 0:
 				items_list = []
 				items = []
@@ -1308,14 +1297,8 @@ def allocate_batches_for_single_items(doc, items, warehouse, fields_to_clear):
 
 			if b_qty < row.qty:
 				frappe.throw(
-					"Qty: {0} available for item: {1} on warehouse: {2} is not enough to complete requested Qty: {3}<br>\
-                Please update sales order: {4} to match the Qty available on stock".format(
-						frappe.bold(b_qty),
-						frappe.bold(row.item_code),
-						frappe.bold(warehouse),
-						frappe.bold(row.qty),
-						frappe.bold(row.parent),
-					)
+					f"Qty: {frappe.bold(b_qty)} available for item: {frappe.bold(row.item_code)} on warehouse: {frappe.bold(warehouse)} is not enough to complete requested Qty: {frappe.bold(row.qty)}<br>\
+                Please update sales order: {frappe.bold(row.parent)} to match the Qty available on stock"
 				)
 
 		else:
@@ -2067,8 +2050,8 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
-	item_code = "'{0}'".format(filters.get("item_code", ""))
-	currency = "'{0}'".format(filters.get("currency", ""))
+	item_code = "'{}'".format(filters.get("item_code", ""))
+	currency = "'{}'".format(filters.get("currency", ""))
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
@@ -2076,28 +2059,26 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 
 	if "posting_date" in filters:
 		posting_date = filters["posting_date"]
-		from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-		to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-		conditions += "AND DATE(PI.posting_date) BETWEEN {start} AND {end}".format(
-			start=from_date, end=to_date
-		)
+		from_date = f"'{posting_date[1][0]}'"
+		to_date = f"'{posting_date[1][1]}'"
+		conditions += f"AND DATE(PI.posting_date) BETWEEN {from_date} AND {to_date}"
 	if customer:
 		conditions += " AND PI.supplier = '%s'" % customer
 
 	# TODO: refactor to parameterized query; inputs are pre-quoted upstream
 	# nosemgrep: frappe-sql-format-injection
-	query = """ SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty,  PIT.rate
+	query = f""" SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty,  PIT.rate
                 FROM `tabPurchase Invoice` AS PI
                 INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
                 WHERE
-                    PIT.item_code = {0}
+                    PIT.item_code = {item_code}
                     AND PIT.parent = PI.name
                     AND PI.docstatus= 1
-                    AND PI.currency = {2}
+                    AND PI.currency = {currency}
                     AND PI.is_return != 1
-                    AND PI.company = '{3}'
-                    {1}
-                ORDER by PI.posting_date DESC""".format(item_code, conditions, currency, company)
+                    AND PI.company = '{company}'
+                    {conditions}
+                ORDER by PI.posting_date DESC"""
 
 	items = frappe.db.sql(query, as_dict=True)
 	for item in items:
@@ -2120,8 +2101,8 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 
 @frappe.whitelist()
 def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, company: Any = None):
-	item_code = "'{0}'".format(item_code)
-	currency = "'{0}'".format(currency)
+	item_code = f"'{item_code}'"
+	currency = f"'{currency}'"
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
@@ -2131,21 +2112,18 @@ def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, comp
 	else:
 		conditions = ""
 
-	query = (
-		""" SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty, PIT.rate
+	query = f""" SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty, PIT.rate
             FROM `tabPurchase Invoice` AS PI
             INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
             WHERE
-                PIT.item_code = {0}
+                PIT.item_code = {item_code}
                 AND PIT.parent = PI.name
                 AND PI.docstatus=%s
-                AND PI.currency = {2}
+                AND PI.currency = {currency}
                 AND PI.is_return != 1
-                AND PI.company = '{3}'
-                {1}
-            ORDER by PI.posting_date DESC""".format(item_code, conditions, currency, company)
-		% (1)
-	)
+                AND PI.company = '{company}'
+                {conditions}
+            ORDER by PI.posting_date DESC""" % (1)
 
 	items = frappe.db.sql(query, as_dict=True)
 	for item in items:

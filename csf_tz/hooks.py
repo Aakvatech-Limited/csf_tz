@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 app_name = "csf_tz"
 app_title = "CSF TZ"
 app_publisher = "Aakvatech"

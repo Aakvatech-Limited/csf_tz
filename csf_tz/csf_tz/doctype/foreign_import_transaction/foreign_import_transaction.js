@@ -17,7 +17,7 @@ frappe.ui.form.on('Foreign Import Transaction', {
                 });
             });
         }
-        
+
         if (frm.doc.docstatus === 1) {
             frm.add_custom_button(__('View Exchange Report'), function() {
                 frappe.route_options = {
@@ -111,7 +111,7 @@ frappe.ui.form.on('Foreign Import Transaction', {
                 }
             }, __('Debug'));
         }
-        
+
         // Set color indicator based on status
         if (frm.doc.status && frm.dashboard) {
             let color = {
@@ -136,7 +136,7 @@ frappe.ui.form.on('Foreign Import Transaction', {
             frm.dashboard.add_indicator(message, frm.doc.total_gain_loss >= 0 ? 'green' : 'red');
         }
     },
-    
+
     purchase_invoice: function(frm) {
         if (frm.doc.purchase_invoice) {
             frappe.call({
@@ -148,7 +148,7 @@ frappe.ui.form.on('Foreign Import Transaction', {
                 callback: function(r) {
                     if (r.message) {
                         let pi = r.message;
-                        
+
                         // Check if it's a foreign currency invoice
                         frappe.db.get_value('Company', pi.company, 'default_currency')
                         .then(result => {
@@ -157,7 +157,7 @@ frappe.ui.form.on('Foreign Import Transaction', {
                                 frm.set_value('purchase_invoice', '');
                                 return;
                             }
-                            
+
                             // Set fields from PI
                             frm.set_value({
                                 'supplier': pi.supplier,
@@ -195,12 +195,12 @@ frappe.ui.form.on('Foreign Import Payment Details', {
                             'payment_amount_base': pe.base_paid_amount,
                             'payment_exchange_rate': pe.source_exchange_rate
                         });
-                        
+
                         // Calculate exchange difference
                         let original_rate = flt(frm.doc.original_exchange_rate);
                         let payment_rate = flt(pe.source_exchange_rate);
                         let paid_amount = flt(pe.paid_amount);
-                        
+
                         if (original_rate !== payment_rate) {
                             let exchange_diff = paid_amount * (payment_rate - original_rate);
                             frappe.model.set_value(cdt, cdn, 'exchange_difference', exchange_diff);

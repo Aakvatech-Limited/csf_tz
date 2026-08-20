@@ -1,5 +1,6 @@
 from frappe import _
 
+
 def get_data():
 	return [
 		{
@@ -31,16 +32,12 @@ def get_data():
 					"name": "Order Tracking",
 					"description": _("Track orders from Suppliers."),
 				},
-				{
-					"type": "doctype",
-					"name": "Product Quality Inspection",
-					"label": _("Order Inspection")
-				},
+				{"type": "doctype", "name": "Product Quality Inspection", "label": _("Order Inspection")},
 				{
 					"type": "doctype",
 					"name": "Purchase Receipt",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Stock Management"),
@@ -49,7 +46,7 @@ def get_data():
 					"type": "doctype",
 					"name": "Stock Entry",
 				},
-                {
+				{
 					"type": "doctype",
 					"name": "Stock Transport",
 				},
@@ -59,7 +56,7 @@ def get_data():
 					"name": "Stock Ledger",
 					"doctype": "Stock Ledger Entry",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Supplier"),
@@ -69,18 +66,14 @@ def get_data():
 					"name": "Supplier",
 					"description": _("Supplier database."),
 				},
-				{
-					"type": "doctype",
-					"name": "Supplier Type",
-					"description": _("Supplier Type master.")
-				},
+				{"type": "doctype", "name": "Supplier Type", "description": _("Supplier Type master.")},
 				{
 					"type": "doctype",
 					"name": "Project",
 					"label": _("Projects"),
-					"description": _("Supplier Type master.")
+					"description": _("Supplier Type master."),
 				},
-			]
+			],
 		},
 		{
 			"label": _("Items and Pricing"),
@@ -106,38 +99,18 @@ def get_data():
 					"type": "doctype",
 					"name": "Past Serial No",
 					"description": _("Past Serial No."),
-				}	
-			]
+				},
+			],
 		},
 		{
 			"label": _("Purchase Reports"),
 			"icon": "fa fa-list",
 			"items": [
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Items To Be Requested"
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Reordering Items"
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Pending Ordered Items"
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Purchase History"
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Pending Requests"
-				},
+				{"type": "report", "is_query_report": True, "name": "Items To Be Requested"},
+				{"type": "report", "is_query_report": True, "name": "Reordering Items"},
+				{"type": "report", "is_query_report": True, "name": "Pending Ordered Items"},
+				{"type": "report", "is_query_report": True, "name": "Purchase History"},
+				{"type": "report", "is_query_report": True, "name": "Pending Requests"},
 				{
 					"type": "report",
 					"is_query_report": True,
@@ -156,11 +129,9 @@ def get_data():
 					"name": "Supplier Contacts",
 					"label": "Supplier Contacts",
 					"doctype": "Address",
-					"route_options": {
-						"party_type": "Supplier"
-					}
+					"route_options": {"party_type": "Supplier"},
 				},
-			]
+			],
 		},
 		{
 			"label": _("Stock Reports"),
@@ -169,7 +140,7 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Stock Balance",
-					"doctype": "Stock Ledger Entry"
+					"doctype": "Stock Ledger Entry",
 				},
 				{
 					"type": "report",
@@ -177,11 +148,7 @@ def get_data():
 					"name": "Stock Projected Qty",
 					"doctype": "Item",
 				},
-				{
-					"type": "page",
-					"name": "stock-balance",
-					"label": _("Stock Summary")
-				},
+				{"type": "page", "name": "stock-balance", "label": _("Stock Summary")},
 				{
 					"type": "report",
 					"is_query_report": True,
@@ -192,27 +159,27 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Ordered Items To Be Delivered",
-					"doctype": "Delivery Note"
+					"doctype": "Delivery Note",
 				},
 				{
 					"type": "report",
 					"name": "Item Shortage Report",
 					"route": "Report/Bin/Item Shortage Report",
-					"doctype": "Purchase Receipt"
+					"doctype": "Purchase Receipt",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Requested Items To Be Transferred",
-					"doctype": "Material Request"
+					"doctype": "Material Request",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Itemwise Recommended Reorder Level",
-					"doctype": "Item"
+					"doctype": "Item",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Purchase Analytics"),
@@ -228,15 +195,15 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Purchase Order Trends",
-					"doctype": "Purchase Order"
+					"doctype": "Purchase Order",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Purchase Receipt Trends",
-					"doctype": "Purchase Receipt"
+					"doctype": "Purchase Receipt",
 				},
-			]
+			],
 		},
 		{
 			"label": _("Stock Analytics"),
@@ -246,14 +213,9 @@ def get_data():
 					"type": "page",
 					"name": "stock-analytics",
 					"label": _("Stock Analytics"),
-					"icon": "fa fa-bar-chart"
+					"icon": "fa fa-bar-chart",
 				},
-				{
-					"type": "doctype",
-					"name": "Bin Setup",
-					"description": _("Bin Setup for warehouse")
-				},
-
-			]
+				{"type": "doctype", "name": "Bin Setup", "description": _("Bin Setup for warehouse")},
+			],
 		},
-	]	
+	]

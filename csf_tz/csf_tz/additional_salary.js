@@ -41,7 +41,7 @@ frappe.ui.form.on('Additional Salary', {
 						frm.set_value("amount", frm.doc.hourly_rate / 100 * frm.doc.no_of_hours * r.message.base_salary_in_hours);
 					}
 				}
-			});	
+			});
 		}
 	},
 });

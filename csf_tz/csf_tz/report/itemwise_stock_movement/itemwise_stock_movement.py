@@ -117,9 +117,7 @@ def get_conditions(sle, filters, items):
 	conditions = [sle.company == filters.get("company"), sle.is_cancelled == 0]
 
 	if filters.get("warehouse"):
-		warehouse = frappe.db.get_value(
-			"Warehouse", filters.get("warehouse"), ["lft", "rgt"], as_dict=True
-		)
+		warehouse = frappe.db.get_value("Warehouse", filters.get("warehouse"), ["lft", "rgt"], as_dict=True)
 		if not warehouse:
 			frappe.throw(_("Warehouse {0} not found").format(filters.get("warehouse")))
 		wh = frappe.qb.DocType("Warehouse")
@@ -127,11 +125,7 @@ def get_conditions(sle, filters, items):
 			ExistsCriterion(
 				frappe.qb.from_(wh)
 				.select(wh.name)
-				.where(
-					(wh.lft >= warehouse.lft)
-					& (wh.rgt <= warehouse.rgt)
-					& (sle.warehouse == wh.name)
-				)
+				.where((wh.lft >= warehouse.lft) & (wh.rgt <= warehouse.rgt) & (sle.warehouse == wh.name))
 			)
 		)
 

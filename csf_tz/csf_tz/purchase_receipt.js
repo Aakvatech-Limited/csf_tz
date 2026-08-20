@@ -14,8 +14,8 @@ frappe.ui.form.on("Purchase Receipt", {
                             frm.trigger("tax_category");
                         }
                     }
-                });           
+                });
         }
-          }, 1000);   
+          }, 1000);
     },
 });

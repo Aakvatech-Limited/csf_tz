@@ -6,7 +6,7 @@ frappe.ui.form.on("Salary Slip", {
             $('[data-label="Reject"]').parent().hide();
             $('[data-label="Cancel"]').parent().hide();
         }
-        
+
     },
     refresh:function(frm) {
         if (frm.doc.has_payroll_approval == 1) {
@@ -48,7 +48,7 @@ frappe.ui.form.on("Salary Slip", {
             frm.trigger("create_update_slip_btn");
         }
     },
-    
+
     create_update_slip_btn: function (frm) {
         if (frm.doc.docstatus != 0 || frm.is_new()) {
             return

@@ -33,7 +33,7 @@ frappe.ui.form.on('EFD Z Report Invoice', {
 		frm.set_value("total_vat_ticked", sum_vat_ticked);
 		frm.set_value("total_turnover_exempted__sp_relief_ticked", sum_turnover_exempted_sp_relief_ticked);
 		frm.set_value("total_turnover_ticked", sum_turnover_ticked);
-		
+
 	}
 })
 

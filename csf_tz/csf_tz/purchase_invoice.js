@@ -21,9 +21,9 @@ frappe.ui.form.on("Purchase Invoice", {
                             frm.trigger("tax_category");
                         }
                     }
-                });           
+                });
         }
-          }, 1000);   
+          }, 1000);
     },
     setup: function(frm) {
         frm.set_query("taxes_and_charges", function() {
@@ -43,10 +43,10 @@ frappe.ui.form.on("Purchase Invoice", {
                     });
                     frm.dimensions = dimensions;
                     // console.log(frm.dimensions);
-                    
+
                 }
             }
-        });  
+        });
         // const dimensions_fields = $("div.frappe-control[data-fieldname='expense_type']")
         // console.log(dimensions_fields);
     },

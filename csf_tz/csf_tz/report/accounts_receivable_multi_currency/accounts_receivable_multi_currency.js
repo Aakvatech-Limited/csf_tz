@@ -200,4 +200,3 @@ frappe.query_reports["Accounts Receivable Multi Currency"] = {
 }
 
 erpnext.utils.add_dimensions('Accounts Receivable', 9);
-

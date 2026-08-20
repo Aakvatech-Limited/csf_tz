@@ -38,4 +38,3 @@ csf_tz.budget_check.auto_check = function(frm) {
         }
     });
 };
-

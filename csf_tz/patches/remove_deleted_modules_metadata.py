@@ -4,7 +4,6 @@ from frappe.installer import (
 	_get_module_linked_doctype_field_map,
 )
 
-
 REMOVED_MODULES = (
 	"After Sales Services",
 	"Clearing And Forwarding",

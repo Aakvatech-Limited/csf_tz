@@ -172,7 +172,7 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider) {
     if (taxRate) {
       const netLineTotal = flt(lineTotal / (1 + taxRate));
       taxAmount += lineTotal - netLineTotal;
-    } 
+    }
   });
 
   let totalExcl = totalIncl - taxAmount;
@@ -294,7 +294,7 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider) {
     </div>
     <div class="vfd-footer">Please verify the above details before sending to TRA.</div>
   </div>`;
-  
+
   let method = ''
   if (vfd_provider === "VFDPlus") {
     method = "csf_tz.vfd_providers.doctype.vfdplus_settings.vfdplus_settings.post_fiscal_receipt"
@@ -361,4 +361,3 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider) {
         // <div style="font-weight:600; margin-bottom:4px; text-align:center;">CUSTOMER</div>
 
         // <div style="font-weight:600; margin-bottom:4px; text-align:center;">INVOICE</div>
-    

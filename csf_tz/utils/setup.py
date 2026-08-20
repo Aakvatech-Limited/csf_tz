@@ -5,7 +5,6 @@ from pathlib import Path
 
 import frappe
 
-
 SETUP_SPECS = (
 	{
 		"file": "accounts.json",

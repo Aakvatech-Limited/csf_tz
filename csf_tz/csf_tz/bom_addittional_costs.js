@@ -18,5 +18,5 @@ frappe.ui.form.on("BOM", {
             };
         });
     },
-    
+
 });

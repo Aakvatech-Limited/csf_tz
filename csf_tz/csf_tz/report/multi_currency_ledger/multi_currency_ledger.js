@@ -169,4 +169,3 @@ erpnext.dimension_filters.forEach((dimension) => {
 		"options": dimension["document_type"]
 	});
 });
-
