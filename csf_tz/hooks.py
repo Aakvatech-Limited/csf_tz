@@ -120,11 +120,12 @@ after_install = [
 
 after_migrate = [
 	"csf_tz.utils.create_custom_fields.execute",
+    "csf_tz.utils.authority_notification_settings_fields.execute",
 	"csf_tz.utils.create_property_setter.execute",
 	"csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
-	"csf_tz.patches.custom_fields.attendance_overtime_calculation_custom_fields.execute",
 	"csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
 	"csf_tz.patches.remove_ot_component_custom_fields.execute",
+    "csf_tz.patches.custom_fields.attendance_overtime_calculation_custom_fields.execute",
 ]
 
 # Desk Notifications

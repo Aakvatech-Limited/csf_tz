@@ -31,7 +31,6 @@
   "auto_stock_reconciliation",
   "column_break_stock",
   "unique_records",
-  "allow_delete_in_sql_command",
   "write_off_section",
   "enable_write_off_jv_si",
   "enable_write_off_jv_pi",
@@ -121,12 +120,6 @@
    "fieldname": "is_manufacture",
    "fieldtype": "Check",
    "label": "Make Manufacture Entry instead of Material Receipt"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_delete_in_sql_command",
-   "fieldtype": "Check",
-   "label": "Allow Delete in SQL Command"
   },
   {
    "fieldname": "sle_gle_reposting_start_date",

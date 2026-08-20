@@ -15,6 +15,7 @@ dependencies = [
     "paramiko",
     "PGPy",
     "pypdf",
+    "standard-imghdr",
     "pyotp",
     "qrcode",
     "xmltodict",
