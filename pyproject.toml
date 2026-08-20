@@ -28,9 +28,31 @@ build-backend = "flit_core.buildapi"
 
 [tool.ruff]
 line-length = 110
+target-version = "py310"
 
 [tool.ruff.format]
 indent-style = "tab"
+
+[tool.ruff.lint]
+select = [
+  "F",
+  "E",
+  "W",
+  "I",
+  "UP",
+  "B",
+]
+ignore = [
+  "E101",
+  "E402",
+  "E501",
+  "E741",
+  # UP031 fires on the %s placeholders used to build SQL. Rewriting those as
+  # f-strings hides the injection surface without fixing it; semgrep's
+  # frappe-sql-format-injection tracks the real problem.
+  "UP031",
+  "W191",
+]
 
 [tool.bench.frappe-dependencies]
 frappe = ">=15.0.0,<16.0.0"
