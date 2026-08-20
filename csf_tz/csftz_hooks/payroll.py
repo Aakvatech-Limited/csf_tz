@@ -7,7 +7,7 @@ from frappe import _
 from frappe.model.workflow import apply_workflow
 from frappe.utils import flt
 from frappe.utils.background_jobs import enqueue
-from PyPDF3 import PdfFileReader, PdfFileWriter
+from pypdf import PdfReader, PdfWriter
 
 from csf_tz import console
 
@@ -168,7 +168,7 @@ def enqueue_print_slips(kwargs):
 
 
 def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
-	output = PdfFileWriter()
+	output = PdfWriter()
 	if isinstance(doctype, dict):
 		for doctype_name in doctype:
 			for doc_name in doctype[doctype_name]:
@@ -186,12 +186,12 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
 					# Convert the PDF bytes into a file-like object
 					pdf_file = BytesIO(pdf_data)
 
-					# Create a PdfFileReader from the byte stream (file-like object)
-					reader = PdfFileReader(pdf_file)
+					# Create a PdfReader from the byte stream (file-like object)
+					reader = PdfReader(pdf_file)
 
 					# Add each page from the reader to the writer
-					for page_num in range(reader.getNumPages()):
-						output.addPage(reader.getPage(page_num))
+					for page in reader.pages:
+						output.add_page(page)
 
 				except Exception:
 					frappe.log_error(f"Permission Error on doc {doc_name} of doctype {doctype_name}")
