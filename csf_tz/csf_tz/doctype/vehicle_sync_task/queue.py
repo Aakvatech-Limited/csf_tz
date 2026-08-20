@@ -10,7 +10,6 @@ BASE_BACKOFF = 300
 BACKOFF_JITTER = 0.2
 SUCCESS_INTERVAL_SECONDS = 60 * 60 * 2
 MAX_CALLS_PER_MINUTE = 1
-WORKER_ID = frappe.local.site
 
 
 # ------------ INTERNAL HELPERS ------------
@@ -55,7 +54,7 @@ def claim_batch(doctype, limit=BATCH_SIZE):
 				row["name"],
 				{
 					"status": "Processing",
-					"claimed_by": WORKER_ID,
+					"claimed_by": frappe.local.site,
 					"claimed_at": now,
 					"last_run_at": now,
 				},

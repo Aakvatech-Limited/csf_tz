@@ -2,6 +2,7 @@
 # This file is the controller for the KCB Payments Initiation doctype where the file is generated and signed.
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from csf_tz.kcb.api.kcb_api import submit_file_details, upload_encrypted_file
@@ -49,11 +50,11 @@ class KCBPaymentsInitiation(Document):
 		settings = frappe.get_single("KCB Settings")
 		public_key = getattr(settings, "pgp_public_key", None)
 		if not public_key:
-			frappe.throw("KCB Settings PGP public key is missing.")
+			frappe.throw(_("KCB Settings PGP public key is missing."))
 
 		encrypted_data = encrypt_pgp(file_bytes, public_key)
 		if not encrypted_data:
-			frappe.throw("Encryption failed: empty result")
+			frappe.throw(_("Encryption failed: empty result"))
 
 		file_base_name = self.name
 

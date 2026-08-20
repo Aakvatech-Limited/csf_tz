@@ -1,9 +1,11 @@
+from typing import Any
+
 import frappe
 from frappe.utils import flt
 
 
 @frappe.whitelist()
-def get_data(filters):
+def get_data(filters: Any):
 	filters = frappe._dict(filters)
 	data = get_stock_ledger_entries(filters)
 	itewise_balance_qty = {}
@@ -82,4 +84,5 @@ def process_incorrect_balance_qty():
 		doc.allow_negative_stock = 1
 		doc.docstatus = 1
 		doc.insert(ignore_permissions=True)
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()

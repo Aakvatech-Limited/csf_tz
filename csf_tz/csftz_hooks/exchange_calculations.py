@@ -1,3 +1,5 @@
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.utils import flt, nowdate
@@ -475,17 +477,22 @@ def update_pending_transactions():
 
 @frappe.whitelist()
 def create_manual_exchange_entry(
-	tracker_name, reference_type, reference_name, difference_type, amount, remarks
+	tracker_name: Any,
+	reference_type: Any,
+	reference_name: Any,
+	difference_type: Any,
+	amount: Any,
+	remarks: Any,
 ):
 	"""Create manual exchange difference entry"""
 	tracker_doc = frappe.get_doc("Foreign Import Transaction", tracker_name)
 
 	if tracker_doc.docstatus != 1:
-		frappe.throw("Transaction must be submitted to add manual entries")
+		frappe.throw(_("Transaction must be submitted to add manual entries"))
 
 	amount = flt(amount)
 	if amount <= 0:
-		frappe.throw("Amount must be greater than 0")
+		frappe.throw(_("Amount must be greater than 0"))
 
 	settings = get_import_settings(tracker_doc.company)
 
@@ -514,7 +521,7 @@ def create_manual_exchange_entry(
 
 
 @frappe.whitelist()
-def debug_payment_linking_issue(payment_entry_name):
+def debug_payment_linking_issue(payment_entry_name: Any):
 	"""Debug why a payment entry is not linking to import tracker"""
 	try:
 		payment_doc = frappe.get_doc("Payment Entry", payment_entry_name)
@@ -595,7 +602,7 @@ def debug_payment_linking_issue(payment_entry_name):
 
 
 @frappe.whitelist()
-def manually_link_payment_to_tracker(payment_entry_name, tracker_name=None):
+def manually_link_payment_to_tracker(payment_entry_name: Any, tracker_name: Any = None):
 	"""Manually link a payment entry to a foreign import tracker"""
 	try:
 		payment_doc = frappe.get_doc("Payment Entry", payment_entry_name)

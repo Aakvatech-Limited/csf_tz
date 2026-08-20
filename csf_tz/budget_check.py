@@ -11,6 +11,8 @@ This module hooks into the server-side validate event to perform blocking
 budget validation when documents are saved in draft status.
 """
 
+from typing import Any
+
 import frappe
 from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
 from frappe.utils import flt
@@ -83,7 +85,7 @@ def is_budget_check_enabled(doctype):
 
 
 @frappe.whitelist()
-def check_budget_before_submit(doctype, docname, setting_field=None):
+def check_budget_before_submit(doctype: Any, docname: Any, setting_field: Any = None):
 	"""
 	Check budget for a document in draft status.
 

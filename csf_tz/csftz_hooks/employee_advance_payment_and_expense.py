@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.utils import nowdate
 from hrms.overrides.employee_payment_entry import get_payment_entry_for_employee
 
@@ -9,7 +10,7 @@ def execute(doc, method):
 		return
 
 	if frappe.db.exists("Payment Entry", {"reference_no": doc.name, "docstatus": ["!=", 2]}):
-		frappe.msgprint("Payment Entry already exists for this advance")
+		frappe.msgprint(_("Payment Entry already exists for this advance"))
 		return
 
 	try:

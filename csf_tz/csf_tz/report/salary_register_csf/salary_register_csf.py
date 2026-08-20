@@ -2,15 +2,13 @@
 # For license information, please see license.txt
 
 
+from typing import Any
+
 import erpnext
 import frappe
 from frappe import _
 from frappe.utils import flt
 from frappe.utils.nestedset import get_descendants_of
-
-salary_slip = frappe.qb.DocType("Salary Slip")
-salary_detail = frappe.qb.DocType("Salary Detail")
-salary_component = frappe.qb.DocType("Salary Component")
 
 
 def execute(filters=None):
@@ -30,7 +28,7 @@ def execute(filters=None):
 
 	salary_slips = get_salary_slips(filters)
 	if not salary_slips:
-		frappe.msgprint("<b>No record found for the filters above</b>")
+		frappe.msgprint(_("<b>No record found for the filters above</b>"))
 		return [], []
 
 	return get_data(filters, salary_slips, currency, company_currency)
@@ -370,6 +368,7 @@ def get_columns(filters, company_currency, earning_types, ded_types):
 
 
 def get_salary_components(salary_slips):
+	salary_detail = frappe.qb.DocType("Salary Detail")
 	return (
 		frappe.qb.from_(salary_detail)
 		.where((salary_detail.amount != 0) & (salary_detail.parent.isin([d.name for d in salary_slips])))
@@ -383,6 +382,7 @@ def get_salary_component_type(salary_component):
 
 
 def get_salary_slips(filters):
+	salary_slip = frappe.qb.DocType("Salary Slip")
 	doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
 
 	query = frappe.qb.from_(salary_slip).select(salary_slip.star)
@@ -422,6 +422,8 @@ def get_employee_doj_map():
 
 
 def get_salary_slip_details(salary_slips, currency, company_currency, component_type):
+	salary_slip = frappe.qb.DocType("Salary Slip")
+	salary_detail = frappe.qb.DocType("Salary Detail")
 	salary_slips = [ss.name for ss in salary_slips]
 
 	result = (
@@ -458,7 +460,7 @@ def get_departments(department, company):
 
 
 @frappe.whitelist()
-def approve(data):
+def approve(data: Any):
 	import json
 
 	from frappe.utils.background_jobs import enqueue

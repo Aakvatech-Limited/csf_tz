@@ -7,11 +7,11 @@ frappe.ui.form.on('Order Track', {
         frm.events.show_hide_fields(frm);
         console.log(frm);
         //console.log(hide_show_sections.name);
-        //alert(cur_frm.doc.docstatus)
+        //alert(frm.doc.docstatus)
 
         //make product inspection ie. submitted
-         if(cur_frm.doc.docstatus === 1 ) {
-		      cur_frm.add_custom_button(__('Product Inspection'), function(){frm.events.make_product_inspection(frm)}, __("Make"));
+         if(frm.doc.docstatus === 1 ) {
+		      frm.add_custom_button(__('Product Inspection'), function(){frm.events.make_product_inspection(frm)}, __("Make"));
 
 
         }
@@ -21,7 +21,7 @@ frappe.ui.form.on('Order Track', {
          //Arrival date entered,clearing company and completion date ! blank
 		if (frm.doc.arrival_date && frm.doc.arrival_date != null ){
 		   if (frm.doc.clearing_company == '' || (frm.doc.expected_clearing_completion_date ==null)){
-			var msg = "Either Clearing Company or Clearing Completion Date is unfilled,Please fill the fields";
+			var msg = __("Either Clearing Company or Clearing Completion Date is unfilled,Please fill the fields");
 			frappe.msgprint(msg);
 			throw msg;
 
@@ -51,10 +51,10 @@ frappe.ui.form.on('Order Track', {
     },
 
           //Product Inspection function
-    make_product_inspection:function(){
+    make_product_inspection:function(frm){
         frappe.model.open_mapped_doc({
 			method: "erpnext.purchase_and_stock_management.doctype.order_track.order_track.make_product_inspection",
-			frm: cur_frm
+			frm: frm
 		})
 
     },

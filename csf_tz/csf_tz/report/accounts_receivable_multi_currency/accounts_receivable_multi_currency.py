@@ -48,7 +48,7 @@ class ReceivablePayableReport:
 	def run(self, args):
 		self.filters.update(args)
 		self.set_defaults()
-		self.party_naming_by = frappe.db.get_value(args.get("naming_by")[0], None, args.get("naming_by")[1])
+		self.party_naming_by = frappe.db.get_single_value(args.get("naming_by")[0], args.get("naming_by")[1])
 		self.get_columns()
 		self.get_data()
 		self.get_chart_data()
@@ -413,6 +413,7 @@ class ReceivablePayableReport:
 
 	def get_payment_terms(self, row):
 		# build payment_terms for row
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		payment_terms_details = frappe.db.sql(
 			f"""
 			select
@@ -533,6 +534,7 @@ class ReceivablePayableReport:
 		else:
 			amount_field = "jea.debit - " if self.party_type == "Supplier" else "jea.credit"
 
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		return frappe.db.sql(
 			f"""
 			select
@@ -658,6 +660,7 @@ class ReceivablePayableReport:
 		else:
 			select_fields = "debit, credit"
 
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		self.gl_entries = frappe.db.sql(
 			f"""
 			select

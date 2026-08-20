@@ -4,13 +4,15 @@ Only `receive_callback` remains, because NMB stores that URL against invoices
 submitted before the move. Everything else moved to edu_tz.edu_tz.nmb.api.
 """
 
+from typing import Any
+
 import frappe
 from frappe import _
 
 
 # nosemgrep: guest-whitelisted-method -- NMB posts payment callbacks unauthenticated
 @frappe.whitelist(allow_guest=True)
-def receive_callback(*args, **kwargs):
+def receive_callback(*args: Any, **kwargs: Any):
 	"""Forwards legacy NMB callbacks to edu_tz."""
 	if "edu_tz" not in frappe.get_installed_apps():
 		frappe.throw(_("The NMB fee integration has moved to the edu_tz app."))

@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 
+from typing import Any
+
 import frappe
 import requests
 from bs4 import BeautifulSoup
@@ -22,8 +24,9 @@ class TRATAXInv(Document):
 		return create_invoice_from_tra_tax_inv(self.name, "Sales Invoice")
 
 
+# nosemgrep: guest-whitelisted-method -- public TRA receipt verification endpoint
 @frappe.whitelist(allow_guest=True)
-def verify_tra_receipt(verification_code=None, qr_code_data=None):
+def verify_tra_receipt(verification_code: Any = None, qr_code_data: Any = None):
 	"""
 	Verify TRA receipt and create TRA TAX Inv document
 
@@ -819,7 +822,7 @@ def create_tra_tax_inv_document_safe(verification_code, receipt_data, verificati
 
 
 @frappe.whitelist()
-def create_invoice_from_tra_tax_inv(tra_tax_inv_name, invoice_type):
+def create_invoice_from_tra_tax_inv(tra_tax_inv_name: Any, invoice_type: Any):
 	"""
 	Create Purchase Invoice or Sales Invoice from TRA Tax Inv
 

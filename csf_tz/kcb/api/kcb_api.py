@@ -5,6 +5,7 @@ import os
 
 import frappe
 import requests
+from frappe import _
 from frappe.utils.file_manager import get_file
 
 
@@ -30,7 +31,7 @@ def _get_supporting_file_docs(doc):
 	supporting_docs = [f for f in attachments if f.get("file_url") not in excluded_urls]
 
 	if not supporting_docs:
-		frappe.throw("Attach at least one supporting document before submitting to KCB.")
+		frappe.throw(_("Attach at least one supporting document before submitting to KCB."))
 
 	return supporting_docs
 
@@ -52,7 +53,7 @@ def get_kcb_token():
 	config = frappe.get_single("KCB Settings")  # Fetch KCB settings
 	password = config.get_password("password")
 	if not config.username or not password:
-		frappe.throw("KCB Settings username/password is missing.")
+		frappe.throw(_("KCB Settings username/password is missing."))
 	auth = (config.username, password)  # Authentication credentials
 	headers = {
 		"Content-Type": "application/json",
@@ -180,10 +181,10 @@ def check_file_status(docname: str):
 
 	originator_id = getattr(doc, "originator_conversation_id", None)
 	if not originator_id:
-		frappe.throw("Originator Conversation ID is missing on this document.")
+		frappe.throw(_("Originator Conversation ID is missing on this document."))
 
 	if not doc.encrypted_file:
-		frappe.throw("Encrypted file is missing on this document.")
+		frappe.throw(_("Encrypted file is missing on this document."))
 
 	file_name = os.path.basename(doc.encrypted_file)
 

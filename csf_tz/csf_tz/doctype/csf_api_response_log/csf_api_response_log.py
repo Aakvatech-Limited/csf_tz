@@ -27,5 +27,6 @@ def add_log(
 	doc.user_id = frappe.session.user
 	doc.status_code = status_code or ""
 	doc.save(ignore_permissions=True)
+	# nosemgrep: frappe-manual-commit -- API response log must persist even if the caller rolls back
 	frappe.db.commit()
 	return doc.name

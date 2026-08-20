@@ -61,6 +61,7 @@ def process_json_file(json_file_path, created_regions, created_districts, create
 	error_count = 0
 
 	try:
+		# nosemgrep: frappe-security-file-traversal -- reads this app's bundled post code JSON
 		with open(json_file_path, encoding="utf-8") as file:
 			data = json.load(file)
 

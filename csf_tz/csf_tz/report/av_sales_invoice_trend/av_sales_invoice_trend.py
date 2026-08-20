@@ -1,5 +1,6 @@
 import frappe
 from erpnext.controllers.trends import get_columns, get_data
+from frappe import _
 from frappe.utils import flt
 
 
@@ -43,12 +44,12 @@ def execute(filters=None):
 	# Add columns for available qty and warehouse summary
 	columns += [
 		{
-			"label": "Total Available Qty",
+			"label": _("Total Available Qty"),
 			"fieldname": "total_available_qty",
 			"fieldtype": "Float",
 			"precision": 2,
 		},
-		{"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Data"},
+		{"label": _("Warehouse"), "fieldname": "warehouse", "fieldtype": "Data"},
 	]
 
 	return columns, data

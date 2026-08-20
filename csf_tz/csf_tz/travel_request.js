@@ -1,7 +1,7 @@
 frappe.ui.form.on('Travel Request', {
     refresh: function (frm) {
         if (frm.doc.docstatus === 1) {
-            frm.add_custom_button('Create Employee Advance', function () {
+            frm.add_custom_button(__('Create Employee Advance'), function () {
                 checkSettingsAndCreateEA(frm);
             });
         }

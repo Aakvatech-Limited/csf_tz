@@ -1,5 +1,6 @@
 import base64
 import io
+from typing import Any
 
 import frappe
 import qrcode
@@ -7,7 +8,7 @@ from frappe import _
 
 
 @frappe.whitelist()
-def generate_contact_qr(employee):
+def generate_contact_qr(employee: Any):
 	employee_doc = frappe.get_doc("Employee", employee)
 
 	# Retrieve contact details

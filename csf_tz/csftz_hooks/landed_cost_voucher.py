@@ -1,8 +1,10 @@
+from typing import Any
+
 import frappe
 
 
 @frappe.whitelist()
-def get_landed_cost_expenses(import_file=None):
+def get_landed_cost_expenses(import_file: Any = None):
 	if not import_file:
 		return
 

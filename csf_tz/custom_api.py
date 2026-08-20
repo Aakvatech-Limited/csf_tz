@@ -566,7 +566,7 @@ def get_delivery_note_item_count(item_row_name, sales_invoice):
 
 
 @frappe.whitelist()
-def get_pending_sales_invoice(*args):
+def get_pending_sales_invoice(*args: Any):
 	filters = args[5]
 	start = cint(args[3])
 	page_length = cint(args[4])
@@ -741,7 +741,7 @@ def get_stock_balance_for(
 
 
 @frappe.whitelist()
-def make_stock_reconciliation_for_all_pending_material_request(*args):
+def make_stock_reconciliation_for_all_pending_material_request(*args: Any):
 	auto_stock_reconciliation = (
 		frappe.db.get_single_value("CSF TZ Settings", "auto_stock_reconciliation") or 0
 	)

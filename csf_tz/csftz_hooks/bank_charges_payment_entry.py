@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.utils import nowdate
 
 
@@ -11,7 +12,9 @@ def validate_bank_charges_account(payment_entry, method):
 
 		if not bank_charges_account:
 			frappe.throw(
-				"Default Bank Charges Account is not set in Company settings. Please set it before submitting."
+				_(
+					"Default Bank Charges Account is not set in Company settings. Please set it before submitting."
+				)
 			)
 
 
@@ -25,7 +28,9 @@ def create_bank_charges_journal(payment_entry, method):
 
 		if not bank_charges_account:
 			frappe.throw(
-				"Default Bank Charges Account is not set in Company settings. Please set it before submitting."
+				_(
+					"Default Bank Charges Account is not set in Company settings. Please set it before submitting."
+				)
 			)
 
 		# Create Journal Entry

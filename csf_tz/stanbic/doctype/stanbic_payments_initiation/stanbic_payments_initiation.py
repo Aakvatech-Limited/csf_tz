@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from csf_tz.stanbic.doctype.stanbic_payments_initiation.xml import get_xml
@@ -69,8 +70,8 @@ class StanbicPaymentsInitiation(Document):
 		for slip in slips:
 			if slip.docstatus == 0:
 				frappe.throw(
-					f"Salary Slip {slip.name} is not submitted",
-					title="Salary Slip Not Submitted",
+					_("Salary Slip {0} is not submitted").format(slip.name),
+					title=_("Salary Slip Not Submitted"),
 				)
 		return slips
 
@@ -86,6 +87,7 @@ class StanbicPaymentsInitiation(Document):
 		create_path = get_absolute_path("/private/files/stanbic/outbox")
 		file_path = os.path.join(create_path, filename)
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		# nosemgrep: frappe-security-file-traversal -- path built from get_absolute_path and a generated filename
 		with open(file_path, "w") as file:
 			file.write(self.encrypted_xml)
 

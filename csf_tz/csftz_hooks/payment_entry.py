@@ -3,6 +3,7 @@
 
 
 import json
+from typing import Any
 
 import frappe
 from erpnext.accounts.doctype.payment_entry.payment_entry import (
@@ -16,8 +17,9 @@ from frappe import _, qb
 from frappe.utils import getdate, nowdate
 
 
+# nosemgrep: overusing-args -- mirrors the ERPNext signature this overrides
 @frappe.whitelist()
-def get_outstanding_reference_documents(args):
+def get_outstanding_reference_documents(args: Any):
 	# Check if the feature is disabled in CSF TZ Settings
 	if frappe.db.get_single_value("CSF TZ Settings", "disable_get_outstanding_functionality"):
 		return []
@@ -145,8 +147,9 @@ def get_outstanding_reference_documents(args):
 	return data
 
 
+# nosemgrep: overusing-args -- mirrors the ERPNext signature this overrides
 @frappe.whitelist()
-def get_outstanding_sales_orders(args):
+def get_outstanding_sales_orders(args: Any):
 	if isinstance(args, str):
 		args = json.loads(args)
 

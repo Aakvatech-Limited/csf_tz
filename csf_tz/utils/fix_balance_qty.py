@@ -19,6 +19,7 @@ def has_correct_balance_qty(previous_sle, sles):
 	return True
 
 
+# nosemgrep: overusing-args -- mirrors the ERPNext signature this overrides
 def create_repost_item_valuation_entry(args):
 	args = frappe._dict(args)
 	repost_entry = frappe.new_doc("Repost Item Valuation")
@@ -35,34 +36,37 @@ def create_repost_item_valuation_entry(args):
 	repost_entry.submit()
 
 
-from_time = add_to_date(now(), hours=-2)
+def execute():
+	from_time = add_to_date(now(), hours=-2)
 
-table = frappe.qb.DocType("Stock Ledger Entry")
-sles = (
-	frappe.qb.from_(table)
-	.select(
-		table.item_code,
-		table.warehouse,
-		table.voucher_type,
-		table.voucher_no,
-		table.posting_date,
-		table.posting_time,
-		table.qty_after_transaction,
-	)
-	.where((table.is_cancelled == 0) & (CombineDatetime(table.posting_date, table.posting_time) >= from_time))
-	.orderby(CombineDatetime(table.posting_date, table.posting_time))
-	.orderby(table.creation)
-).run(as_dict=True)
+	table = frappe.qb.DocType("Stock Ledger Entry")
+	sles = (
+		frappe.qb.from_(table)
+		.select(
+			table.item_code,
+			table.warehouse,
+			table.voucher_type,
+			table.voucher_no,
+			table.posting_date,
+			table.posting_time,
+			table.qty_after_transaction,
+		)
+		.where(
+			(table.is_cancelled == 0) & (CombineDatetime(table.posting_date, table.posting_time) >= from_time)
+		)
+		.orderby(CombineDatetime(table.posting_date, table.posting_time))
+		.orderby(table.creation)
+	).run(as_dict=True)
 
-checked_item_warehouse = []
+	checked_item_warehouse = []
 
-for sle in sles:
-	if [sle.item_code, sle.warehouse] in checked_item_warehouse:
-		continue
+	for sle in sles:
+		if [sle.item_code, sle.warehouse] in checked_item_warehouse:
+			continue
 
-	checked_item_warehouse.append([sle.item_code, sle.warehouse])
+		checked_item_warehouse.append([sle.item_code, sle.warehouse])
 
-	previous_sle = get_previous_sle_of_current_voucher(sle, exclude_current_voucher=True)
+		previous_sle = get_previous_sle_of_current_voucher(sle, exclude_current_voucher=True)
 
-	if not has_correct_balance_qty(previous_sle, sles):
-		create_repost_item_valuation_entry(previous_sle)
+		if not has_correct_balance_qty(previous_sle, sles):
+			create_repost_item_valuation_entry(previous_sle)

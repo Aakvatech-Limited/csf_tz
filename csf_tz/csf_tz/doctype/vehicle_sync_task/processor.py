@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Any
 
 import frappe
 
@@ -101,6 +102,7 @@ def run_vehicle_batch():
 		)
 		errors += 1
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 	return {
 		"status": "completed",
@@ -111,7 +113,7 @@ def run_vehicle_batch():
 
 
 @frappe.whitelist()
-def create_sync_task(vehicle_no, priority=0, immediate=False):
+def create_sync_task(vehicle_no: Any, priority: Any = 0, immediate: Any = False):
 	try:
 		vehicle_no = normalize_number_plate(vehicle_no)
 		if not vehicle_no or not is_valid_number_plate(vehicle_no):

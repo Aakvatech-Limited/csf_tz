@@ -1,5 +1,7 @@
 import frappe
 from frappe import _
+
+# nosemgrep: frappe-monkey-patching-not-allowed -- deliberate override loaded via csf_tz.load_monkey_patches
 from frappe.database.database import Database
 from frappe.utils import cint
 

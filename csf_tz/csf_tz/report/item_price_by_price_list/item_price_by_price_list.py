@@ -90,15 +90,19 @@ def get_data(filters):
 				filters["item_description"] = item_description
 			else:
 				frappe.msgprint(
-					_("No description found for item with barcode: ") + filters.get("barcode"),
-					title="Warning",
+					_("No description found for item with barcode: {0}").format(filters.get("barcode")),
+					title=_("Warning"),
 				)
 				return []  # Exit function if no description is found
 
+	values = {}
 	if filters.get("item_description"):
-		conditions += f" AND (i.description LIKE '%{filters['item_description']}%' OR i.item_code = '{filters['item_description'] or filters.get('barcode')}')"
+		conditions += " AND (i.description LIKE %(description_like)s OR i.item_code = %(item_code)s)"
+		values["description_like"] = "%" + filters["item_description"] + "%"
+		values["item_code"] = filters["item_description"] or filters.get("barcode")
 	# Example SQL Query to fetch data
-	sql = f"""
+	sql = (
+		"""
         SELECT
             i.item_code,
             i.description,
@@ -111,11 +115,15 @@ def get_data(filters):
             `tabItem` i
         LEFT OUTER JOIN `tabBin` b ON i.item_code = b.item_code
         WHERE i.disabled = 0
-            AND i.is_sales_item = 1 {conditions}
+            AND i.is_sales_item = 1 """
+		+ conditions
+		+ """
         GROUP BY i.item_code
     """
+	)
 	data = db.sql(
 		sql,
+		values,
 		as_dict=1,
 	)
 

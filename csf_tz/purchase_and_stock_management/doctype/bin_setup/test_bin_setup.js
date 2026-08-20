@@ -15,6 +15,7 @@ QUnit.test("test: Bin Setup", function (assert) {
 			{key: 'value'}
 		]),
 		() => {
+			// nosemgrep: frappe-cur-frm-usage -- inactive QUnit stub; the frappe.tests runner no longer exists
 			assert.equal(cur_frm.doc.key, 'value');
 		},
 		() => done()

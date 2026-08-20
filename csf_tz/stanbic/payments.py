@@ -1,9 +1,11 @@
+from typing import Any
+
 import frappe
 from frappe import _
 
 
 @frappe.whitelist()
-def make_payments_initiation(payroll_entry_name, currency, stanbic_setting_name=None):
+def make_payments_initiation(payroll_entry_name: Any, currency: Any, stanbic_setting_name: Any = None):
 	if currency and not stanbic_setting_name:
 		company, cheque_number = frappe.get_cached_value(
 			"Payroll Entry", payroll_entry_name, ["company", "cheque_number"]
@@ -11,17 +13,17 @@ def make_payments_initiation(payroll_entry_name, currency, stanbic_setting_name=
 		if cheque_number:
 			frappe.throw(
 				_(
-					f"Payments initiation {cheque_number} already created for payroll entry {payroll_entry_name}. Please remove the cheque number and try again if you really want to create the payments initiation file."
-				),
-				title="Payments initiation already created",
+					"Payments initiation {0} already created for payroll entry {1}. Please remove the cheque number and try again if you really want to create the payments initiation file."
+				).format(cheque_number, payroll_entry_name),
+				title=_("Payments initiation already created"),
 			)
 		stanbic_setting_doc = frappe.get_doc("Stanbic Setting", {"company": company, "currency": currency})
 		stanbic_setting_name = stanbic_setting_doc.name
 
 	if not stanbic_setting_name:
 		frappe.throw(
-			f"Stanbic Setting not found for currency {currency}",
-			title="Stanbic Setting not found",
+			_("Stanbic Setting not found for currency {0}").format(currency),
+			title=_("Stanbic Setting not found"),
 		)
 
 	payments_initiation_doc = frappe.new_doc("Stanbic Payments Initiation")

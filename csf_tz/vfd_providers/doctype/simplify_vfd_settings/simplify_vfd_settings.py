@@ -4,6 +4,7 @@
 import json
 from datetime import datetime
 from time import sleep
+from typing import Any
 
 import frappe
 import requests
@@ -119,7 +120,7 @@ def get_refresh_token():
 
 
 @frappe.whitelist()
-def get_payload(doc):
+def get_payload(doc: Any):
 	"""Generate payload for Simplify VFD"""
 
 	items = []
@@ -189,7 +190,9 @@ def get_payload(doc):
 
 
 @frappe.whitelist()
-def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, preview=False):
+def post_fiscal_receipt(
+	doc: Any = None, method: Any = "POST", payload: Any = None, invoice_id: Any = None, preview: Any = False
+):
 	"""Post fiscal receipt to Simplify VFD
 	Parameters
 	----------
@@ -292,6 +295,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			"Comment",
 			f"VFD Invoice ID: {res_data.get('invoiceId')}",
 		)
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()
 
 	return {"data": res_data, "vfd_provider": "SimplifyVFD", "preview": preview}

@@ -76,12 +76,15 @@ class SalarySlip(_SalarySlip):
 					queue="short",
 					timeout=300,
 					is_async=True,
+					enqueue_after_commit=True,
 					**email_args,
 				)
 			else:
 				frappe.sendmail(**email_args)
 		else:
-			frappe.msgprint(_(f"{self.employee_name}: Employee email not found, hence email not sent"))
+			frappe.msgprint(
+				_("{0}: Employee email not found, hence email not sent").format(self.employee_name)
+			)
 
 
 def get_fixed_working_days():

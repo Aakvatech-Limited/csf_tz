@@ -98,6 +98,7 @@ def get_columns():
 def get_data(filters):
 	conditions = get_conditions(filters)
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	query = f"""
         SELECT
             fit.name as foreign_import_transaction,

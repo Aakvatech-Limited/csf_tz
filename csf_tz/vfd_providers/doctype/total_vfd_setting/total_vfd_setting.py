@@ -4,6 +4,7 @@
 # import frappe
 import json
 from time import sleep
+from typing import Any
 
 import frappe
 import requests
@@ -109,7 +110,9 @@ def get_payload(doc):
 
 
 @frappe.whitelist()
-def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, preview=False):
+def post_fiscal_receipt(
+	doc: Any = None, method: Any = "POST", payload: Any = None, invoice_id: Any = None, preview: Any = False
+):
 	"""Post fiscal receipt to Total VFD
 	Parameters
 	----------
@@ -177,6 +180,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			"vfd_verification_url",
 			data.get("verificationLink"),
 		)
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()
 
 	return {"data": data, "vfd_provider": "TotalVFD", "preview": preview}

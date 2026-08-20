@@ -1,6 +1,8 @@
 # Copyright (c) 2013, Aakvatech and contributors
 # For license information, please see license.txt
 
+from typing import Any
+
 import erpnext
 import frappe
 from frappe import _
@@ -273,7 +275,7 @@ def get_departments(department, company):
 
 
 @frappe.whitelist()
-def approve(data):
+def approve(data: Any):
 	import json
 
 	from frappe.utils.background_jobs import enqueue

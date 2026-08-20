@@ -1,11 +1,11 @@
 frappe.ui.form.on('Additional Salary', {
 	refresh: function(frm) {
-		cur_frm.add_custom_button(__("Generate Additional Salary Records"), function() {
+		frm.add_custom_button(__("Generate Additional Salary Records"), function() {
 			frappe.call({
 				method: "csf_tz.csftz_hooks.additional_salary.generate_additional_salary_records",
 				args: {},
 				callback: function () {
-					cur_frm.reload_doc();
+					frm.reload_doc();
 				}
 			});
 		});

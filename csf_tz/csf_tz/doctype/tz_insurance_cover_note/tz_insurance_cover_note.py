@@ -208,6 +208,7 @@ def notify_tira_covernote_expiry():
 				update_modified=False,
 			)
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 
 

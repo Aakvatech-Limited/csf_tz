@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 from datetime import datetime, timedelta
+from typing import Any
 
 import frappe
 from erpnext.accounts.utils import get_balance_on
@@ -11,15 +12,15 @@ from frappe.utils import add_days, flt, formatdate, getdate
 
 @frappe.whitelist()
 def get(
-	chart_name=None,
-	chart=None,
-	no_cache=None,
-	filters=None,
-	from_date=None,
-	to_date=None,
-	timespan=None,
-	time_interval=None,
-	heatmap_year=None,
+	chart_name: Any = None,
+	chart: Any = None,
+	no_cache: Any = None,
+	filters: Any = None,
+	from_date: Any = None,
+	to_date: Any = None,
+	timespan: Any = None,
+	time_interval: Any = None,
+	heatmap_year: Any = None,
 ):
 	"""
 	Main entry point for Multi_Account Balance Timeline dashboard chart source
@@ -30,7 +31,7 @@ def get(
 
 
 @frappe.whitelist()
-def get_sample_data(chart_name=None, **kwargs):
+def get_sample_data(chart_name: Any = None, **kwargs: Any):
 	"""
 	Generate sample data for testing when no real transactions exist
 	This helps users see how the chart would look with data
@@ -65,7 +66,7 @@ def get_sample_data(chart_name=None, **kwargs):
 
 
 @frappe.whitelist()
-def create_sample_accounts(company):
+def create_sample_accounts(company: Any):
 	"""
 	Create sample bank accounts for testing purposes
 
@@ -80,7 +81,7 @@ def create_sample_accounts(company):
 
 
 @frappe.whitelist()
-def debug_chart_data(company=None):
+def debug_chart_data(company: Any = None):
 	"""
 	Debug function to test chart data generation step by step
 	"""
@@ -373,6 +374,7 @@ class MultiBankBalance:
 		account_names = [acc["name"] for acc in accounts]
 
 		# Get all GL entries for these accounts in the date range
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		gl_entries = frappe.db.sql(
 			"""
             SELECT
@@ -609,7 +611,7 @@ class MultiBankBalance:
 		return chart_data
 
 	@frappe.whitelist()
-	def create_sample_accounts(self, company):
+	def create_sample_accounts(self, company: Any):
 		"""
 		Create sample bank accounts for testing purposes
 
@@ -869,7 +871,7 @@ def get_account_currencies(company):
 
 
 @frappe.whitelist()
-def create_test_transactions(company, account_name=None, amount=10000):
+def create_test_transactions(company: Any, account_name: Any = None, amount: Any = 10000):
 	"""
 	Create test transactions for a bank account to generate chart data
 

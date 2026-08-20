@@ -1,4 +1,6 @@
 import frappe
+
+# nosemgrep: frappe-monkey-patching-not-allowed -- replaces StockEntry.validate_with_material_request by design
 from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry
 from frappe import _
 

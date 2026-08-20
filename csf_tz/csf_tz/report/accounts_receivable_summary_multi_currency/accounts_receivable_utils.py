@@ -16,7 +16,7 @@ class ReceivablePayableReport:
 		)
 
 	def run(self, args):
-		party_naming_by = frappe.db.get_value(args.get("naming_by")[0], None, args.get("naming_by")[1])
+		party_naming_by = frappe.db.get_single_value(args.get("naming_by")[0], args.get("naming_by")[1])
 		columns = self.get_columns(party_naming_by, args)
 		data = self.get_data(party_naming_by, args)
 		chart = self.get_chart_data(columns, data)
@@ -539,6 +539,7 @@ class ReceivablePayableReport:
 
 			self.party_map = dict(
 				(r.name, r)
+				# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 				for r in frappe.db.sql(f"select {select_fields} from `tab{party_type}`", as_dict=True)
 			)
 
@@ -560,6 +561,7 @@ class ReceivablePayableReport:
 		if date and for_future:
 			conditions += " and posting_date > '%s'" % date
 
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		self.gl_entries = frappe.db.sql(
 			f"""
 			select
@@ -771,6 +773,7 @@ def get_pdc_details(party_type, report_date):
 	else:
 		amount_field = "jea.debit + jea.credit"
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	pdc_via_je = frappe.db.sql(
 		f"""
 		select

@@ -19,7 +19,7 @@ def execute(filters=None):
 		{"fieldname": "customer_name", "label": _("Customer Name"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "transaction_date",
-			"label": _("Date "),
+			"label": _("Date") + " ",
 			"fieldtype": "Date",
 		},
 		{"fieldname": "project", "label": _("Project"), "fieldtype": "Data", "width": 150},
@@ -31,7 +31,7 @@ def execute(filters=None):
 		},
 		{
 			"fieldname": "req_by",
-			"label": _("Req By Date "),
+			"label": _("Req By Date") + " ",
 			"fieldtype": "Date",
 		},
 		{"fieldname": "qty", "label": _("Qty"), "fieldtype": "Float", "width": 150},

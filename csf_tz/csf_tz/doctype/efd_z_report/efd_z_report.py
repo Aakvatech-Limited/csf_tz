@@ -46,6 +46,7 @@ class EFDZReport(Document):
 			"or electronic_fiscal_device is null or electronic_fiscal_device = '')"
 		)
 
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		query = f""" select *
                         from `tabSales Invoice`
                         where {condition}"""
@@ -53,7 +54,7 @@ class EFDZReport(Document):
 		sales_invoices = frappe.db.sql(query, as_dict=True)
 
 		if not sales_invoices:
-			frappe.throw("No Sales Invoice Fetch")
+			frappe.throw(_("No Sales Invoice Fetch"))
 
 		for i in sales_invoices:
 			if i.base_total_taxes_and_charges == 0:

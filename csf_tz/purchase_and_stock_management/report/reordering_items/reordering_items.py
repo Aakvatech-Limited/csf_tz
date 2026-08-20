@@ -17,7 +17,7 @@ def execute(filters=None):
 		},
 		{
 			"fieldname": "transaction_date",
-			"label": _("Date "),
+			"label": _("Date") + " ",
 			"fieldtype": "Date",
 		},
 		{

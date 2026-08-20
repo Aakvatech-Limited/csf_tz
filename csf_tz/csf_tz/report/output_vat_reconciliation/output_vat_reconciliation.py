@@ -3,6 +3,7 @@
 
 
 import frappe
+from frappe import _
 from frappe.utils import fmt_money
 
 
@@ -138,11 +139,11 @@ def generate_sales_returns(filters, data, totals, sales_label):
 
 def get_columns():
 	columns = [
-		{"label": "Details", "fieldname": "details", "fieldtype": "Data", "width": 200},
-		{"label": "STD Sales", "fieldname": "std_sales", "fieldtype": "Data", "width": 170},
-		{"label": "VAT", "fieldname": "vat", "fieldtype": "Data", "width": 170},
-		{"label": "EX Amount", "fieldname": "ex_amount", "fieldtype": "Data", "width": 170},
-		{"label": "Total", "fieldname": "total", "fieldtype": "Data", "width": 170},
+		{"label": _("Details"), "fieldname": "details", "fieldtype": "Data", "width": 200},
+		{"label": _("STD Sales"), "fieldname": "std_sales", "fieldtype": "Data", "width": 170},
+		{"label": _("VAT"), "fieldname": "vat", "fieldtype": "Data", "width": 170},
+		{"label": _("EX Amount"), "fieldname": "ex_amount", "fieldtype": "Data", "width": 170},
+		{"label": _("Total"), "fieldname": "total", "fieldtype": "Data", "width": 170},
 	]
 
 	return columns

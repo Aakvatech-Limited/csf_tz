@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 from time import sleep
+from typing import Any
 
 import frappe
 import requests
@@ -291,6 +292,7 @@ def sync_vehicle_fines(number_plate):
 			frappe.db.set_value("Vehicle Fine Record", record, "status", "PAID")
 			_notify_vehicle_fine_status_change(record, number_plate, old_status, "PAID")
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 	return {
 		"status": "success",
@@ -300,7 +302,7 @@ def sync_vehicle_fines(number_plate):
 
 
 @frappe.whitelist()
-def get_fine(number_plate):
+def get_fine(number_plate: Any):
 	"""
 	Query the TPF API for pending fines on the given number plate.
 
@@ -388,4 +390,5 @@ def send_pending_vehicle_fine_notifications():
 		if last_status and current_status and last_status != current_status:
 			_notify_vehicle_fine_status_change(doc.name, doc.vehicle, last_status, current_status)
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()

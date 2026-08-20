@@ -1,20 +1,3 @@
-cur_frm.cscript.get_invoices = function (frm) {
-	cur_frm.clear_table("efd_z_report_invoices")
-	frappe.call({
-			method: "get_sales_invoice",
-			doc: cur_frm.doc,
-			args: {
-				"electronic_fiscal_device": cur_frm.doc.electronic_fiscal_device,
-				"date_and_time": cur_frm.doc.z_report_date_time,
-			},
-			freeze: true,
-			freeze_message: "Fetching Invoices...",
-			callback: function(r) {
-                cur_frm.refresh_field("efd_z_report_invoices")
-            }
-		});
-}
-
 frappe.ui.form.on('EFD Z Report Invoice', {
 	include: (frm) => {
 		let sum_excluding_vat_ticked = 0
@@ -39,6 +22,22 @@ frappe.ui.form.on('EFD Z Report Invoice', {
 
 
 frappe.ui.form.on('EFD Z Report', {
+	get_invoices: (frm) => {
+		frm.clear_table("efd_z_report_invoices");
+		frappe.call({
+			method: "get_sales_invoice",
+			doc: frm.doc,
+			args: {
+				"electronic_fiscal_device": frm.doc.electronic_fiscal_device,
+				"date_and_time": frm.doc.z_report_date_time,
+			},
+			freeze: true,
+			freeze_message: __("Fetching Invoices..."),
+			callback: function (r) {
+				frm.refresh_field("efd_z_report_invoices");
+			}
+		});
+	},
 	net_amount: (frm) => {
 		calculate_total_turnover(frm);
 	},

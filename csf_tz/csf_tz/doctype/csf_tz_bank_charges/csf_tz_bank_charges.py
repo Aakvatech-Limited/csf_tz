@@ -13,6 +13,7 @@ class CSFTZBankCharges(Document):
 			row.debit_amount for row in self.get("csf_tz_bank_charges_detail") if row.debit_amount > 0
 		)
 
+	# nosemgrep: frappe-modifying-but-not-comitting -- payments is a transient accumulator, not a docfield
 	def on_submit(self):
 		self.payments = []
 		for detail in self.get("csf_tz_bank_charges_detail"):

@@ -4,6 +4,7 @@
 
 import time
 from time import sleep
+from typing import Any
 
 import frappe
 import requests
@@ -79,7 +80,7 @@ class LatraLicenses(Document):
 
 
 @frappe.whitelist()
-def update_latra_records(force=0):
+def update_latra_records(force: Any = 0):
 	token = _get_token() or _refresh_token()
 
 	if not token:
@@ -106,6 +107,7 @@ def update_latra_records(force=0):
 			"message": "LATRA license sync stopped due to upstream throttling.",
 		}
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 	return {
 		"licenses": license_result,
@@ -113,7 +115,7 @@ def update_latra_records(force=0):
 
 
 @frappe.whitelist()
-def update_latra_offences(force=0):
+def update_latra_offences(force: Any = 0):
 	plates = get_unique_vehicle_plates(
 		normalize_number_plate=normalize_number_plate,
 		is_valid_number_plate=is_valid_number_plate,
@@ -121,6 +123,7 @@ def update_latra_offences(force=0):
 	processed = saved = skipped = matched = 0
 
 	if not plates:
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()
 		return {
 			"message": "Processed LATRA offence updates for 0 vehicle(s)",
@@ -199,6 +202,7 @@ def update_latra_offences(force=0):
 
 		processed += 1
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 	return {
 		"message": (
@@ -245,6 +249,7 @@ def send_pending_latra_offence_notifications():
 		if last_status and current_status and last_status != current_status:
 			_notify_latra_offence(row.name, values, is_new=False, old_status=last_status)
 
+	# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 	frappe.db.commit()
 
 
@@ -280,6 +285,7 @@ def sync_all_latra_licenses(token):
 		matching_licenses.sort(key=lambda d: str(d.get("validTo") or ""), reverse=True)
 		matched += 1
 		saved += _upsert_latra_license(plate, matching_licenses[0])
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()
 		processed += 1
 

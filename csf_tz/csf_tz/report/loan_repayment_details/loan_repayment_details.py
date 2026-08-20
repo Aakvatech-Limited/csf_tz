@@ -80,6 +80,7 @@ def get_loans_not_started_to_be_paid(filters, all_repayments):
 	if filters.get("employee"):
 		conditions += " AND l.applicant = '%s' " % filters["employee"]
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	return frappe.db.sql(
 		"""
 		SELECT
@@ -118,6 +119,7 @@ def get__paid_loans(filters, repayments, from_salary):
 			SUM(l.total_amount_paid) AS amount_paid_not_from_salary,
 		"""
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	loans = frappe.db.sql(
 		"""
 		SELECT

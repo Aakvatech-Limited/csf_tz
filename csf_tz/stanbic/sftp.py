@@ -221,4 +221,5 @@ def process_download_files():
 			print("Error processing the file", file, str(e))
 		if doc_changed:
 			pain_doc.save()
+			# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 			frappe.db.commit()

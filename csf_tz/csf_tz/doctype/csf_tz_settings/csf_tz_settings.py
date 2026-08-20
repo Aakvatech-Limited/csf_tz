@@ -33,6 +33,7 @@ class CSFTZSettings(Document):
 					queue="long",
 					timeout=14400,  # 4 hour timeout
 					is_async=True,
+					enqueue_after_commit=True,
 					job_name="populate_tz_regions",
 				)
 

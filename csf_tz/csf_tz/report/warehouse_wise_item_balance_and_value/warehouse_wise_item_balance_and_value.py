@@ -117,6 +117,7 @@ def get_warehouse_list(filters):
 		condition = "and name = %s"
 		value = filters.get("warehouse")
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	return frappe.db.sql(
 		f"""select name
 		from `tabWarehouse` where is_group = 0

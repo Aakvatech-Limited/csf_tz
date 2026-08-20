@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Any
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -11,6 +12,7 @@ def load_json(file):
 	CURR_DIR = os.path.abspath(os.path.dirname(__file__))
 	json_file_path = os.path.join(CURR_DIR, folder, file)
 	# TODO do not load the file if already applied
+	# nosemgrep: frappe-security-file-traversal -- reads only this app's bundled custom field JSON
 	with open(json_file_path) as file:
 		data = json.load(file)
 	return data
@@ -51,19 +53,15 @@ def create_fields_from_json(custom_fields_obj):
 
 def execute():
 	# read names of only json files in this folder and put it into files list
-	files = list(
-		filter(
-			lambda x: x.endswith(".json"),
-			os.listdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)),
-		)
-	)
+	folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), folder)
+	files = [name for name in os.listdir(folder_path) if name.endswith(".json")]
 	for file in files:
 		data = load_json(file)
 		create_fields_from_json(data)
 
 
 @frappe.whitelist()
-def export_custom_fields(docnames):
+def export_custom_fields(docnames: Any):
 	docnames = frappe.parse_json(docnames)
 	custom_fields = []
 

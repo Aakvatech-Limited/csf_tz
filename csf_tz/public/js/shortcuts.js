@@ -71,9 +71,12 @@ function ctrlQ (TableName) {
                             frappe.model.set_value(item_row.doctype, item_row.name, 'batch_no', $(input).attr('data-batch'));
                         }
                     });
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.rec_dialog.hide();
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.refresh_fields();
                 });
+                // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                 cur_frm.rec_dialog = d;
                 d.show();
             }
@@ -92,8 +95,11 @@ function ctrlI(TableName) {
     // Prepare filters for the query
     const filters = {
         item_code: item_row.item_code,
+        // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
         customer: cur_frm.doc.customer || "",
+        // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
         currency: cur_frm.doc.currency,
+        // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
         company: cur_frm.doc.company
     };
 
@@ -151,10 +157,13 @@ function ctrlI(TableName) {
                     $(e.body).find('input:checked').each(function (i, input) {
                         frappe.model.set_value(item_row.doctype, item_row.name, 'rate', $(input).attr('data-rate'));
                     });
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.rec_dialog.hide();
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.refresh_fields();
                 });
 
+                // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                 cur_frm.rec_dialog = e;
                 e.show();
             } else {
@@ -171,7 +180,9 @@ function ctrlU (TableName) {
         method: 'csf_tz.custom_api.get_item_prices',
         args: {
             item_code: item_row.item_code,
+            // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
             currency: cur_frm.doc.currency,
+            // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
             company: cur_frm.doc.company
         },
         callback: function (r) {
@@ -220,9 +231,12 @@ function ctrlU (TableName) {
                     $(e.body).find('input:checked').each(function (i, input) {
                         frappe.model.set_value(item_row.doctype, item_row.name, 'rate', $(input).attr('data-rate'));
                     });
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.rec_dialog.hide();
+                    // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                     cur_frm.refresh_fields();
                 });
+                // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                 cur_frm.rec_dialog = e;
                 e.show();
             }

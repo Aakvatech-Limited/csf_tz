@@ -4,6 +4,7 @@
 # import frappe
 import json
 from time import sleep
+from typing import Any
 
 import frappe
 import requests
@@ -221,7 +222,9 @@ def get_payload(doc):
 
 
 @frappe.whitelist()
-def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, preview=False):
+def post_fiscal_receipt(
+	doc: Any = None, method: Any = "POST", payload: Any = None, invoice_id: Any = None, preview: Any = False
+):
 	"""Post fiscal receipt to VFDPlus
 	Parameters
 	----------
@@ -291,6 +294,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 		frappe.db.set_value("Sales Invoice", doc.name, "vfd_time", data["msg_data"].get("itime"))
 		frappe.db.set_value("Sales Invoice", doc.name, "vfd_posting_info", vfd_provider_posting_doc.name)
 		frappe.db.set_value("Sales Invoice", doc.name, "vfd_verification_url", verification_url)
+		# nosemgrep: frappe-manual-commit -- background batch commits per item so a later failure keeps earlier work
 		frappe.db.commit()
 
 	return {"data": data, "vfd_provider": "VFDPlus", "preview": preview}
@@ -332,7 +336,7 @@ def get_serial_info(doc, method):
 
 
 @frappe.whitelist()
-def get_account_info(company):
+def get_account_info(company: Any):
 	"""Get serial info from VFDPlus
 	Parameters
 	----------

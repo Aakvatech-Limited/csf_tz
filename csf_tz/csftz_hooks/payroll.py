@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+from typing import Any
 
 import frappe
 from frappe import _
@@ -61,7 +62,7 @@ def before_cancel_payroll_entry(doc, method):
 
 
 @frappe.whitelist()
-def update_slips(payroll_entry):
+def update_slips(payroll_entry: Any):
 	salary_slips = frappe.get_all(
 		"Salary Slip",
 		filters={"payroll_entry": payroll_entry, "docstatus": 0},
@@ -100,7 +101,7 @@ def enqueue_update_slips(payroll_entry):
 
 
 @frappe.whitelist()
-def update_slip(salary_slip, show_message=True):
+def update_slip(salary_slip: Any, show_message: Any = True):
 	result = _update_salary_slip(salary_slip)
 	if show_message and result == "updated":
 		frappe.msgprint(_("Salary Slips is updated"))
@@ -118,7 +119,7 @@ def _update_salary_slip(salary_slip):
 
 
 @frappe.whitelist()
-def print_slips(payroll_entry):
+def print_slips(payroll_entry: Any):
 	enqueue(
 		method=enqueue_print_slips,
 		queue="short",
@@ -200,9 +201,11 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
 
 def read_multi_pdf(output):
 	fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
+	# nosemgrep: frappe-security-file-traversal -- generated /tmp path from frappe.generate_hash()
 	with open(fname, "wb") as f:
 		output.write(f)
 
+	# nosemgrep: frappe-security-file-traversal -- generated /tmp path from frappe.generate_hash()
 	with open(fname, "rb") as fileobj:
 		filedata = fileobj.read()
 
@@ -210,7 +213,7 @@ def read_multi_pdf(output):
 
 
 @frappe.whitelist()
-def create_journal_entry(payroll_entry):
+def create_journal_entry(payroll_entry: Any):
 	payroll_entry_doc = frappe.get_doc("Payroll Entry", payroll_entry)
 	if payroll_entry_doc.docstatus != 1 or payroll_entry_doc.salary_slips_submitted == 1:
 		return
@@ -289,7 +292,7 @@ def enqueue_apply_workflow_for_salary_slips(kwargs):
 
 
 @frappe.whitelist()
-def get_amounts_summary(payroll_entry):
+def get_amounts_summary(payroll_entry: Any):
 	summary = {
 		"gross_pay": 0.0,
 		"net_pay": 0.0,

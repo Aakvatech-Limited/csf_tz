@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
@@ -22,7 +23,7 @@ class ForeignImportTransaction(Document):
 	def validate_currency(self):
 		"""Validate that the purchase invoice is in foreign currency"""
 		if not self.currency:
-			frappe.throw("Currency is required")
+			frappe.throw(_("Currency is required"))
 
 		company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
 		if self.currency == company_currency:

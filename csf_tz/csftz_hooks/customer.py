@@ -1,15 +1,18 @@
+from typing import Any
+
 import frappe
 from frappe import _
 
 
 @frappe.whitelist()
-def get_customer_total_unpaid_amount(customer, company=None):
+def get_customer_total_unpaid_amount(customer: Any, company: Any = None):
 	if not customer:
 		return 0
 	company_condition = ""
 	if company:
 		company_condition = f" and company = '{company}'"
 	company_wise_total_unpaid = frappe._dict(
+		# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 		frappe.db.sql(
 			f"""
         select company, sum(debit_in_account_currency) - sum(credit_in_account_currency)

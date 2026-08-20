@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 import frappe
 
@@ -23,7 +24,7 @@ def get_job_cards():
 
 
 @frappe.whitelist()
-def get_employees(company):
+def get_employees(company: Any):
 	data = frappe.get_list(
 		"Employee",
 		filters={"status": "Active", "company": company},
@@ -36,7 +37,7 @@ def get_employees(company):
 
 
 @frappe.whitelist()
-def save_doc(doc, action="Save"):
+def save_doc(doc: Any, action: Any = "Save"):
 	doc = json.loads(doc)
 	cur_doc = frappe.get_doc("Job Card", doc.get("name"))
 	cur_doc.update(doc)

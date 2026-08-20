@@ -143,6 +143,7 @@ def get_gl_entries(filters):
 	if filters.get("include_default_book_entries"):
 		filters["company_fb"] = frappe.db.get_value("Company", filters.get("company"), "default_finance_book")
 
+	# nosemgrep: frappe-sql-format-injection -- only server-built SQL fragments are interpolated; values bind as %s/%(name)s or go through frappe.db.escape
 	gl_entries = frappe.db.sql(
 		f"""
 		select

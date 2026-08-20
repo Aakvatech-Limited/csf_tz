@@ -72,9 +72,12 @@ frappe.ui.keys.add_shortcut({
                                     frappe.model.set_value(item_row.doctype, item_row.name, 'batch_no', $(input).attr('data-batch'));
                                 }
                             });
+                            // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                             cur_frm.rec_dialog.hide();
+                            // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                             cur_frm.refresh_fields();
                         });
+                        // nosemgrep: frappe-cur-frm-usage -- global shortcut/dialog handler; there is no frm in scope here
                         cur_frm.rec_dialog = d;
                         d.show();
                     }

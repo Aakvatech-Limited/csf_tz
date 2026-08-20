@@ -1,3 +1,5 @@
+from typing import Any
+
 import frappe
 from frappe import _
 
@@ -20,7 +22,7 @@ from csf_tz.vfd_providers.doctype.vfdplus_settings.vfdplus_settings import (
 
 
 @frappe.whitelist()
-def generate_tra_vfd(docname, sinv_doc=None, method="POST", caller="Frontend"):
+def generate_tra_vfd(docname: Any, sinv_doc: Any = None, method: Any = "POST", caller: Any = "Frontend"):
 	if not sinv_doc:
 		sinv_doc = frappe.get_doc("Sales Invoice", docname)
 

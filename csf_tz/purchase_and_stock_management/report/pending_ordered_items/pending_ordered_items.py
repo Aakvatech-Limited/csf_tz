@@ -12,12 +12,12 @@ def execute(filters=None):
 		{"fieldname": "name", "label": _("Purchase Order"), "fieldtype": "Link", "options": "Purchase Order"},
 		{
 			"fieldname": "transaction_date",
-			"label": _("Date "),
+			"label": _("Date") + " ",
 			"fieldtype": "Date",
 		},
 		{
 			"fieldname": "req_by",
-			"label": _("Req By Date "),
+			"label": _("Req By Date") + " ",
 			"fieldtype": "Date",
 		},
 		{
