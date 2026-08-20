@@ -1,11 +1,9 @@
 # Copyright (c) 2013, Aakvatech and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-import erpnext
 import frappe
 from erpnext import get_company_currency, get_default_company
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
@@ -16,7 +14,7 @@ from erpnext.accounts.report.financial_statements import get_cost_centers_with_c
 from erpnext.accounts.report.utils import convert_to_presentation_currency, get_currency
 from erpnext.accounts.utils import get_account_currency
 from frappe import _, _dict
-from frappe.utils import cstr, flt, fmt_money, getdate
+from frappe.utils import cstr, flt, getdate
 from six import iteritems
 
 
@@ -198,7 +196,7 @@ def get_gl_entries(filters, accounting_dimensions):
 	# Pre-existing: values bind as %(...)s parameters; only server-built fragments interpolate.
 	# nosemgrep: frappe-sql-format-injection
 	gl_entries_all_except_students = frappe.db.sql(
-		"""
+		f"""
         select
             gle.name as gl_entry, posting_date, account, party_type, party,
             voucher_type, voucher_no, {dimension_fields}
@@ -206,17 +204,10 @@ def get_gl_entries(filters, accounting_dimensions):
             against_voucher_type, against_voucher, account_currency,
             remarks, against, is_opening, gle.creation {select_fields}
         from `tabGL Entry` as gle
-        where {student_filter}company=%(company)s {conditions}
+        where {student_filter}company=%(company)s {get_conditions(filters)}
         {distributed_cost_center_query}
         {order_by_statement}
-        """.format(
-			dimension_fields=dimension_fields,
-			select_fields=select_fields,
-			conditions=get_conditions(filters),
-			distributed_cost_center_query=distributed_cost_center_query,
-			order_by_statement=order_by_statement,
-			student_filter=student_filter,
-		),
+        """,
 		filters,
 		as_dict=1,
 	)
@@ -226,7 +217,7 @@ def get_gl_entries(filters, accounting_dimensions):
 		# Pre-existing: values bind as %(...)s parameters; only server-built fragments interpolate.
 		# nosemgrep: frappe-sql-format-injection
 		gl_entries_students = frappe.db.sql(
-			"""
+			f"""
             select
                 gle.name as gl_entry, posting_date, account, party_type, CONCAT(std.first_name, " ", IFNULL(std.middle_name, ''), " ", IFNULL(std.last_name, '')) as party,
                 voucher_type, voucher_no, {dimension_fields}
@@ -235,16 +226,10 @@ def get_gl_entries(filters, accounting_dimensions):
                 remarks, against, is_opening, gle.creation {select_fields}
             from `tabGL Entry` AS gle
             INNER JOIN `tabStudent` AS std ON gle.party = std.name
-            where gle.party_type = 'Student' and company=%(company)s {conditions}
+            where gle.party_type = 'Student' and company=%(company)s {get_conditions(filters)}
             {distributed_cost_center_query}
             {order_by_statement}
-            """.format(
-				dimension_fields=dimension_fields,
-				select_fields=select_fields,
-				conditions=get_conditions(filters),
-				distributed_cost_center_query=distributed_cost_center_query,
-				order_by_statement=order_by_statement,
-			),
+            """,
 			filters,
 			as_dict=1,
 		)
@@ -322,9 +307,9 @@ def get_conditions(filters):
 					filters[dimension.fieldname] = get_dimension_with_children(
 						dimension.document_type, filters.get(dimension.fieldname)
 					)
-					conditions.append("{0} in %({0})s".format(dimension.fieldname))
+					conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
 				else:
-					conditions.append("{0} in (%({0})s)".format(dimension.fieldname))
+					conditions.append(f"{dimension.fieldname} in (%({dimension.fieldname})s)")
 
 	return "and {}".format(" and ".join(conditions)) if conditions else ""
 
@@ -372,7 +357,7 @@ def get_data_with_opening_closing(filters, account_details, accounting_dimension
 def get_totals_dict():
 	def _get_debit_credit_dict(label):
 		return _dict(
-			account="'{0}'".format(label),
+			account=f"'{label}'",
 			debit=0.0,
 			credit=0.0,
 			debit_in_account_currency=0.0,
@@ -457,12 +442,12 @@ def get_accountwise_gle(filters, accounting_dimensions, gl_entries, gle_map):
 
 
 def get_result_as_list(data, filters):
-	balance, balance_in_account_currency = 0, 0
+	balance = 0
 	inv_details = get_supplier_invoice_details()
 
 	for d in data:
 		if not d.get("posting_date"):
-			balance, balance_in_account_currency = 0, 0
+			balance = 0
 
 		balance = get_balance(d, balance, "debit", "credit")
 		d["balance"] = balance
