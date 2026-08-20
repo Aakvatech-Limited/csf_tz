@@ -1,5 +1,5 @@
 frappe.ui.form.on("Company", {
-	
+
 	setup: function(frm) {
 		frm.set_query("default_withholding_payable_account", function() {
 			return {
@@ -17,27 +17,9 @@ frappe.ui.form.on("Company", {
 				}
 			};
 		});
-		frm.set_query("fee_bank_account", function() {
-			return {
-				"filters": {
-                    "company": frm.doc.name,
-					"account_type": ["in",["Cash","Bank"]],
-					"account_currency": frm.doc.default_currency,
-				}
-			};
-		});
-		frm.set_query("student_applicant_fees_revenue_account", function() {
-			return {
-				"filters": {
-                    "company": frm.doc.name,
-					"account_type": "Income Account",
-					"account_currency": frm.doc.default_currency,
-				}
-			};
-        });
 	},
 
-    
+
 	refresh: function(frm) {
 		frm.add_custom_button(__('Auto create accounts'), function() {
 			frm.trigger("auto_create_account");
@@ -66,7 +48,7 @@ frappe.ui.form.on("Company", {
 				primary_action_label: 'Submit',
 				primary_action(values) {
 					console.log(values);
-		
+
 					frappe.call({
 						method: 'csf_tz.custom_api.linking_tax_template',
 						args: {
@@ -82,15 +64,15 @@ frappe.ui.form.on("Company", {
 							}
 						}
 					});
-		
+
 					d.hide();
 				}
 			});
-		
+
 			d.show();
 		}, __("Setup"));
-		
-		
+
+
 	},
 
 	auto_create_account: function(frm) {
@@ -121,7 +103,7 @@ frappe.ui.form.on("Company", {
 			}
 		})
 	},
-	
+
 	make_tax_category: function(frm) {
 		frappe.call({
 			method: 'csf_tz.custom_api.create_tax_category',
