@@ -46,14 +46,8 @@ def _acquire_rate_limit_slot():
     return True
 
 
-def _backoff_seconds(attempts):
-    exponent = max(attempts - 1, 0)
-    return queue.BASE_BACKOFF * (2 ** exponent)
-
-
 @frappe.whitelist()
 def run_vehicle_batch():
-    started_at = time.monotonic()
     processed = 0
     errors = 0
 
@@ -64,16 +58,8 @@ def run_vehicle_batch():
         return {"status": "no_tasks", "message": "No pending vehicle sync tasks"}
 
     for task in tasks:
-        if (time.monotonic() - started_at) >= queue.TIME_BUDGET_SEC:
-            break
-
         if not _acquire_rate_limit_slot():
-            queue.schedule_next(
-                TASK_DOCTYPE,
-                task,
-                60,
-                "TPF per-minute limit reached for this site",
-            )
+            queue.mark_failed(TASK_DOCTYPE, task, "TPF per-minute limit reached for this site")
             continue
 
         result = sync_vehicle_fines(task["vehicle_no"])
@@ -84,21 +70,10 @@ def run_vehicle_batch():
             processed += 1
             continue
 
-        if status in {"rate_limited", "retryable_error"}:
-            current_attempts = frappe.db.get_value(TASK_DOCTYPE, task["name"], "attempts") or 0
-            queue.schedule_next(
-                TASK_DOCTYPE,
-                task,
-                _backoff_seconds(current_attempts + 1),
-                result.get("message") or status,
-            )
-            errors += 1
-            continue
-
         queue.mark_failed(
             TASK_DOCTYPE,
             task,
-            result.get("message") or "Unhandled sync error",
+            result.get("message") or status or "Unhandled sync error",
         )
         errors += 1
 
