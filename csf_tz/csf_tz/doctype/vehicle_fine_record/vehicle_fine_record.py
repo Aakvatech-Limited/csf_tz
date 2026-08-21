@@ -18,7 +18,6 @@ from csf_tz.vehicle_authority import (
     send_authority_notification,
 )
 import re
-from time import sleep
 from frappe.utils import now_datetime
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -144,77 +143,20 @@ def sync_vehicle_fines(number_plate):
     }
     payload = {"vehicle": number_plate}
 
-    max_retries = 3
-    response = None
-
-    for attempt in range(max_retries):
-        try:
-            if attempt > 0:
-                sleep(5 * attempt)
-
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
-            if response.status_code == 429:
-                return {
-                    "status": "rate_limited",
-                    "message": f"TPF rate limited {number_plate}",
-                    "fine_list": [],
-                }
-            response.raise_for_status()
-            break
-
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
-            if attempt < max_retries - 1:
-                continue
-            frappe.logger().warning(
-                f"[VehicleFine] Connection timeout for {number_plate} "
-                f"after {max_retries} retries"
-            )
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        if response.status_code == 429:
             return {
-                "status": "retryable_error",
-                "message": str(exc),
+                "status": "rate_limited",
+                "message": f"TPF rate limited {number_plate}",
                 "fine_list": [],
             }
-
-        except requests.exceptions.HTTPError:
-            status = response.status_code if response is not None else 0
-            if status in (408,) or status >= 500:
-                if attempt < max_retries - 1:
-                    continue
-                frappe.logger().warning(
-                    f"[VehicleFine] HTTP {status} for {number_plate} "
-                    f"after {max_retries} retries"
-                )
-                return {
-                    "status": "retryable_error",
-                    "message": f"HTTP {status}",
-                    "fine_list": [],
-                }
-
-            frappe.log_error(
-                title="TPF API Error",
-                message=(
-                    f"HTTP {status} for {number_plate}: "
-                    f"{response.text[:500] if response is not None else ''}"
-                ),
-            )
-            return {
-                "status": "error",
-                "message": f"HTTP {status}",
-                "fine_list": [],
-            }
-
-        except requests.exceptions.RequestException as exc:
-            frappe.log_error(title="TPF API Error", message=str(exc))
-            return {
-                "status": "error",
-                "message": str(exc),
-                "fine_list": [],
-            }
-
-    if response is None:
+        response.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        frappe.logger().warning(f"[VehicleFine] TPF request failed for {number_plate}: {exc}")
         return {
             "status": "retryable_error",
-            "message": "No response from TPF",
+            "message": str(exc),
             "fine_list": [],
         }
 
