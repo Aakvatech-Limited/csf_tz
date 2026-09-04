@@ -8,4 +8,3 @@ for dir in apps/* ; do
 		cd ../..
 	fi
 done
-

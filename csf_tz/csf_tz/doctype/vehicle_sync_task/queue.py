@@ -140,4 +140,3 @@ def reset_stuck_tasks(doctype, timeout_minutes=10):
 			message=f"Error resetting stuck tasks in {doctype}: {str(e)}",
 		)
 		return 0
-```
