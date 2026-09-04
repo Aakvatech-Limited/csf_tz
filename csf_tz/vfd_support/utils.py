@@ -39,6 +39,11 @@ def generate_tra_vfd(docname, sinv_doc=None, method="POST", caller="Frontend"):
 	if not vfd_provider_settings:
 		return
 
+	if not frappe.db.exists(vfd_provider_settings, sinv_doc.company):
+		frappe.throw(
+			_("No {0} found for {1}").format(vfd_provider_settings, sinv_doc.company),
+		)
+
 	settings_info = frappe.get_cached_value(
 		vfd_provider_settings, sinv_doc.company, ["enable_vfd_preview", "vfd_start_date"], as_dict=True
 	)
@@ -92,7 +97,7 @@ def autogenerate_vfd(doc, method):
 
 def posting_all_vfd_invoices():
 	if frappe.local.flags.vfd_posting:
-		frappe.log_error(_("VFD Posting Flag found", "VFD Posting Flag found"))
+		frappe.log_error(title=_("VFD Posting Already Running"), message=_("VFD posting flag found"))
 		return
 
 	frappe.local.flags.vfd_posting = True
@@ -114,6 +119,12 @@ def posting_all_vfd_invoices():
 		vfd_start_date = frappe.get_cached_value(vfd_provider_settings, company, "vfd_start_date")
 
 		if not vfd_start_date:
+			frappe.log_error(
+				title=_("VFD Start Date Missing"),
+				message=_("No invoice was posted for {0}. Set VFD Start Date in {1}.").format(
+					company, vfd_provider_settings
+				),
+			)
 			continue
 
 		invoices = frappe.db.get_all(

@@ -124,6 +124,8 @@ after_install = [
 	"csf_tz.utils.setup.execute",
 ]
 
+before_migrate = ["csf_tz.vfd_support.upgrade.block_stale_vfd_providers"]
+
 after_migrate = [
 	"csf_tz.utils.create_custom_fields.execute",
 	"csf_tz.utils.create_property_setter.execute",
