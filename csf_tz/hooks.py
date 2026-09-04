@@ -268,6 +268,9 @@ doc_events = {
     "Employee Checkin": {
         "validate": "csf_tz.csftz_hooks.employee_checkin.validate",
     },
+    "Shift Type": {
+        "before_validate": "csf_tz.csftz_hooks.shift_type.skip_version_on_checkin_sync",
+    },
     "Leave Encashment": {
         "validate": "csf_tz.csftz_hooks.leave_encashment.validate_flags",
     },
