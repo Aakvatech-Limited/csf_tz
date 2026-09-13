@@ -1144,8 +1144,14 @@ def get_list_pending_sales_invoice(invoice_name=None, warehouse=None):
 
 def create_delivery_note_for_all_pending_sales_invoice(doc=None, method=None):
     company_list = frappe.get_all(
-        "Company", fiters={"enabled_auto_create_delivery_notes": 1}, pluck="name"
+        "Company",
+        filters={"enabled_auto_create_delivery_notes": 1},
+        pluck="name",
     )
+
+    if not company_list:
+        return
+
     invoices = get_list_pending_sales_invoice()
     for i in invoices:
         if i.company not in company_list:
