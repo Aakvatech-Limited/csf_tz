@@ -4,5 +4,5 @@
 
 vuetify@^3.7.19:
   version "3.7.19"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.7.19.tgz#"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.7.19.tgz"
   integrity sha512-RrUpdBOGWGcT2oNLqXBiqYRudKTFqxTfr8lISl51Cuo80cfgRmbyDnlQQRWxE4QSNxcqXk6ZzBoJRUEXpW9C/w==
