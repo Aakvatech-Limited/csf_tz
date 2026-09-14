@@ -45,6 +45,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Posting Date",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -53,6 +54,7 @@
    "in_list_view": 1,
    "label": "Payment Type",
    "options": "\nSupplier\nSalary",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -77,6 +79,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Debit Account",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -85,17 +88,20 @@
    "in_list_view": 1,
    "label": "Currency",
    "options": "Currency",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "total_amount",
    "fieldtype": "Currency",
-   "label": "Total Amount"
+   "label": "Total Amount",
+   "read_only": 1
   },
   {
    "fieldname": "file_checksum",
    "fieldtype": "Data",
-   "label": "File Checksum"
+   "label": "File Checksum",
+   "read_only": 1
   },
   {
    "fieldname": "remarks",
@@ -111,17 +117,20 @@
    "fieldtype": "Table",
    "label": "KCB Payments Initiation Info",
    "options": "KCB Payments Initiation Info",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "payment_file",
    "fieldtype": "Attach",
-   "label": "Payment File"
+   "label": "Payment File",
+   "read_only": 1
   },
   {
    "fieldname": "encrypted_file",
    "fieldtype": "Attach",
-   "label": "Encrypted File"
+   "label": "Encrypted File",
+   "read_only": 1
   },
   {
    "fieldname": "api_details_tab",
@@ -135,7 +144,8 @@
   {
    "fieldname": "checksum_signature",
    "fieldtype": "Text",
-   "label": "Signature (Base64)"
+   "label": "Signature (Base64)",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
