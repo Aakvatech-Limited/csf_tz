@@ -46,14 +46,33 @@ function validate_salary_slips(frm) {
 
 function add_kcb_payments_initiation_button(frm) {
 	frm.add_custom_button(__(kcbButtonName), function () {
-		frappe.call({
-			method: "csf_tz.kcb.payments.make_kcb_payments_initiation_from_payroll_entry",
-			args: { payroll_entry_name: frm.doc.name },
-			callback: function (r) {
-				if (r.message) {
-					frappe.set_route("Form", "KCB Payments Initiation", r.message);
-				}
+		frappe.prompt(
+			[
+				{
+					fieldname: "file_reference",
+					fieldtype: "Data",
+					label: __("File Name"),
+					description: __(
+						'Optional. e.g. "TRA MONTHLY SALARY AUGUST 2026". Leave blank to use the system-generated name.'
+					),
+				},
+			],
+			(values) => {
+				frappe.call({
+					method: "csf_tz.kcb.payments.make_kcb_payments_initiation_from_payroll_entry",
+					args: {
+						payroll_entry_name: frm.doc.name,
+						file_reference: values.file_reference,
+					},
+					callback: function (r) {
+						if (r.message) {
+							frappe.set_route("Form", "KCB Payments Initiation", r.message);
+						}
+					},
+				});
 			},
-		});
+			__("Generate KCB Payments Initiation"),
+			__("Generate")
+		);
 	});
 }

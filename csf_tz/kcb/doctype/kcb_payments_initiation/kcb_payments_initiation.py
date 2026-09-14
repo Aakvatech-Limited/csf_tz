@@ -27,7 +27,38 @@ def _sanitize_file_name(value) -> str:
 	return text.strip()
 
 
+def _delete_file_by_url(file_url):
+	if not file_url:
+		return
+	existing = frappe.db.get_value("File", {"file_url": file_url}, "name")
+	if existing:
+		frappe.delete_doc("File", existing, ignore_permissions=True, delete_permanently=True)
+
+
 class KCBPaymentsInitiation(Document):
+
+    def validate(self):
+        self._validate_unique_file_reference()
+
+    def _validate_unique_file_reference(self):
+        file_reference = _clean(self.file_reference)
+        if not file_reference:
+            return
+
+        duplicate = frappe.db.get_value(
+            "KCB Payments Initiation",
+            {
+                "file_reference": file_reference,
+                "docstatus": ["!=", 2],
+                "name": ["!=", self.name or ""],
+            },
+            "name",
+        )
+        if duplicate:
+            frappe.throw(
+                'A KCB Payments Initiation named "{0}" already exists ({1}). '
+                "Please use a different File Name.".format(file_reference, duplicate)
+            )
 
     def before_save(self):
         header = "Debit Account|Beneficiary Name|Transaction Code|Amount|Currency|Beneficiary Account|Beneficiary Clearing Code|My Ref|Beneficiary Ref|CBK Code|Ordering Customer Physical Address|Payment Purpose"
@@ -65,6 +96,11 @@ class KCBPaymentsInitiation(Document):
             frappe.throw("Encryption failed: empty result")
 
         file_base_name = _sanitize_file_name(self.file_reference) if self.file_reference else self.name
+
+        # Remove the previous txt/gpg pair so renaming (or re-saving) never leaves
+        # stale copies behind that could later be mistaken for supporting documents.
+        _delete_file_by_url(self.payment_file)
+        _delete_file_by_url(self.encrypted_file)
 
         txt_file = frappe.get_doc({
             "doctype": "File",
