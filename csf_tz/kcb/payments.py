@@ -168,7 +168,7 @@ def _attach_payroll_batch_summary_pdf(target_name: str, doc, payroll_entry_name:
 
 
 @frappe.whitelist()
-def make_kcb_payments_initiation_from_payment_entries(payment_entries):
+def make_kcb_payments_initiation_from_payment_entries(payment_entries, file_reference=None):
     _require_kcb_enabled()
     settings = frappe.get_single("KCB Settings")
     if isinstance(payment_entries, str):
@@ -227,6 +227,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
     doc.payment_type = "Supplier"
     doc.debit_account = debit_account_no
     doc.currency = currency
+    doc.file_reference = file_reference
 
     total_amount = 0
     for pe in pe_docs:
@@ -288,7 +289,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries):
 
 
 @frappe.whitelist()
-def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
+def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name, file_reference=None):
     _require_kcb_enabled()
     settings = frappe.get_single("KCB Settings")
     payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry_name)
@@ -363,6 +364,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name):
     doc.payment_type = "Salary"
     doc.debit_account = debit_account_no
     doc.currency = currency
+    doc.file_reference = file_reference
 
     total_amount = 0
     for slip in slips:

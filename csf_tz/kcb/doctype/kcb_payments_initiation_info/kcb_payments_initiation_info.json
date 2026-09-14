@@ -3,7 +3,7 @@
  "allow_rename": 1,
  "creation": "2025-05-07 23:09:51.843284",
  "doctype": "DocType",
- "editable_grid": 1,
+ "editable_grid": 0,
  "engine": "InnoDB",
  "field_order": [
   "source_doctype",
@@ -40,6 +40,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Beneficiary Name",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -47,6 +48,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -54,6 +56,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Beneficiary Account",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -62,46 +65,54 @@
    "in_list_view": 1,
    "label": "Currency",
    "options": "Currency",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "transaction_code",
    "fieldtype": "Data",
    "label": "Transaction Code",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "my_ref",
    "fieldtype": "Small Text",
    "label": "My Ref",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "payment_purpose",
    "fieldtype": "Small Text",
-   "label": "Payment Purpose"
+   "label": "Payment Purpose",
+   "read_only": 1
   },
   {
    "fieldname": "beneficiary_clearing_code",
    "fieldtype": "Data",
    "label": "Beneficiary Clearing Code",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "beneficiary_ref",
    "fieldtype": "Small Text",
    "label": "Beneficiary Ref",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "cbk_code",
    "fieldtype": "Data",
-   "label": "CBK Code"
+   "label": "CBK Code",
+   "read_only": 1
   },
   {
    "fieldname": "ordering_customer_physical_address",
    "fieldtype": "Small Text",
-   "label": "Ordering Customer Physical Address"
+   "label": "Ordering Customer Physical Address",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
