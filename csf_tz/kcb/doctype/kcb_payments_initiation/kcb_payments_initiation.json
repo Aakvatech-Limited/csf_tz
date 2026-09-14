@@ -56,10 +56,11 @@
    "reqd": 1
   },
   {
-   "description": "Optional. Used as the payment file name sent to KCB, e.g. \"TRA MONTHLY SALARY AUGUST 2026\". Leave blank to use the system-generated name.",
+   "description": "Optional. Used as the payment file name sent to KCB, e.g. \"TRA MONTHLY SALARY AUGUST 2026\". Set once when generating from Payment Entry / Payroll Entry; leave blank to use the system-generated name.",
    "fieldname": "file_reference",
    "fieldtype": "Data",
-   "label": "File Name"
+   "label": "File Name",
+   "read_only": 1
   },
   {
    "fieldname": "originator_conversation_id",
