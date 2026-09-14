@@ -1,7 +1,10 @@
 frappe.listview_settings["Payment Entry"] = {
 	add_fields: ["payment_type", "docstatus"],
 	onload(listview) {
-		frappe.db.get_single_value("KCB Settings", "enabled").then((enabled) => {
+		frappe.call({
+			method: "csf_tz.kcb.api.kcb_api.is_kcb_enabled",
+			callback: (r) => {
+			const enabled = !!r.message;
 			if (!enabled) {
 				return;
 			}
@@ -50,6 +53,7 @@ frappe.listview_settings["Payment Entry"] = {
 					);
 				}
 			);
+			},
 		});
 	},
 };
