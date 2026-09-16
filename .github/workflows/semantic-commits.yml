@@ -7,13 +7,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: commitcheck-csf_tz-${{ github.event.number }}
+  group: commitcheck-${{ github.repository }}-${{ github.event.number }}
   cancel-in-progress: true
 
 jobs:
   commitlint:
     name: Check Commit Messages
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
