@@ -63,7 +63,9 @@
   "tz_regions_section",
   "populate_tz_regions",
   "column_break_tz_regions",
-  "tz_regions_populated"
+  "tz_regions_populated",
+  "sms_settings_section",
+  "enable_airtel_sms"
  ],
  "fields": [
   {
@@ -415,12 +417,24 @@
    "fieldname": "check_budget_in_je",
    "fieldtype": "Check",
    "label": "Check Budget in JE"
+  },
+  {
+   "fieldname": "sms_settings_section",
+   "fieldtype": "Section Break",
+   "label": "SMS Settings"
+  },
+  {
+   "default": "0",
+   "description": "Send SMS through the Airtel IQ gateway instead of the standard SMS Settings request. Airtel needs the recipients as a JSON array and the sub account id nested under metaData, which the standard request cannot produce. Configure the gateway URL and the parameters in SMS Settings.",
+   "fieldname": "enable_airtel_sms",
+   "fieldtype": "Check",
+   "label": "Enable Airtel SMS"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-10 00:00:00.000000",
+ "modified": "2026-09-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "CSF TZ",
  "name": "CSF TZ Settings",
