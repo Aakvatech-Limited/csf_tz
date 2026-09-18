@@ -319,7 +319,7 @@ def generate_component_in_salary_slip_insert(doc, method):
     if frappe.db.get_single_value("CSF TZ Settings", "ot_module"):
         doc.salary_slip_ot_component = []
         employee = frappe.get_doc("Employee", doc.employee)
-        doc.run_method("get_emp_and_leave_details")
+        doc.run_method("get_emp_and_working_day_details")
         base = 0
         list = []
         for component in doc.earnings:
