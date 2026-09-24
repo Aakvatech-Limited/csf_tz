@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
 from csf_tz.kcb.utils.crypto_utils import generate_checksum, sign_checksum_with_p12
 from csf_tz.kcb.api.kcb_api import submit_file_details, upload_encrypted_file
 from csf_tz.kcb.pgp import encrypt_pgp
@@ -18,6 +19,10 @@ def _clean(value) -> str:
 
 def _purpose(value) -> str:
     return _clean(value)[:25]
+
+
+def _fmt_amount(value) -> str:
+    return f"{flt(value, 2):.2f}"
 
 
 def _sanitize_file_name(value) -> str:
@@ -66,7 +71,7 @@ class KCBPaymentsInitiation(Document):
         body_lines = []
         for item in self.kcb_payments_initiation_info:
             line = (
-                f"{_clean(self.debit_account)}|{_clean(item.beneficiary_name)}|{_clean(item.transaction_code)}|{_clean(item.amount)}|"
+                f"{_clean(self.debit_account)}|{_clean(item.beneficiary_name)}|{_clean(item.transaction_code)}|{_fmt_amount(item.amount)}|"
                 f"{_clean(item.currency)}|{_clean(item.beneficiary_account)}|{_clean(item.beneficiary_clearing_code)}|"
                 f"{_clean(item.my_ref)}|{_clean(item.beneficiary_ref)}|{_clean(item.cbk_code)}|"
                 f"{_clean(item.ordering_customer_physical_address)}|{_purpose(item.payment_purpose)}"
@@ -76,10 +81,10 @@ class KCBPaymentsInitiation(Document):
         body = "\n".join(body_lines)
 
         total_amount = sum(
-            [item.amount for item in self.kcb_payments_initiation_info if item.amount]
+            [flt(item.amount, 2) for item in self.kcb_payments_initiation_info if item.amount]
         )
         # Total is a trailer line (not a field per record)
-        file_content = f"{header}\n{body}\n{total_amount}"
+        file_content = f"{header}\n{body}\n{_fmt_amount(total_amount)}"
         file_bytes = file_content.encode("utf-8")
 
         self.file_checksum = generate_checksum(file_bytes)
