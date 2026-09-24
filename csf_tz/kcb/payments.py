@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-from frappe.utils import nowdate
+from frappe.utils import flt, nowdate
 from frappe.utils.data import escape_html
 from frappe.utils.pdf import get_pdf
 
@@ -248,7 +248,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries, file_refe
         row.source_doctype = "Payment Entry"
         row.source_name = pe.name
         row.beneficiary_name = party_bank_details.get("account_name") or pe.party_name or pe.party
-        row.amount = pe.paid_amount
+        row.amount = flt(pe.paid_amount, 2)
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
@@ -258,7 +258,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries, file_refe
         row.beneficiary_ref = pe.name
         row.payment_purpose = "Supplier Payment"
 
-        total_amount += pe.paid_amount or 0
+        total_amount += row.amount
 
     if missing_party_accounts:
         frappe.throw(
@@ -279,7 +279,7 @@ def make_kcb_payments_initiation_from_payment_entries(payment_entries, file_refe
             )
         )
 
-    doc.total_amount = total_amount
+    doc.total_amount = flt(total_amount, 2)
     doc.insert(ignore_permissions=True)
 
     # Supporting docs for supplier batches: attach one custom summary PDF.
@@ -383,7 +383,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name, file_ref
         row.source_doctype = "Payroll Entry"
         row.source_name = payroll_entry_name
         row.beneficiary_name = slip.employee_name
-        row.amount = slip.net_pay
+        row.amount = flt(slip.net_pay, 2)
         row.currency = currency
         row.beneficiary_account = beneficiary_account or ""
         row.beneficiary_clearing_code = beneficiary_clearing_code or ""
@@ -393,7 +393,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name, file_ref
         row.beneficiary_ref = slip.name
         row.payment_purpose = _("Salary")
 
-        total_amount += slip.net_pay or 0
+        total_amount += row.amount
 
     if missing_employee_accounts:
         frappe.throw(
@@ -414,7 +414,7 @@ def make_kcb_payments_initiation_from_payroll_entry(payroll_entry_name, file_ref
             )
         )
 
-    doc.total_amount = total_amount
+    doc.total_amount = flt(total_amount, 2)
     doc.insert(ignore_permissions=True)
 
     # Supporting docs for payroll batches: attach one custom summary PDF.
