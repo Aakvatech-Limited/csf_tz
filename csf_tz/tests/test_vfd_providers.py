@@ -591,3 +591,50 @@ class TestPostingAllVFDInvoices(IntegrationTestCase):
 			provider = frappe.get_doc("VFD Provider", name)
 			self.assertEqual(provider.vfd_provider_settings, info["settings"])
 			self.assertEqual({row.key: row.value for row in provider.attributes}, info["attributes"])
+
+
+class TestCompanyWithoutVFDProvider(IntegrationTestCase):
+	"""A company with no VFD Provider must opt out quietly, not raise."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_vfd_records()
+		set_company_provider("VFDPlus")
+
+	def drop_company_provider(self):
+		frappe.delete_doc("Company VFD Provider", COMPANY, force=True, ignore_permissions=True)
+		frappe.clear_document_cache("Company VFD Provider", COMPANY)
+		self.addCleanup(set_company_provider, "VFDPlus")
+
+	def test_missing_company_vfd_provider_returns_none(self):
+		self.drop_company_provider()
+
+		self.assertIsNone(vfd_utils.get_company_vfd_provider(COMPANY))
+
+	def test_blank_provider_link_returns_none(self):
+		doc = set_company_provider("VFDPlus")
+		self.addCleanup(set_company_provider, "VFDPlus")
+		frappe.db.set_value("Company VFD Provider", doc.name, "vfd_provider", None)
+		frappe.clear_document_cache("Company VFD Provider", doc.name)
+
+		self.assertIsNone(vfd_utils.get_company_vfd_provider(COMPANY))
+
+	def test_submit_succeeds_and_posts_nothing_without_a_provider(self):
+		self.drop_company_provider()
+
+		with patch(VFDPLUS_REQUEST) as request:
+			invoice = make_sales_invoice(is_auto_generate_vfd=1, submit=True)
+
+		request.assert_not_called()
+		self.assertEqual(invoice.docstatus, 1)
+		self.assertEqual(invoice.vfd_status, "Not Sent")
+
+	def test_generate_tra_vfd_returns_none_without_a_provider(self):
+		invoice = make_sales_invoice(submit=True)
+		self.drop_company_provider()
+
+		with patch(VFDPLUS_REQUEST) as request:
+			self.assertIsNone(vfd_utils.generate_tra_vfd(invoice.name))
+
+		request.assert_not_called()

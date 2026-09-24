@@ -73,8 +73,11 @@ def generate_tra_vfd(
 
 def get_company_vfd_provider(company):
 	"""VFD Provider set for the company, or None when VFD is not set up for it."""
+	if not frappe.db.exists("Company VFD Provider", company):
+		return None
+
 	comp_vfd_provider = frappe.get_cached_doc("Company VFD Provider", company)
-	if not comp_vfd_provider:
+	if not comp_vfd_provider.vfd_provider:
 		return None
 
 	vfd_provider = frappe.get_cached_doc("VFD Provider", comp_vfd_provider.vfd_provider)
