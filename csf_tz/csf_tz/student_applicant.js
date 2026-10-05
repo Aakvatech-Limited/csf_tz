@@ -1,11 +1,29 @@
 frappe.ui.form.on('Student Applicant', {
-	onload: function(frm) {
-		frm.trigger("setup_btns");
-	},
 	refresh: function(frm) {
 		frm.trigger("setup_btns");
 	},
 	setup_btns: function(frm) {
+		if (frm.doc.__islocal || !frm.doc.fee_structure) {
+			return;
+		}
+		// the company's "Send Fee details to Bank" setting is fetched once per fee structure;
+		// buttons are drawn again when it arrives, otherwise they would never show on first load
+		if (frm.bank_setting_for !== frm.doc.fee_structure) {
+			frm.bank_setting_for = frm.doc.fee_structure;
+			frm.send_fee_details_to_bank = 0;
+			frappe.db.get_value('Fee Structure', frm.doc.fee_structure, 'company')
+				.then(r => {
+					const company = r.message && r.message.company;
+					return company ? frappe.db.get_value('Company', company, 'send_fee_details_to_bank') : null;
+				})
+				.then(r => {
+					frm.send_fee_details_to_bank = (r && r.message && r.message.send_fee_details_to_bank) || 0;
+					if (frm.send_fee_details_to_bank) {
+						frm.trigger("setup_btns");
+					}
+				});
+			return;
+		}
 		if (!frm.send_fee_details_to_bank) {
 			return;
 		}
@@ -25,13 +43,4 @@ frappe.ui.form.on('Student Applicant', {
 			}
 		}
 	},
-	setup: function(frm) {
-		frappe.db.get_value('Fee Structure', frm.doc.fee_structure, ["company"], function(value1) {
-			frappe.db.get_value('Company', value1.company, ["send_fee_details_to_bank"], function(value2) {
-				frm.send_fee_details_to_bank = value2.send_fee_details_to_bank || 0;
-				
-			});
-		});
-    },
-	
 });
