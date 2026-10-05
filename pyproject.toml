@@ -16,7 +16,6 @@ dependencies = [
     "PGPy",
     "standard-imghdr",
     "PyPDF3",
-    "PyPDF2",
     "pyotp",
     "qrcode",
     "xmltodict",
