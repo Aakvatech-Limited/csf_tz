@@ -5,10 +5,7 @@ def execute():
 	if not frappe.db.exists("DocType", "Payware Settings"):
 		return
 
-	try:
-		payware_doc = frappe.get_doc("Payware Settings")
-	except frappe.DoesNotExistError:
-		return
+	payware_doc = frappe.get_doc("Payware Settings")
 
 	csf_tz_doc = frappe.get_doc("CSF TZ Settings")
 
