@@ -26,6 +26,20 @@ jobs:
           python-version: "3.11"
           cache: pip
 
+      - name: Detect Frappe app package
+        id: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t hooks < <(find . -mindepth 2 -maxdepth 3 -type f -name hooks.py -not -path './.git/*' -print)
+          if [ "${#hooks[@]}" -ne 1 ]; then
+            echo "Expected exactly one Frappe hooks.py, found ${#hooks[@]}" >&2
+            printf '%s\n' "${hooks[@]}" >&2
+            exit 1
+          fi
+          app_dir="$(dirname "${hooks[0]}")"
+          echo "app_dir=${app_dir#./}" >> "$GITHUB_OUTPUT"
+
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
 
@@ -33,31 +47,26 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep rules
-        if: github.event_name == 'pull_request'
+        env:
+          # Keep existing findings visible in manual full scans, but block PRs on new findings.
+          SEMGREP_BASELINE_REF: ${{ github.event.pull_request.base.sha || '' }}
         shell: bash
         run: |
-          mapfile -t files < <(
-            git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'csf_tz/**/*.py' 'csf_tz/**/*.js'
-          )
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No changed Python or JavaScript files to scan."
-            exit 0
+          set -euo pipefail
+          baseline_args=()
+          if [ -n "$SEMGREP_BASELINE_REF" ]; then
+            baseline_args=(--baseline-commit "$SEMGREP_BASELINE_REF")
           fi
-
-          semgrep scan --config ./frappe-semgrep-rules/rules             --config r/python.lang.security             --severity=ERROR --error "${files[@]}"
+          semgrep scan --config ./frappe-semgrep-rules/rules \
+            --config r/python.lang.security \
+            --severity=ERROR --error "${baseline_args[@]}" "${{ steps.app.outputs.app_dir }}"
 
       - name: Semgrep warnings (non-blocking)
-        if: github.event_name == 'pull_request' && always()
-        shell: bash
+        if: always()
         run: |
-          mapfile -t files < <(
-            git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- 'csf_tz/**/*.py' 'csf_tz/**/*.js'
-          )
-          if [ "${#files[@]}" -eq 0 ]; then
-            exit 0
-          fi
-
-          semgrep scan --config ./frappe-semgrep-rules/rules             --config r/python.lang.security             --severity=WARNING "${files[@]}" || true
+          semgrep scan --config ./frappe-semgrep-rules/rules \
+            --config r/python.lang.security \
+            --severity=WARNING "${{ steps.app.outputs.app_dir }}" || true
 
   deps-vulnerable-check:
     name: Vulnerable Dependency Check
