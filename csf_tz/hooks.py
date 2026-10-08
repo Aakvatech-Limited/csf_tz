@@ -10,7 +10,7 @@ app_icon = "octicon octicon-bookmark"
 app_color = "green"
 app_email = "info@aakvatech.com"
 app_license = "GNU General Public License (v3)"
-required_apps = ["frappe/erpnext", "frappe/hrms"]
+required_apps = ["frappe/erpnext", "frappe/hrms", "av_tools"]
 
 
 # Override Document Class
@@ -39,10 +39,10 @@ web_include_css = "/assets/csf_tz/css/theme.css"
 # include js in doctype views
 doctype_js = {
     "Payment Entry": "csf_tz/payment_entry.js",
-    "Sales Invoice": ["csf_tz/sales_invoice.js", "authotp/api/sales_invoice.js"],
+    "Sales Invoice": "csf_tz/sales_invoice.js",
     "Sales Order": "csf_tz/sales_order.js",
     "Delivery Note": "csf_tz/delivery_note.js",
-    "Customer": ["csf_tz/customer.js", "authotp/api/customer.js"],
+    "Customer": "csf_tz/customer.js",
     "Supplier": "csf_tz/supplier.js",
     "Stock Entry": "csf_tz/stock_entry.js",
     "Account": "csf_tz/account.js",
@@ -103,7 +103,8 @@ doctype_list_js = {
 # Installation
 # ------------
 
-# before_install = "csf_tz.install.before_install"
+# Shared generic modules are owned by av_tools.
+before_migrate = "csf_tz.install.before_migrate"
 after_install = [
     "csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
     "csf_tz.patches.remove_stock_entry_qty_field.execute",
@@ -111,7 +112,6 @@ after_install = [
     "csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
     "csf_tz.patches.add_custom_fields_on_customer_for_auto_close_dn.execute",
     "csf_tz.patches.custom_fields.create_custom_fields_for_additional_salary.execute",
-    "csf_tz.patches.custom_fields.auth_otp_custom_fields.execute",
     "csf_tz.patches.custom_fields.payroll_approval_custom_fields.execute",
     "csf_tz.patches.custom_fields.attendance_overtime_calculation_custom_fields.execute",
     "csf_tz.utils.create_custom_fields.execute",
@@ -157,7 +157,6 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": [
             "csf_tz.custom_api.validate_grand_total",
-            "csf_tz.authotp.api.sales_invoice.before_submit",
         ],
         "on_submit": [
             "csf_tz.custom_api.validate_net_rate",

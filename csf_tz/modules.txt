@@ -5,10 +5,6 @@ Fleet Management
 Purchase And Stock Management
 Sales And Marketing
 Workshop
-AuthOTP
 Meal Count
 Stanbic
 KCB
-Trade In
-AI Integration
-Feedback

@@ -1,8 +1,3 @@
-# Copyright (c) 2023, Aakvatech and contributors
-# For license information, please see license.txt
+"""Compatibility import for the legacy CSF TZ controller path."""
 
-# import frappe
-from frappe.model.document import Document
-
-class OTPRegister(Document):
-	pass
+from av_tools.authotp.doctype.otp_register.otp_register import OTPRegister  # noqa: F401
