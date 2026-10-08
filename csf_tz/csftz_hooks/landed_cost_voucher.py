@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
+
 import frappe
 from frappe import _
-import frappe
-import os
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.pdf import get_pdf, cleanup
-from PyPDF2 import PdfFileWriter
+
 from csf_tz import console
 
 
@@ -31,13 +28,14 @@ def get_landed_cost_expenses(import_file=None):
                        AND pi.docstatus = 1;""", import_file, as_dict=1)
     return je_landed_cost + pinv_landed_cost
 
+
 def total_amount(doc, method):
-    for item in doc.items:  
+    for item in doc.items:
         if item.amount and item.applicable_charges:
             item.custom_total_amount = item.amount + item.applicable_charges
         else:
             item.custom_total_amount = 0
-            
+
     if doc.items:
         grand_total = 0
         for item in doc.items:
