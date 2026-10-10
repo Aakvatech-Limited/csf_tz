@@ -78,7 +78,7 @@ class LatraLicenses(Document):
 	pass
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_latra_records(force=0):
 	token = _get_token() or _refresh_token()
 
@@ -112,7 +112,7 @@ def update_latra_records(force=0):
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_latra_offences(force=0):
 	plates = get_unique_vehicle_plates(
 		normalize_number_plate=normalize_number_plate,

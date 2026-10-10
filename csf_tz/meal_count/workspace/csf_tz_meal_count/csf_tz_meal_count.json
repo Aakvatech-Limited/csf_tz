@@ -1,0 +1,98 @@
+{
+ "doctype": "Workspace",
+ "name": "CSF TZ Meal Count",
+ "label": "CSF TZ Meal Count",
+ "title": "CSF TZ Meal Count",
+ "module": "Meal Count",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "utensils",
+ "sequence_id": 7,
+ "roles": [],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Operations",
+   "link_count": 2,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Scan Meal QR Code",
+   "link_type": "Page",
+   "link_to": "scan-qrcode",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric Log",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric Log",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Masters",
+   "link_count": 3,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric User",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric User",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric User Type",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric User Type",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Meal Type",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Meal Type",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Settings",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric Device",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric Device",
+   "hidden": 0,
+   "onboard": 0
+  }
+ ],
+ "shortcuts": [
+  {
+   "type": "Page",
+   "link_to": "scan-qrcode",
+   "label": "Scan Meal QR Code",
+   "color": "Blue"
+  }
+ ],
+ "content": "[{\"id\":\"csf_tz_meal_count_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ Meal Count</b></span>\",\"col\":12}},{\"id\":\"csf_tz_meal_count_shortcuts\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Scan Meal QR Code\",\"col\":4}},{\"id\":\"csf_tz_meal_count0\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"csf_tz_meal_count1\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}},{\"id\":\"csf_tz_meal_count2\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]"
+}

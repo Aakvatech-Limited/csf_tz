@@ -4,7 +4,6 @@ from frappe.utils import add_to_date, now_datetime
 
 from csf_tz.csf_tz.doctype.vehicle_sync_task import queue
 
-
 TASK_DOCTYPE = "Vehicle Sync Task"
 
 

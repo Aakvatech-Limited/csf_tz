@@ -15,6 +15,10 @@ def task_values(name, *fields):
 
 
 class TestVehicleSyncQueue(IntegrationTestCase):
+	def test_mutating_sync_endpoints_require_post(self):
+		for endpoint in (processor.run_vehicle_batch, processor.seed_vehicle_sync_queue):
+			self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[endpoint], ["POST"])
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

@@ -1,0 +1,73 @@
+{
+ "doctype": "Dock",
+ "name": "csf_tz",
+ "app": "csf_tz",
+ "standard": 1,
+ "user": "",
+ "items": [
+  {
+   "link_type": "Sidebar",
+   "link_to": "CSF TZ",
+   "title": "Tanzania",
+   "icon": "globe",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "Purchase And Stock Management",
+   "title": "Purchase and Stock",
+   "icon": "package",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "Sales And Marketing",
+   "title": "Sales and Marketing",
+   "icon": "chart-no-axes-combined",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "Meal Count",
+   "title": "Meal Count",
+   "icon": "utensils",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "Stanbic",
+   "title": "Stanbic",
+   "icon": "landmark",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "KCB",
+   "title": "KCB",
+   "icon": "landmark",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "VFD Providers",
+   "title": "VFD Providers",
+   "icon": "receipt",
+   "added": 0,
+   "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "VFD Settings",
+   "title": "VFD Company Setup",
+   "icon": "settings",
+   "added": 0,
+   "hidden": 0
+  }
+ ]
+}

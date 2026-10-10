@@ -1,0 +1,147 @@
+{
+ "doctype": "Sidebar",
+ "name": "Sales And Marketing",
+ "title": "Sales And Marketing",
+ "module": "Sales And Marketing",
+ "app": "csf_tz",
+ "standard": 1,
+ "header_icon": "chart-no-axes-combined",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "CSF TZ Sales and Marketing",
+   "icon": "house",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Operations",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Communications",
+   "link_type": "DocType",
+   "link_to": "Communications",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Quotation",
+   "link_type": "DocType",
+   "link_to": "Quotation",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Sales Order",
+   "link_type": "DocType",
+   "link_to": "Sales Order",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Delivery Note",
+   "link_type": "DocType",
+   "link_to": "Delivery Note",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Masters",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Customer",
+   "link_type": "DocType",
+   "link_to": "Customer",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Marketing Dept",
+   "link_type": "DocType",
+   "link_to": "Marketing Dept",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "History",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Past Sales",
+   "link_type": "DocType",
+   "link_to": "Past Sales",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Past Serial No",
+   "link_type": "DocType",
+   "link_to": "Past Serial No",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Reports",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Sales Details Report",
+   "link_type": "Report",
+   "link_to": "Sales Details Report",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Link",
+   "label": "Brand Sales Report",
+   "link_type": "Report",
+   "link_to": "Brand Sales Report",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Link",
+   "label": "Item Wise Leads Report",
+   "link_type": "Report",
+   "link_to": "Item Wise Leads Report",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Link",
+   "label": "Items Marked For Delivery",
+   "link_type": "Report",
+   "link_to": "Items Marked For Delivery",
+   "child": 1,
+   "icon": "table"
+  }
+ ]
+}

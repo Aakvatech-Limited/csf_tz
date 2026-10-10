@@ -1,0 +1,91 @@
+{
+ "doctype": "Sidebar",
+ "name": "Meal Count",
+ "title": "Meal Count",
+ "module": "Meal Count",
+ "app": "csf_tz",
+ "standard": 1,
+ "header_icon": "utensils",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "CSF TZ Meal Count",
+   "icon": "house",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Operations",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Scan Meal QR Code",
+   "link_type": "Page",
+   "link_to": "scan-qrcode",
+   "child": 1,
+   "icon": "layout-dashboard"
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric Log",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric Log",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Masters",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric User",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric User",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric User Type",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric User Type",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Meal Type",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Meal Type",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Settings",
+   "collapsible": 1,
+   "keep_closed": 1,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Biometric Device",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Biometric Device",
+   "child": 1,
+   "icon": "file-text"
+  }
+ ]
+}

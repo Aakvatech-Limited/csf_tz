@@ -1,0 +1,245 @@
+{
+ "doctype": "Workspace",
+ "name": "CSF TZ Sales and Marketing",
+ "label": "CSF TZ Sales and Marketing",
+ "title": "CSF TZ Sales and Marketing",
+ "module": "Sales And Marketing",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "chart-no-axes-combined",
+ "sequence_id": 6,
+ "roles": [],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Sales Operations",
+   "link_count": 5,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Communications",
+   "link_type": "DocType",
+   "link_to": "Communications",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Quotation",
+   "link_type": "DocType",
+   "link_to": "Quotation",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Sales Order",
+   "link_type": "DocType",
+   "link_to": "Sales Order",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Delivery Note",
+   "link_type": "DocType",
+   "link_to": "Delivery Note",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Sales Invoice",
+   "link_type": "DocType",
+   "link_to": "Sales Invoice",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Masters",
+   "link_count": 3,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Customer",
+   "link_type": "DocType",
+   "link_to": "Customer",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Marketing Dept",
+   "link_type": "DocType",
+   "link_to": "Marketing Dept",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Past Serial No",
+   "link_type": "DocType",
+   "link_to": "Past Serial No",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Historical Sales",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Past Sales",
+   "link_type": "DocType",
+   "link_to": "Past Sales",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Sales Reports",
+   "link_count": 11,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Brand Sales Report",
+   "link_type": "Report",
+   "link_to": "Brand Sales Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Previous Ams Customer Report",
+   "link_type": "Report",
+   "link_to": "Previous Ams Customer Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Past Serial No"
+  },
+  {
+   "type": "Link",
+   "label": "Customer Loan Assistance report",
+   "link_type": "Report",
+   "link_to": "Customer Loan Assistance report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Customer Loan Assistance"
+  },
+  {
+   "type": "Link",
+   "label": "Items Marked For Delivery",
+   "link_type": "Report",
+   "link_to": "Items Marked For Delivery",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Sales Details Report",
+   "link_type": "Report",
+   "link_to": "Sales Details Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Spare Sales Report",
+   "link_type": "Report",
+   "link_to": "Spare Sales Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Item Wise Leads Report",
+   "link_type": "Report",
+   "link_to": "Item Wise Leads Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Quotation"
+  },
+  {
+   "type": "Link",
+   "label": "AV Sales Invoice Trend",
+   "link_type": "Report",
+   "link_to": "AV Sales Invoice Trend",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Credit Note List",
+   "link_type": "Report",
+   "link_to": "Credit Note List",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Gross Profit Pro",
+   "link_type": "Report",
+   "link_to": "Gross Profit Pro",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  },
+  {
+   "type": "Link",
+   "label": "Monthly Sales Summary",
+   "link_type": "Report",
+   "link_to": "Monthly Sales Summary",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Sales Invoice"
+  }
+ ],
+ "shortcuts": [
+  {
+   "type": "DocType",
+   "link_to": "Communications",
+   "label": "Communications",
+   "color": "Blue",
+   "doc_view": "List"
+  },
+  {
+   "type": "Report",
+   "link_to": "Sales Details Report",
+   "label": "Sales Details Report",
+   "color": "Blue"
+  }
+ ],
+ "content": "[{\"id\":\"csf_tz_sales_and_marketing_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ Sales and Marketing</b></span>\",\"col\":12}},{\"id\":\"csf_tz_sales_and_marketing_shortcuts\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Communications\",\"col\":4}},{\"id\":\"csf_tz_sales_and_marketing_shortcut1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Details Report\",\"col\":4}},{\"id\":\"csf_tz_sales_and_marketing0\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Operations\",\"col\":4}},{\"id\":\"csf_tz_sales_and_marketing1\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}},{\"id\":\"csf_tz_sales_and_marketing2\",\"type\":\"card\",\"data\":{\"card_name\":\"Historical Sales\",\"col\":4}},{\"id\":\"csf_tz_sales_and_marketing3\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Reports\",\"col\":4}}]"
+}

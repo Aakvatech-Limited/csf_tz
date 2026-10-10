@@ -1,0 +1,91 @@
+{
+ "doctype": "Sidebar",
+ "name": "VFD Providers",
+ "title": "VFD Providers",
+ "module": "VFD Providers",
+ "app": "csf_tz",
+ "standard": 1,
+ "header_icon": "receipt",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "CSF TZ VFD Providers",
+   "icon": "house",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Diagnostics",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "VFD Provider Posting",
+   "link_type": "DocType",
+   "link_to": "VFD Provider Posting",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Masters",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "VFD Provider",
+   "link_type": "DocType",
+   "link_to": "VFD Provider",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Settings",
+   "collapsible": 1,
+   "keep_closed": 1,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Total VFD Setting",
+   "link_type": "DocType",
+   "link_to": "Total VFD Setting",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "VFDPlus Settings",
+   "link_type": "DocType",
+   "link_to": "VFDPlus Settings",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Simplify VFD Settings",
+   "link_type": "DocType",
+   "link_to": "Simplify VFD Settings",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "DIRM VFD Settings",
+   "link_type": "DocType",
+   "link_to": "DIRM VFD Settings",
+   "child": 1,
+   "icon": "file-text"
+  }
+ ]
+}
