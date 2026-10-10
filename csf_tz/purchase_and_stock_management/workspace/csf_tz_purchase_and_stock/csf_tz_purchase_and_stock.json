@@ -61,7 +61,167 @@
    "type": "Link",
    "label": "Order Track",
    "link_type": "DocType",
-   "link_to": "Order Tra…926 tokens truncated…: "Stock Reports",
+   "link_to": "Order Track",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Stock Operations",
+   "link_count": 3,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Stock Entry",
+   "link_type": "DocType",
+   "link_to": "Stock Entry",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Stock Reconciliation",
+   "link_type": "DocType",
+   "link_to": "Stock Reconciliation",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Job Cards",
+   "link_type": "Page",
+   "link_to": "jobcards",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Masters",
+   "link_count": 4,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Item",
+   "link_type": "DocType",
+   "link_to": "Item",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Supplier",
+   "link_type": "DocType",
+   "link_to": "Supplier",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Warehouse",
+   "link_type": "DocType",
+   "link_to": "Warehouse",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Bin Setup",
+   "link_type": "DocType",
+   "link_to": "Bin Setup",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Procurement Reports",
+   "link_count": 8,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Bin System",
+   "link_type": "Report",
+   "link_to": "Bin System",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 0,
+   "report_ref_doctype": "Bin"
+  },
+  {
+   "type": "Link",
+   "label": "Supplier Contacts",
+   "link_type": "Report",
+   "link_to": "Supplier Contacts",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Address"
+  },
+  {
+   "type": "Link",
+   "label": "Ordered Items To Be Delivered",
+   "link_type": "Report",
+   "link_to": "Ordered Items To Be Delivered",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Delivery Note"
+  },
+  {
+   "type": "Link",
+   "label": "Shipment Tracking",
+   "link_type": "Report",
+   "link_to": "Shipment Tracking",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Order Track"
+  },
+  {
+   "type": "Link",
+   "label": "Purchase History",
+   "link_type": "Report",
+   "link_to": "Purchase History",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Purchase Order"
+  },
+  {
+   "type": "Link",
+   "label": "Reordering Items",
+   "link_type": "Report",
+   "link_to": "Reordering Items",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Purchase Order"
+  },
+  {
+   "type": "Link",
+   "label": "Pending Ordered Items",
+   "link_type": "Report",
+   "link_to": "Pending Ordered Items",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Purchase Receipt"
+  },
+  {
+   "type": "Link",
+   "label": "Monthly Purchase Summary",
+   "link_type": "Report",
+   "link_to": "Monthly Purchase Summary",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Purchase Invoice"
+  },
+  {
+   "type": "Card Break",
+   "label": "Stock Reports",
    "link_count": 10,
    "hidden": 0
   },
