@@ -45,7 +45,7 @@ This repository contains the customizations and configurations necessary to adap
 
 ## **Workspace Preview**
 
-The Tanzania workspace brings together VFD setup, tax configuration, payroll setup, and statutory reports in a single dashboard for daily operations and compliance work.
+The Tanzania workspace provides tax operations, returns, regional masters, and vehicle compliance. The app dock and module sidebars connect purchasing, sales, meal tracking, banking, and VFD setup; payroll and finance have dedicated workspaces.
 
 ![Tanzania Workspace](csf_tz/public/images/tanzania-workspace.png)
 
@@ -98,3 +98,7 @@ This project is licensed under the GNU General Public License (GPL). See the lic
 ---
 
 Thank you for choosing Country Specific Functionality Tanzania. We hope this solution enhances your business operations and helps you stay compliant with local regulations\!
+
+## App navigation (Frappe 16.50+)
+
+Open **CSF TZ** from Apps to reach **Tanzania**. Use the dock for tax and payroll, purchase and stock, sales and marketing, meal count, Stanbic, KCB, VFD providers, and company VFD setup. Finance and administration are available from the CSF TZ sidebar. Navigation follows existing permissions. See [the navigation guide and coverage matrix](docs/app-navigation.md) for installation, access, and validation.

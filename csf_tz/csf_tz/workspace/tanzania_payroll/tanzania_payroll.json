@@ -1,0 +1,292 @@
+{
+ "doctype": "Workspace",
+ "name": "Tanzania Payroll",
+ "label": "Tanzania Payroll",
+ "title": "Tanzania Payroll",
+ "module": "CSF TZ",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "users",
+ "sequence_id": 2,
+ "roles": [],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Payroll Operations",
+   "link_count": 3,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Payroll Entry",
+   "link_type": "DocType",
+   "link_to": "Payroll Entry",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Salary Slip",
+   "link_type": "DocType",
+   "link_to": "Salary Slip",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Additional Salary",
+   "link_type": "DocType",
+   "link_to": "Additional Salary",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Payroll Masters",
+   "link_count": 5,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Employee",
+   "link_type": "DocType",
+   "link_to": "Employee",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Salary Component",
+   "link_type": "DocType",
+   "link_to": "Salary Component",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Salary Structure",
+   "link_type": "DocType",
+   "link_to": "Salary Structure",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Salary Structure Assignment",
+   "link_type": "DocType",
+   "link_to": "Salary Structure Assignment",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Bulk Salary Structure Assignment",
+   "link_type": "DocType",
+   "link_to": "Bulk Salary Structure Assignment",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Statutory Returns",
+   "link_count": 6,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "HESLB Return online",
+   "link_type": "Report",
+   "link_to": "HESLB Return online",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "NSSF CON5 Monthly Contribution - Online Version",
+   "link_type": "Report",
+   "link_to": "NSSF CON5 Monthly Contribution - Online Version",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "ITX.219.03.E Statement of Tax Withheld",
+   "link_type": "Report",
+   "link_to": "ITX.219.03.E Statement of Tax Withheld",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "ITX.215.03.E SDL Monthly Returns",
+   "link_type": "Report",
+   "link_to": "ITX.215.03.E SDL Monthly Returns",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "WCF Employee",
+   "link_type": "Report",
+   "link_to": "WCF Employee",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "PAYE Report Mapping",
+   "link_type": "Report",
+   "link_to": "PAYE Report Mapping",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Employee"
+  },
+  {
+   "type": "Card Break",
+   "label": "Salary Analysis",
+   "link_count": 6,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Salary Register csf",
+   "link_type": "Report",
+   "link_to": "Salary Register csf",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Salary Register CTC",
+   "link_type": "Report",
+   "link_to": "Salary Register CTC",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Salary Register Summary",
+   "link_type": "Report",
+   "link_to": "Salary Register Summary",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Salary Register Summary with Components",
+   "link_type": "Report",
+   "link_to": "Salary Register Summary with Components",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Salary Register Summary with Monthly Comparison",
+   "link_type": "Report",
+   "link_to": "Salary Register Summary with Monthly Comparison",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Employee Salary Register with Monthly Comparison",
+   "link_type": "Report",
+   "link_to": "Employee Salary Register with Monthly Comparison",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Card Break",
+   "label": "Payments Loans and Time",
+   "link_count": 4,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Payroll for Mobile Payment",
+   "link_type": "Report",
+   "link_to": "Payroll for Mobile Payment",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Salary Slip"
+  },
+  {
+   "type": "Link",
+   "label": "Loan Outstanding",
+   "link_type": "Report",
+   "link_to": "Loan Outstanding",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Loan"
+  },
+  {
+   "type": "Link",
+   "label": "Loan Repayment Details",
+   "link_type": "Report",
+   "link_to": "Loan Repayment Details",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Loan"
+  },
+  {
+   "type": "Link",
+   "label": "Monthly Timesheet Report",
+   "link_type": "Report",
+   "link_to": "Monthly Timesheet Report",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Timesheet"
+  }
+ ],
+ "shortcuts": [
+  {
+   "type": "Report",
+   "link_to": "Salary Register Summary",
+   "label": "Salary Register Summary",
+   "color": "Blue"
+  },
+  {
+   "type": "Report",
+   "link_to": "ITX.219.03.E Statement of Tax Withheld",
+   "label": "ITX.219.03.E Statement of Tax Withheld",
+   "color": "Blue"
+  }
+ ],
+ "content": "[{\"id\":\"tanzania_payroll_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Tanzania Payroll</b></span>\",\"col\":12}},{\"id\":\"tanzania_payroll_shortcuts\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Salary Register Summary\",\"col\":4}},{\"id\":\"tanzania_payroll_shortcut1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ITX.219.03.E Statement of Tax Withheld\",\"col\":4}},{\"id\":\"tanzania_payroll0\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Operations\",\"col\":4}},{\"id\":\"tanzania_payroll1\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll Masters\",\"col\":4}},{\"id\":\"tanzania_payroll2\",\"type\":\"card\",\"data\":{\"card_name\":\"Statutory Returns\",\"col\":4}},{\"id\":\"tanzania_payroll3\",\"type\":\"card\",\"data\":{\"card_name\":\"Salary Analysis\",\"col\":4}},{\"id\":\"tanzania_payroll4\",\"type\":\"card\",\"data\":{\"card_name\":\"Payments Loans and Time\",\"col\":4}}]"
+}

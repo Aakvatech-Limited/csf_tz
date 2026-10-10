@@ -1,0 +1,103 @@
+{
+ "doctype": "Workspace",
+ "name": "CSF TZ Administration",
+ "label": "CSF TZ Administration",
+ "title": "CSF TZ Administration",
+ "module": "CSF TZ",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "settings",
+ "sequence_id": 4,
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Diagnostics",
+   "link_count": 2,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF API Response Log",
+   "link_type": "DocType",
+   "link_to": "CSF API Response Log",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "Vehicle Sync Task",
+   "link_type": "DocType",
+   "link_to": "Vehicle Sync Task",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Permission Reports",
+   "link_count": 3,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Role Permission Listing",
+   "link_type": "Report",
+   "link_to": "Role Permission Listing",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Custom DocPerm"
+  },
+  {
+   "type": "Link",
+   "label": "User Role Listing",
+   "link_type": "Report",
+   "link_to": "User Role Listing",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "User"
+  },
+  {
+   "type": "Link",
+   "label": "Parent Child Relationship",
+   "link_type": "Report",
+   "link_to": "Parent Child Relationship",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "DocType"
+  },
+  {
+   "type": "Card Break",
+   "label": "Stock Diagnostics",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Stock Reconciliation troubleshoot",
+   "link_type": "Report",
+   "link_to": "Stock Reconciliation troubleshoot",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "Stock Reconciliation"
+  }
+ ],
+ "shortcuts": [],
+ "content": "[{\"id\":\"csf_tz_administration_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ Administration</b></span>\",\"col\":12}},{\"id\":\"csf_tz_administration0\",\"type\":\"card\",\"data\":{\"card_name\":\"Diagnostics\",\"col\":4}},{\"id\":\"csf_tz_administration1\",\"type\":\"card\",\"data\":{\"card_name\":\"Permission Reports\",\"col\":4}},{\"id\":\"csf_tz_administration2\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Diagnostics\",\"col\":4}}]"
+}

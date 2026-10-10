@@ -1,0 +1,43 @@
+{
+ "doctype": "Workspace",
+ "name": "CSF TZ VFD Setup",
+ "label": "CSF TZ VFD Setup",
+ "title": "CSF TZ VFD Setup",
+ "module": "VFD Settings",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "settings",
+ "sequence_id": 11,
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Company Setup",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "Company VFD Provider",
+   "link_type": "DocType",
+   "link_to": "Company VFD Provider",
+   "hidden": 0,
+   "onboard": 0
+  }
+ ],
+ "shortcuts": [],
+ "content": "[{\"id\":\"csf_tz_vfd_setup_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ VFD Setup</b></span>\",\"col\":12}},{\"id\":\"csf_tz_vfd_setup0\",\"type\":\"card\",\"data\":{\"card_name\":\"Company Setup\",\"col\":4}}]"
+}

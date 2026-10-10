@@ -1,0 +1,227 @@
+{
+ "doctype": "Sidebar",
+ "name": "CSF TZ",
+ "title": "CSF TZ",
+ "module": "CSF TZ",
+ "app": "csf_tz",
+ "standard": 1,
+ "header_icon": "globe",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "Tanzania",
+   "icon": "house",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Transactions",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TRA TAX Inv",
+   "link_type": "DocType",
+   "link_to": "TRA TAX Inv",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "EFD Z Report",
+   "link_type": "DocType",
+   "link_to": "EFD Z Report",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Foreign Import Transaction",
+   "link_type": "DocType",
+   "link_to": "Foreign Import Transaction",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Reports and Analytics",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Tanzania Payroll",
+   "link_type": "Workspace",
+   "link_to": "Tanzania Payroll",
+   "child": 1,
+   "icon": "layout-dashboard"
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Finance",
+   "link_type": "Workspace",
+   "link_to": "CSF TZ Finance",
+   "child": 1,
+   "icon": "layout-dashboard"
+  },
+  {
+   "type": "Link",
+   "label": "VAT eFiling Returns",
+   "link_type": "Report",
+   "link_to": "VAT eFiling Returns",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Link",
+   "label": "TRA Input VAT Returns eFiling",
+   "link_type": "Report",
+   "link_to": "TRA Input VAT Returns eFiling",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Link",
+   "label": "Output VAT Reconciliation",
+   "link_type": "Report",
+   "link_to": "Output VAT Reconciliation",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Section Break",
+   "label": "Vehicle Compliance",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Latra Licenses",
+   "link_type": "DocType",
+   "link_to": "Latra Licenses",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Latra Offence",
+   "link_type": "DocType",
+   "link_to": "Latra Offence",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Vehicle Fine Record",
+   "link_type": "DocType",
+   "link_to": "Vehicle Fine Record",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Insurance Cover Note",
+   "link_type": "DocType",
+   "link_to": "TZ Insurance Cover Note",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Masters",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "Electronic Fiscal Device",
+   "link_type": "DocType",
+   "link_to": "Electronic Fiscal Device",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Region",
+   "link_type": "DocType",
+   "link_to": "TZ Region",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ District",
+   "link_type": "DocType",
+   "link_to": "TZ District",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Ward",
+   "link_type": "DocType",
+   "link_to": "TZ Ward",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Village",
+   "link_type": "DocType",
+   "link_to": "TZ Village",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Settings",
+   "collapsible": 1,
+   "keep_closed": 1,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Settings",
+   "link_type": "DocType",
+   "link_to": "CSF TZ Settings",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "Latra Settings",
+   "link_type": "DocType",
+   "link_to": "Latra Settings",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Administration",
+   "collapsible": 1,
+   "keep_closed": 1,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "CSF TZ Administration",
+   "link_type": "Workspace",
+   "link_to": "CSF TZ Administration",
+   "child": 1,
+   "icon": "layout-dashboard"
+  }
+ ]
+}
