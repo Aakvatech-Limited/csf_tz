@@ -45,7 +45,7 @@ def _acquire_rate_limit_slot():
 	return True
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def run_vehicle_batch():
 	processed = 0
 	errors = 0
@@ -157,7 +157,7 @@ def create_sync_task(vehicle_no, priority=0, immediate=False):
 		return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def seed_vehicle_sync_queue():
 	try:
 		current_plates = set(_get_current_plates())

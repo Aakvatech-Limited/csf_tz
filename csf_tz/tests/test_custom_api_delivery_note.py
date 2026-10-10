@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
@@ -132,6 +134,16 @@ class TestAutoDeliveryNote(IntegrationTestCase):
 		delete_doc("Delivery Note", draft_delivery_notes(invoice.name)[0])
 		create_delivery_note_for_all_pending_sales_invoice()
 		self.assertEqual(len(draft_delivery_notes(invoice.name)), 1)
+
+	def test_scheduler_skips_query_when_no_company_is_enabled(self):
+		with (
+			patch("csf_tz.custom_api.frappe.get_all", return_value=[]),
+			patch("csf_tz.custom_api.get_list_pending_sales_invoice") as pending_invoices,
+			patch("csf_tz.custom_api.create_delivery_note") as create_note,
+		):
+			create_delivery_note_for_all_pending_sales_invoice()
+		pending_invoices.assert_not_called()
+		create_note.assert_not_called()
 
 
 class TestAutoCloseDeliveryNote(IntegrationTestCase):

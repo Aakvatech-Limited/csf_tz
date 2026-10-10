@@ -629,12 +629,16 @@ def get_list_pending_sales_invoice(invoice_name=None, warehouse=None):
 
 
 def create_delivery_note_for_all_pending_sales_invoice(doc=None, method=None):
+	"""Create draft Delivery Notes only for companies where auto creation is enabled."""
 	company_list = frappe.get_all("Company", filters={"enabled_auto_create_delivery_notes": 1}, pluck="name")
-	invoices = get_list_pending_sales_invoice()
-	for i in invoices:
-		if i.company not in company_list:
+	if not company_list:
+		return
+
+	enabled_companies = set(company_list)
+	for invoice_row in get_list_pending_sales_invoice():
+		if invoice_row.company not in enabled_companies:
 			continue
-		invoice = frappe.get_doc("Sales Invoice", i.name)
+		invoice = frappe.get_doc("Sales Invoice", invoice_row.name)
 		create_delivery_note(invoice)
 
 

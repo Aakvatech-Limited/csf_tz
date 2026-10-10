@@ -20,6 +20,12 @@ from csf_tz.tests.test_vehicle_authority import AUTHORITY_USER, configure_author
 PLATES = ["T444LLL", "T555LLL"]
 
 
+class TestLatraHTTPMethods(IntegrationTestCase):
+	def test_mutating_sync_endpoints_require_post(self):
+		for endpoint in (update_latra_records, update_latra_offences):
+			self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[endpoint], ["POST"])
+
+
 def license_row(plate, number, valid_to, license_type="GOODSCARRYINGVEHICLE"):
 	return {
 		"licenseNumber": number,
