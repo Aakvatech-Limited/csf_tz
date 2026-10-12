@@ -479,6 +479,27 @@ def create_delivery_note(doc=None, method=None, doc_name=None):
     if from_delivery_note or i == 0:
         return
 
+    # Do not block Sales Invoice submission when automatic delivery is unsafe.
+    # ERPNext requires the same customer across the Delivery Note and its references.
+    conflicts = []
+    sales_orders = sorted({item.sales_order for item in doc.items if item.sales_order})
+    for sales_order in sales_orders:
+        order_customer = frappe.db.get_value("Sales Order", sales_order, "customer")
+        if order_customer != doc.customer:
+            conflicts.append(
+                "Sales Order {0}: {1} (invoice customer: {2})".format(
+                    sales_order, order_customer or "<missing>", doc.customer
+                )
+            )
+    if conflicts:
+        message = (
+            "Automatic Delivery Note skipped for Sales Invoice {0} because the linked "
+            "Sales Order customer does not match: {1}. Correct the source "
+            "references and create the Delivery Note manually."
+        ).format(doc.name, "; ".join(conflicts))
+        frappe.log_error(title="Automatic Delivery Note skipped: customer mismatch", message=message)
+        frappe.msgprint(message, title="Automatic Delivery Note not created", indicator="orange")
+        return
     for warehouse in warehouses_list:
         if not doc.is_new():
             check = get_list_pending_sales_invoice(doc.name, warehouse)
