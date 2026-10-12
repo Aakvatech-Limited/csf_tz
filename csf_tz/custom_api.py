@@ -487,14 +487,14 @@ def create_delivery_note(doc=None, method=None, doc_name=None):
         order_customer = frappe.db.get_value("Sales Order", sales_order, "customer")
         if order_customer != doc.customer:
             conflicts.append(
-                "Sales Order {0}: {1} (invoice customer: {2})".format(
+                "Sales Order {}: {} (invoice customer: {})".format(
                     sales_order, order_customer or "<missing>", doc.customer
                 )
             )
     if conflicts:
         message = (
-            "Automatic Delivery Note skipped for Sales Invoice {0} because the linked "
-            "Sales Order customer does not match: {1}. Correct the source "
+            "Automatic Delivery Note skipped for Sales Invoice {} because the linked "
+            "Sales Order customer does not match: {}. Correct the source "
             "references and create the Delivery Note manually."
         ).format(doc.name, "; ".join(conflicts))
         frappe.log_error(title="Automatic Delivery Note skipped: customer mismatch", message=message)
