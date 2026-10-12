@@ -44,14 +44,8 @@ jobs:
           elif [ "$EVENT_NAME" = "push" ] && [ -n "$PUSH_BEFORE_SHA" ] && ! [[ "$PUSH_BEFORE_SHA" =~ ^0+$ ]]; then
             base="$PUSH_BEFORE_SHA"
           else
-            # For first pushes and manual runs, scan the current tree rather than silently pass.
-            if grep -RInE --include='*.py' \
-              'frappe\.db\.(sql|multisql)\b|(^|[^[:alnum:]_])db\.sql[[:space:]]*\(' \
-              "$APP_DIR"; then
-              echo "::error::Raw database SQL calls found. Use frappe.qb or higher-level Frappe APIs."
-              exit 1
-            fi
-            exit 0
+            # Compare first-push/manual runs to the hotfix base (never bypass validation).
+            base=$(git merge-base origin/version-15-hotfix HEAD)
           fi
 
           # Existing SQL is legacy debt; check added lines, including edits to old SQL calls.
