@@ -10,11 +10,13 @@ permissions:
 
 jobs:
   no-raw-sql:
-    name: Reject raw database SQL
+    name: Reject newly introduced raw database SQL
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Locate Frappe app package
         id: app
@@ -28,16 +30,38 @@ jobs:
           fi
           echo "app_dir=$(dirname "${hooks[0]}")" >> "$GITHUB_OUTPUT"
 
-      - name: Reject raw database SQL calls
+      - name: Reject newly introduced raw database SQL calls
         shell: bash
         env:
           APP_DIR: ${{ steps.app.outputs.app_dir }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          if grep -RInE --include='*.py' \
-            'frappe\.db\.(sql|multisql)\b|(^|[^[:alnum:]_])db\.sql[[:space:]]*\(' \
-            "$APP_DIR"; then
-            echo "::error::Raw database SQL calls are not allowed. Use frappe.qb or higher-level Frappe database APIs."
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            base=$(git merge-base "$PR_BASE_SHA" HEAD)
+          elif [ "$EVENT_NAME" = "push" ] && [ -n "$PUSH_BEFORE_SHA" ] && ! [[ "$PUSH_BEFORE_SHA" =~ ^0+$ ]]; then
+            base="$PUSH_BEFORE_SHA"
+          else
+            # For first pushes and manual runs, scan the current tree rather than silently pass.
+            if grep -RInE --include='*.py' \
+              'frappe\.db\.(sql|multisql)\b|(^|[^[:alnum:]_])db\.sql[[:space:]]*\(' \
+              "$APP_DIR"; then
+              echo "::error::Raw database SQL calls found. Use frappe.qb or higher-level Frappe APIs."
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # Existing SQL is legacy debt; check added lines, including edits to old SQL calls.
+          # Ignore the +++ diff path header. Limit to Python files under this Frappe app.
+          changed_sql=$(git diff --unified=0 --no-ext-diff "$base" HEAD -- "$APP_DIR" \
+            | awk '/^diff --git / { python = ($0 ~ /\.py b\//) } python && /^\+[^+]/ { print substr($0, 2) }' \
+            | grep -nE 'frappe\.db\.(sql|multisql)\b|(^|[^[:alnum:]_])db\.sql[[:space:]]*\(' || true)
+          if [ -n "$changed_sql" ]; then
+            printf '%s\n' "$changed_sql"
+            echo "::error::New raw database SQL calls are not allowed. Use frappe.qb or higher-level Frappe APIs."
             exit 1
           fi
-          echo "No raw database SQL calls found."
+          echo "No newly introduced raw SQL calls found."
