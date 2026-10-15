@@ -65,12 +65,22 @@ def validate_filters(filters):
 
 
 def get_data(filters):
-	accounts = frappe.db.sql(
-		"""select name, account_number, parent_account, account_name, root_type, report_type, lft, rgt
-
-		from `tabAccount` where company=%s order by lft""",
-		filters.company,
-		as_dict=True,
+	account = frappe.qb.DocType("Account")
+	accounts = (
+		frappe.qb.from_(account)
+		.select(
+			account.name,
+			account.account_number,
+			account.parent_account,
+			account.account_name,
+			account.root_type,
+			account.report_type,
+			account.lft,
+			account.rgt,
+		)
+		.where(account.company == filters.company)
+		.orderby(account.lft)
+		.run(as_dict=True)
 	)
 	company_currency = "USD"
 
@@ -79,11 +89,15 @@ def get_data(filters):
 
 	accounts, accounts_by_name, parent_children_map = filter_accounts(accounts)
 
-	min_lft, max_rgt = frappe.db.sql(
-		"""select min(lft), max(rgt) from `tabAccount`
-		where company=%s""",
-		(filters.company,),
-	)[0]
+	from frappe.query_builder.functions import Max, Min
+
+	bounds = (
+		frappe.qb.from_(account)
+		.select(Min(account.lft).as_("min_lft"), Max(account.rgt).as_("max_rgt"))
+		.where(account.company == filters.company)
+		.run(as_dict=True)
+	)
+	min_lft, max_rgt = bounds[0].min_lft, bounds[0].max_rgt
 
 	gl_entries_by_account = {}
 
