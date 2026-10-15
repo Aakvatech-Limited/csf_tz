@@ -130,15 +130,32 @@ def _loan_summary_query(loan_names, filters=None, unpaid=False, from_salary=Fals
 
 
 def get_loans_not_started_to_be_paid(filters, all_repayments):
-	return _loan_summary_query(
-		[entry.against_loan for entry in all_repayments], filters=filters, unpaid=True
-	)
+	return _loan_summary_query([entry.against_loan for entry in all_repayments], filters=filters, unpaid=True)
 
 
 def get__paid_loans(filters, repayments, from_salary):
-	return _loan_summary_query(
-		[entry.against_loan for entry in repayments], from_salary=from_salary
+	return _loan_summary_query([entry.against_loan for entry in repayments], from_salary=from_salary)
+
+
+def get_repayments(filters):
+	employee = filters.get("employee") if filters else None
+	applicant = employee if employee else ["!=", ""]
+	common_filters = {"loan_type": "Staff Loan", "docstatus": 1, "applicant": applicant}
+	from_salary = frappe.get_all(
+		"Loan Repayment",
+		filters={**common_filters, "repay_from_salary": 1},
+		fields=["Distinct(against_loan) as against_loan"],
+		order_by="posting_date",
 	)
+	not_from_salary = frappe.get_all(
+		"Loan Repayment",
+		filters={**common_filters, "repay_from_salary": 0},
+		fields=["Distinct(against_loan) as against_loan"],
+		order_by="posting_date",
+	)
+	return from_salary, not_from_salary, from_salary + not_from_salary
+
+
 def get_custom_loan_repayment_not_from_salary(filters):
 	from frappe.query_builder.functions import Sum
 
