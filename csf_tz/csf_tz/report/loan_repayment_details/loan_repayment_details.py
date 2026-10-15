@@ -33,9 +33,7 @@ def execute(filters=None):
 	for loan in loans:
 		loan.amount_paid_not_from_salary = flt(loan.amount_paid_not_from_salary)
 		loan_names = {name.strip() for name in (loan.loan or "").split(",") if name.strip()}
-		loan.amount_paid_not_from_salary += sum(
-			custom_repayments_by_loan.get(name, 0) for name in loan_names
-		)
+		loan.amount_paid_not_from_salary += sum(custom_repayments_by_loan.get(name, 0) for name in loan_names)
 
 		loan.update(
 			{
