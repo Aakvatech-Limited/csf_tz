@@ -19,11 +19,13 @@ def get_json(main_ancestor, ancestor_type="Accounts"):
 			if module != ancestor_type:
 				continue
 			doc_list.append(
-			frappe._dict({
-				"name": ".".join(("erpnext", module, doctype_name)),
-				"doctype_name": doctype_name,
-			})
-		)
+				frappe._dict(
+					{
+						"name": ".".join(("erpnext", module, doctype_name)),
+						"doctype_name": doctype_name,
+					}
+				)
+			)
 
 	for doc in doc_list:
 		docfield_list = frappe.get_all(
