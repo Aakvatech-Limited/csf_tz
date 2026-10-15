@@ -21,19 +21,17 @@ def execute(filters=None):
 	)
 
 	# Fetch Bin summary with formatted qty
+	bin = frappe.qb.DocType("Bin")
+	# Fetch each warehouse's quantity once, then assemble the display summary in Python.
+	bin_rows = frappe.qb.from_(bin).select(bin.item_code, bin.warehouse, bin.actual_qty).run(as_dict=True)
+	bin_map = {}
+	for stock in bin_rows:
+		entry = bin_map.setdefault(stock.item_code, [0.0, []])
+		entry[0] += flt(stock.actual_qty)
+		entry[1].append(f"{stock.warehouse}: {flt(stock.actual_qty):,.2f}")
 	bin_map = {
-		d.item_code: [flt(d.total_qty, 2), d.warehouse_summary]
-		for d in frappe.db.sql(
-			"""
-			SELECT
-				item_code,
-				SUM(actual_qty) AS total_qty,
-				GROUP_CONCAT(CONCAT(warehouse, ": ", FORMAT(actual_qty, 2)) SEPARATOR ", ") AS warehouse_summary
-			FROM `tabBin`
-			GROUP BY item_code
-		""",
-			as_dict=True,
-		)
+		item_code: [flt(total, 2), ", ".join(warehouses)]
+		for item_code, (total, warehouses) in bin_map.items()
 	}
 
 	# Add Bin info to each row
