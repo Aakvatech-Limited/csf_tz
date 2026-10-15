@@ -138,7 +138,7 @@ def get_data(filters):
 			Coalesce(lcv_summary.lcv_differences, 0).as_("lcv_differences"),
 		)
 		.where(fit.docstatus == 1)
-		.orderby(fit.transaction_date, order=frappe.qb.desc)
+		.orderby(fit.transaction_date, order=frappe.qb.terms.Order.desc)
 		.orderby(fit.name)
 	)
 	for field in ("company", "purchase_invoice", "supplier", "currency", "status"):
