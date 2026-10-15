@@ -4,22 +4,26 @@ import frappe
 
 
 def get_json():
-	doc_list = frappe.db.sql(
-		"""SELECT CONCAT_WS('.', "erpnext", dt.module, dt.name) as name, dt.name as doctype_name
-        FROM `tabDocType` dt
-        INNER JOIN `tabDocField` df ON dt.name = df.parent
-        WHERE df.options IS NOT NULL
-        AND df.fieldtype = "Link"
-        GROUP BY dt.module, dt.name
-        UNION ALL
-        SELECT CONCAT_WS('.', "erpnext", dt.module, dt.name) as name, dt.name as doctype_name
-        FROM `tabDocType` dt
-        INNER JOIN `tabCustom Field` df ON dt.name = df.dt
-        WHERE df.options IS NOT NULL
-        AND df.fieldtype = "Link"
-        GROUP BY dt.module, dt.name""",
-		as_dict=1,
-	)
+	# Preserve the original UNION ALL behavior: a DocType may occur in both sets.
+	doc_list = []
+	for doctype_field, reference_field in (("DocField", "parent"), ("Custom Field", "dt")):
+		linked_doctypes = frappe.get_all(
+			doctype_field,
+			filters={"fieldtype": "Link", "options": ["is", "set"]},
+			fields=[reference_field],
+			group_by=reference_field,
+		)
+		for linked in linked_doctypes:
+			doctype_name = linked.get(reference_field)
+			module = frappe.db.get_value("DocType", doctype_name, "module")
+			if module is None:
+				continue
+			doc_list.append(
+			frappe._dict({
+				"name": ".".join(("erpnext", module, doctype_name)),
+				"doctype_name": doctype_name,
+			})
+		)
 
 	for doc in doc_list:
 		docfield_list = frappe.get_all(
