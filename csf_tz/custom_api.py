@@ -136,31 +136,27 @@ def get_item_info(item_code: Any):
 @frappe.whitelist()
 def get_item_prices(item_code: Any, currency: Any, customer: Any = None, company: Any = None):
 	frappe.has_permission("Sales Invoice", throw=True)
-	item_code = f"'{item_code}'"
-	currency = f"'{currency}'"
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
 	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
+	parent = frappe.qb.DocType("Sales Invoice")
+	child = frappe.qb.DocType("Sales Invoice Item")
+	query = (
+		frappe.qb.from_(parent)
+		.inner_join(child)
+		.on(child.parent == parent.name)
+		.select(parent.name, parent.posting_date, parent.customer, child.item_code, child.qty, child.rate)
+		.where(child.item_code == item_code)
+		.where(parent.docstatus == 1)
+		.where(parent.currency == currency)
+		.where(parent.is_return != 1)
+		.where(parent.company == company)
+		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
+	)
 	if customer:
-		conditions = f" and SI.customer = '{customer}'"
-	else:
-		conditions = ""
-
-	query = f""" SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty, SIT.rate
-            FROM `tabSales Invoice` AS SI
-            INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-            WHERE
-                SIT.item_code = {item_code}
-                AND SIT.parent = SI.name
-                AND SI.docstatus=%s
-                AND SI.currency = {currency}
-                AND SI.is_return != 1
-                AND SI.company = '{company}'
-                {conditions}
-            ORDER by SI.posting_date DESC""" % (1)
-
-	items = frappe.db.sql(query, as_dict=True)
+		query = query.where(parent.customer == customer)
+	items = query.run(as_dict=True)
 	for item in items:
 		item_dict = {
 			"name": item.item_code,
@@ -196,8 +192,6 @@ def get_item_prices_custom(filters: Any = None, start: Any = 0, limit: Any = 20)
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
-	item_code = "'{}'".format(filters.get("item_code", ""))
-	currency = "'{}'".format(filters.get("currency", ""))
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
@@ -208,25 +202,26 @@ def get_item_prices_custom(filters: Any = None, start: Any = 0, limit: Any = 20)
 		from_date = f"'{posting_date[1][0]}'"
 		to_date = f"'{posting_date[1][1]}'"
 		conditions += f"AND DATE(SI.posting_date) BETWEEN {from_date} AND {to_date}"
+	parent = frappe.qb.DocType("Sales Invoice")
+	child = frappe.qb.DocType("Sales Invoice Item")
+	query = (
+		frappe.qb.from_(parent)
+		.inner_join(child)
+		.on(child.parent == parent.name)
+		.select(parent.name, parent.posting_date, parent.customer, child.item_code, child.qty, child.rate)
+		.where(child.item_code == filters.get("item_code", ""))
+		.where(parent.docstatus == 1)
+		.where(parent.currency == filters.get("currency", ""))
+		.where(parent.is_return != 1)
+		.where(parent.company == company)
+		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
+	)
 	if customer:
-		conditions += f" AND SI.customer = '{customer}'"
-
-	# TODO: refactor to parameterized query; inputs are pre-quoted upstream
-	# nosemgrep: frappe-sql-format-injection
-	query = f""" SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty,  SIT.rate
-                FROM `tabSales Invoice` AS SI
-                INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-                WHERE
-                    SIT.item_code = {item_code}
-                    AND SIT.parent = SI.name
-                    AND SI.docstatus= 1
-                    AND SI.currency = {currency}
-                    AND SI.is_return != 1
-                    AND SI.company = '{company}'
-                    {conditions}
-                ORDER by SI.posting_date DESC"""
-
-	items = frappe.db.sql(query, as_dict=True)
+		query = query.where(parent.customer == customer)
+	if "posting_date" in filters:
+		date_range = filters["posting_date"][1]
+		query = query.where(parent.posting_date.between(date_range[0], date_range[1]))
+	items = query.run(as_dict=True)
 	for item in items:
 		item_dict = {
 			"name": item.item_code,
@@ -843,13 +838,18 @@ def validate_net_rate(doc, method):
 				"last purchase rate",
 			)
 
-		last_valuation_rate = frappe.db.sql(
-			"""
-            SELECT valuation_rate FROM `tabStock Ledger Entry` WHERE item_code = %s
-            AND warehouse = %s AND valuation_rate > 0
-            ORDER BY posting_date DESC, posting_time DESC, creation DESC LIMIT 1
-            """,
-			(it.item_code, it.warehouse),
+		sle = frappe.qb.DocType("Stock Ledger Entry")
+		last_valuation_rate = (
+			frappe.qb.from_(sle)
+			.select(sle.valuation_rate)
+			.where(sle.item_code == it.item_code)
+			.where(sle.warehouse == it.warehouse)
+			.where(sle.valuation_rate > 0)
+			.orderby(sle.posting_date, order=frappe.qb.terms.Order.desc)
+			.orderby(sle.posting_time, order=frappe.qb.terms.Order.desc)
+			.orderby(sle.creation, order=frappe.qb.terms.Order.desc)
+			.limit(1)
+			.run(as_list=True)
 		)
 		if last_valuation_rate:
 			last_valuation_rate_in_sales_uom = last_valuation_rate[0][0] / (it.conversion_factor or 1)
@@ -2035,8 +2035,6 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
-	item_code = "'{}'".format(filters.get("item_code", ""))
-	currency = "'{}'".format(filters.get("currency", ""))
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
@@ -2047,25 +2045,26 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 		from_date = f"'{posting_date[1][0]}'"
 		to_date = f"'{posting_date[1][1]}'"
 		conditions += f"AND DATE(PI.posting_date) BETWEEN {from_date} AND {to_date}"
+	parent = frappe.qb.DocType("Purchase Invoice")
+	child = frappe.qb.DocType("Purchase Invoice Item")
+	query = (
+		frappe.qb.from_(parent)
+		.inner_join(child)
+		.on(child.parent == parent.name)
+		.select(parent.name, parent.posting_date, parent.supplier, child.item_code, child.qty, child.rate)
+		.where(child.item_code == filters.get("item_code", ""))
+		.where(parent.docstatus == 1)
+		.where(parent.currency == filters.get("currency", ""))
+		.where(parent.is_return != 1)
+		.where(parent.company == company)
+		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
+	)
 	if customer:
-		conditions += f" AND PI.supplier = '{customer}'"
-
-	# TODO: refactor to parameterized query; inputs are pre-quoted upstream
-	# nosemgrep: frappe-sql-format-injection
-	query = f""" SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty,  PIT.rate
-                FROM `tabPurchase Invoice` AS PI
-                INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
-                WHERE
-                    PIT.item_code = {item_code}
-                    AND PIT.parent = PI.name
-                    AND PI.docstatus= 1
-                    AND PI.currency = {currency}
-                    AND PI.is_return != 1
-                    AND PI.company = '{company}'
-                    {conditions}
-                ORDER by PI.posting_date DESC"""
-
-	items = frappe.db.sql(query, as_dict=True)
+		query = query.where(parent.supplier == customer)
+	if "posting_date" in filters:
+		date_range = filters["posting_date"][1]
+		query = query.where(parent.posting_date.between(date_range[0], date_range[1]))
+	items = query.run(as_dict=True)
 	for item in items:
 		item_dict = {
 			"name": item.item_code,
@@ -2087,31 +2086,27 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 @frappe.whitelist()
 def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, company: Any = None):
 	frappe.has_permission("Purchase Invoice", throw=True)
-	item_code = f"'{item_code}'"
-	currency = f"'{currency}'"
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
 	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
+	parent = frappe.qb.DocType("Purchase Invoice")
+	child = frappe.qb.DocType("Purchase Invoice Item")
+	query = (
+		frappe.qb.from_(parent)
+		.inner_join(child)
+		.on(child.parent == parent.name)
+		.select(parent.name, parent.posting_date, parent.supplier, child.item_code, child.qty, child.rate)
+		.where(child.item_code == item_code)
+		.where(parent.docstatus == 1)
+		.where(parent.currency == currency)
+		.where(parent.is_return != 1)
+		.where(parent.company == company)
+		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
+	)
 	if customer:
-		conditions = f" and PI.supplier = '{customer}'"
-	else:
-		conditions = ""
-
-	query = f""" SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty, PIT.rate
-            FROM `tabPurchase Invoice` AS PI
-            INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
-            WHERE
-                PIT.item_code = {item_code}
-                AND PIT.parent = PI.name
-                AND PI.docstatus=%s
-                AND PI.currency = {currency}
-                AND PI.is_return != 1
-                AND PI.company = '{company}'
-                {conditions}
-            ORDER by PI.posting_date DESC""" % (1)
-
-	items = frappe.db.sql(query, as_dict=True)
+		query = query.where(parent.supplier == customer)
+	items = query.run(as_dict=True)
 	for item in items:
 		item_dict = {
 			"name": item.item_code,
