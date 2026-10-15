@@ -195,13 +195,6 @@ def get_item_prices_custom(filters: Any = None, start: Any = 0, limit: Any = 20)
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
-	conditions = ""
-
-	if "posting_date" in filters:
-		posting_date = filters["posting_date"]
-		from_date = f"'{posting_date[1][0]}'"
-		to_date = f"'{posting_date[1][1]}'"
-		conditions += f"AND DATE(SI.posting_date) BETWEEN {from_date} AND {to_date}"
 	parent = frappe.qb.DocType("Sales Invoice")
 	child = frappe.qb.DocType("Sales Invoice Item")
 	query = (
@@ -2038,13 +2031,6 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 	prices_list = []
 	unique_price_list = []
 	max_records = int(start) + int(limit)
-	conditions = ""
-
-	if "posting_date" in filters:
-		posting_date = filters["posting_date"]
-		from_date = f"'{posting_date[1][0]}'"
-		to_date = f"'{posting_date[1][1]}'"
-		conditions += f"AND DATE(PI.posting_date) BETWEEN {from_date} AND {to_date}"
 	parent = frappe.qb.DocType("Purchase Invoice")
 	child = frappe.qb.DocType("Purchase Invoice Item")
 	query = (
@@ -2114,7 +2100,7 @@ def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, comp
 			"price": item.rate,
 			"date": item.posting_date,
 			"invoice": item.name,
-			"customer": item.customer,
+			"customer": item.supplier,
 			"qty": item.qty,
 		}
 		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
