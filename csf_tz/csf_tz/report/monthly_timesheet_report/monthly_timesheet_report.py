@@ -176,47 +176,42 @@ def hours_per_day_data(conditions, filters):
 	return data
 
 
-def hours_per_project_data(conditions, filters):
-	project_details = frappe.db.sql(
-		f"""
-		SELECT ts.employee,
-			ts.employee_name,
-			tsd.project,
-			tsd.hours
-		FROM `tabTimesheet Detail` tsd
-		INNER JOIN `tabTimesheet` ts ON tsd.parent = ts.name
-		WHERE {conditions}
-		ORDER BY ts.start_date
-		""",
-		filters,
-		as_dict=1,
+def _timesheet_detail_query(filters):
+	ts = frappe.qb.DocType("Timesheet")
+	detail = frappe.qb.DocType("Timesheet Detail")
+	query = (
+		frappe.qb.from_(detail)
+		.inner_join(ts)
+		.on(detail.parent == ts.name)
+		.where(ts.start_date >= filters.from_date)
+		.where(ts.start_date <= filters.to_date)
+		.orderby(ts.start_date)
 	)
+	return query, ts, detail
 
-	data = []
+
+def hours_per_project_data(conditions, filters):
+	query, ts, detail = _timesheet_detail_query(filters)
+	project_details = query.select(
+		ts.employee, ts.employee_name, detail.project, detail.hours
+	).run(as_dict=True)
 	for entry in project_details:
-		entry.update({"hours": flt(entry.hours, 1)})
-		data.append(entry)
-	return data
+		entry.hours = flt(entry.hours, 1)
+	return project_details
 
 
 def get_timesheet_logs(conditions, filters):
-	timesheet_logs = frappe.db.sql(
-		f"""
-		SELECT ts.employee AS employee,
-				ts.employee_name AS employee_name,
-				tsd.activity_type AS activity_type,
-				DATE_FORMAT(tsd.from_time, "%%Y-%%m-%%d") AS date2,
-				DATE_FORMAT(tsd.from_time, "%%T") AS from_time,
-				DATE_FORMAT(tsd.to_time, "%%T") AS to_time,
-				tsd.hours AS hours_used,
-				tsd.task AS task,
-				tsd.project AS project
-		FROM `tabTimesheet Detail` tsd
-		INNER JOIN `tabTimesheet` ts ON tsd.parent = ts.name
-		WHERE {conditions}
-		ORDER BY ts.start_date
-	""",
-		filters,
-		as_dict=1,
-	)
-	return timesheet_logs
+	from frappe.query_builder.functions import DateFormat
+
+	query, ts, detail = _timesheet_detail_query(filters)
+	return query.select(
+		ts.employee.as_("employee"),
+		ts.employee_name.as_("employee_name"),
+		detail.activity_type.as_("activity_type"),
+		DateFormat(detail.from_time, "%Y-%m-%d").as_("date2"),
+		DateFormat(detail.from_time, "%H:%i:%s").as_("from_time"),
+		DateFormat(detail.to_time, "%H:%i:%s").as_("to_time"),
+		detail.hours.as_("hours_used"),
+		detail.task.as_("task"),
+		detail.project.as_("project"),
+	).run(as_dict=True)
