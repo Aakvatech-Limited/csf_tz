@@ -31,19 +31,25 @@ def execute():
 
 	company_list = []
 
-	data = frappe.db.sql(
-		"""
-		SELECT
-			name, item_code, warehouse, voucher_type, voucher_no, posting_date, posting_time, company
-		FROM
-			`tabStock Ledger Entry`
-		WHERE
-			creation > %s
-			and is_cancelled = 0
-		ORDER BY timestamp(posting_date, posting_time) asc, creation asc
-	""",
-		reposting_project_deployed_on,
-		as_dict=1,
+	sle = frappe.qb.DocType("Stock Ledger Entry")
+	data = (
+		frappe.qb.from_(sle)
+		.select(
+			sle.name,
+			sle.item_code,
+			sle.warehouse,
+			sle.voucher_type,
+			sle.voucher_no,
+			sle.posting_date,
+			sle.posting_time,
+			sle.company,
+		)
+		.where(sle.creation > reposting_project_deployed_on)
+		.where(sle.is_cancelled == 0)
+		.orderby(sle.posting_date)
+		.orderby(sle.posting_time)
+		.orderby(sle.creation)
+		.run(as_dict=True)
 	)
 
 	frappe.db.auto_commit_on_many_writes = 1

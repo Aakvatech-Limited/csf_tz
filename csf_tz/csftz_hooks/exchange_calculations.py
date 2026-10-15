@@ -75,14 +75,13 @@ def link_lcv_to_import_tracker(doc, method):
 		if pr_row.get("receipt_document_type") == "Purchase Invoice":
 			pi_items = [{"purchase_invoice": receipt_doc}]
 		else:
-			pi_items = frappe.db.sql(
-				"""
-                SELECT DISTINCT pii.parent as purchase_invoice
-                FROM `tabPurchase Invoice Item` pii
-                WHERE pii.purchase_receipt = %s
-            """,
-				receipt_doc,
-				as_dict=True,
+			pi_item = frappe.qb.DocType("Purchase Invoice Item")
+			pi_items = (
+				frappe.qb.from_(pi_item)
+				.select(pi_item.parent.as_("purchase_invoice"))
+				.distinct()
+				.where(pi_item.purchase_receipt == receipt_doc)
+				.run(as_dict=True)
 			)
 
 		for pi_item in pi_items:
@@ -115,15 +114,16 @@ def link_lcv_to_import_tracker(doc, method):
 
 def unlink_lcv_from_import_tracker(doc, method):
 	"""Remove LCV from Foreign Import Transaction when cancelled"""
-	trackers = frappe.db.sql(
-		"""
-        SELECT DISTINCT fit.name
-        FROM `tabForeign Import Transaction` fit
-        JOIN `tabForeign Import LCV Details` lcv ON lcv.parent = fit.name
-        WHERE lcv.landed_cost_voucher = %s
-    """,
-		doc.name,
-		as_dict=True,
+	fit = frappe.qb.DocType("Foreign Import Transaction")
+	lcv = frappe.qb.DocType("Foreign Import LCV Details")
+	trackers = (
+		frappe.qb.from_(fit)
+		.join(lcv)
+		.on(lcv.parent == fit.name)
+		.select(fit.name)
+		.distinct()
+		.where(lcv.landed_cost_voucher == doc.name)
+		.run(as_dict=True)
 	)
 
 	for tracker in trackers:
