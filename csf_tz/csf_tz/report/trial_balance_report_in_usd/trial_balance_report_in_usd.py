@@ -178,7 +178,7 @@ def get_rootwise_opening_balances(filters, report_type):
 
 	for dimension in get_accounting_dimensions():
 		if filters.get(dimension):
-			query = query.where(gle[dimension] == filters.get(dimension))
+			query = query.where(getattr(gle, dimension) == filters.get(dimension))
 
 	opening = frappe._dict()
 	for entry in query.run(as_dict=True):
