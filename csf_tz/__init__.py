@@ -21,10 +21,18 @@ def load_monkey_patches():
     if patches_loaded:
         return
 
-    patches_loaded = True
+    # Asset builds may run without an initialized Frappe site or database.
+    if not getattr(frappe.local, "site", None):
+        return
+
+    conf = getattr(frappe.local, "conf", None)
+    if not conf or not conf.get("db_name"):
+        return
 
     if app_name not in frappe.get_installed_apps():
         return
+
+    patches_loaded = True
 
     for module_name in os.listdir(frappe.get_app_path(app_name, "monkey_patches")):
         if not module_name.endswith(".py") or module_name == "__init__.py":
