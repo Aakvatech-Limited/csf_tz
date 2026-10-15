@@ -2026,7 +2026,7 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 		filters = {}
 
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
-	customer = filters.get("customer", "")
+	supplier = filters.get("supplier", "")
 	company = filters.get("company", "")
 	prices_list = []
 	unique_price_list = []
@@ -2045,8 +2045,8 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 		.where(parent.company == company)
 		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
 	)
-	if customer:
-		query = query.where(parent.supplier == customer)
+	if supplier:
+		query = query.where(parent.supplier == supplier)
 	if "posting_date" in filters:
 		date_range = filters["posting_date"][1]
 		query = query.where(parent.posting_date.between(date_range[0], date_range[1]))
@@ -2058,7 +2058,7 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 			"rate": item.rate,
 			"posting_date": item.posting_date,
 			"invoice": item.name,
-			"customer": item.customer,
+			"supplier": item.supplier,
 			"qty": item.qty,
 		}
 		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
@@ -2070,7 +2070,7 @@ def get_item_prices_custom_po(filters: Any = None, start: Any = 0, limit: Any = 
 
 
 @frappe.whitelist()
-def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, company: Any = None):
+def get_item_prices_po(item_code: Any, currency: Any, supplier: Any = None, company: Any = None):
 	frappe.has_permission("Purchase Invoice", throw=True)
 	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
@@ -2090,8 +2090,8 @@ def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, comp
 		.where(parent.company == company)
 		.orderby(parent.posting_date, order=frappe.qb.terms.Order.desc)
 	)
-	if customer:
-		query = query.where(parent.supplier == customer)
+	if supplier:
+		query = query.where(parent.supplier == supplier)
 	items = query.run(as_dict=True)
 	for item in items:
 		item_dict = {
@@ -2100,7 +2100,7 @@ def get_item_prices_po(item_code: Any, currency: Any, customer: Any = None, comp
 			"price": item.rate,
 			"date": item.posting_date,
 			"invoice": item.name,
-			"customer": item.supplier,
+			"supplier": item.supplier,
 			"qty": item.qty,
 		}
 		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
