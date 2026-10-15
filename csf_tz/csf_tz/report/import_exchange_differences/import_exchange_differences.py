@@ -96,70 +96,56 @@ def get_columns():
 
 
 def get_data(filters):
-	conditions = get_conditions(filters)
+	from frappe.query_builder.functions import Coalesce, Sum
 
-	query = f"""
-        SELECT
-            fit.name as foreign_import_transaction,
-            fit.purchase_invoice,
-            fit.supplier,
-            fit.transaction_date,
-            fit.currency,
-            fit.original_exchange_rate,
-            fit.invoice_amount_foreign,
-            fit.invoice_amount_base,
-            fit.total_gain_loss,
-            fit.status,
-            COALESCE(payment_summary.total_payments, 0) as total_payments,
-            COALESCE(payment_summary.payment_differences, 0) as payment_differences,
-            COALESCE(lcv_summary.lcv_differences, 0) as lcv_differences
-        FROM `tabForeign Import Transaction` fit
-        LEFT JOIN (
-            SELECT
-                parent,
-                SUM(payment_amount_foreign) as total_payments,
-                SUM(exchange_difference) as payment_differences
-            FROM `tabForeign Import Payment Details`
-            GROUP BY parent
-        ) payment_summary ON payment_summary.parent = fit.name
-        LEFT JOIN (
-            SELECT
-                parent,
-                SUM(exchange_difference) as lcv_differences
-            FROM `tabForeign Import LCV Details`
-            GROUP BY parent
-        ) lcv_summary ON lcv_summary.parent = fit.name
-        WHERE fit.docstatus = 1 {conditions}
-        ORDER BY fit.transaction_date DESC, fit.name
-    """
+	fit = frappe.qb.DocType("Foreign Import Transaction")
+	payment = frappe.qb.DocType("Foreign Import Payment Details")
+	lcv = frappe.qb.DocType("Foreign Import LCV Details")
+	payment_summary = (
+		frappe.qb.from_(payment)
+		.select(
+			payment.parent,
+			Sum(payment.payment_amount_foreign).as_("total_payments"),
+			Sum(payment.exchange_difference).as_("payment_differences"),
+		)
+		.groupby(payment.parent)
+	).as_("payment_summary")
+	lcv_summary = (
+		frappe.qb.from_(lcv)
+		.select(lcv.parent, Sum(lcv.exchange_difference).as_("lcv_differences"))
+		.groupby(lcv.parent)
+	).as_("lcv_summary")
 
-	data = frappe.db.sql(query, filters, as_dict=1)
-
-	return data
-
-
-def get_conditions(filters):
-	conditions = []
-
-	if filters.get("company"):
-		conditions.append("AND fit.company = %(company)s")
-
+	query = (
+		frappe.qb.from_(fit)
+		.left_join(payment_summary)
+		.on(payment_summary.parent == fit.name)
+		.left_join(lcv_summary)
+		.on(lcv_summary.parent == fit.name)
+		.select(
+			fit.name.as_("foreign_import_transaction"),
+			fit.purchase_invoice,
+			fit.supplier,
+			fit.transaction_date,
+			fit.currency,
+			fit.original_exchange_rate,
+			fit.invoice_amount_foreign,
+			fit.invoice_amount_base,
+			fit.total_gain_loss,
+			fit.status,
+			Coalesce(payment_summary.total_payments, 0).as_("total_payments"),
+			Coalesce(payment_summary.payment_differences, 0).as_("payment_differences"),
+			Coalesce(lcv_summary.lcv_differences, 0).as_("lcv_differences"),
+		)
+		.where(fit.docstatus == 1)
+		.orderby(fit.transaction_date, order=frappe.qb.desc)
+		.orderby(fit.name)
+	)
+	for field in ("company", "purchase_invoice", "supplier", "currency", "status"):
+		if filters.get(field):
+			query = query.where(getattr(fit, field) == filters[field])
 	if filters.get("from_date"):
-		conditions.append("AND fit.transaction_date >= %(from_date)s")
-
+		query = query.where(fit.transaction_date >= filters["from_date"])
 	if filters.get("to_date"):
-		conditions.append("AND fit.transaction_date <= %(to_date)s")
-
-	if filters.get("purchase_invoice"):
-		conditions.append("AND fit.purchase_invoice = %(purchase_invoice)s")
-
-	if filters.get("supplier"):
-		conditions.append("AND fit.supplier = %(supplier)s")
-
-	if filters.get("currency"):
-		conditions.append("AND fit.currency = %(currency)s")
-
-	if filters.get("status"):
-		conditions.append("AND fit.status = %(status)s")
-
-	return " ".join(conditions)
+		query = query.where(fit.transaction_date <= filters["to_date"])
+	return query.run(as_dict=True)
