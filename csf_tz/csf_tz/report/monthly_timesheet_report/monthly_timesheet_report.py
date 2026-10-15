@@ -192,9 +192,9 @@ def _timesheet_detail_query(filters):
 
 def hours_per_project_data(conditions, filters):
 	query, ts, detail = _timesheet_detail_query(filters)
-	project_details = query.select(
-		ts.employee, ts.employee_name, detail.project, detail.hours
-	).run(as_dict=True)
+	project_details = query.select(ts.employee, ts.employee_name, detail.project, detail.hours).run(
+		as_dict=True
+	)
 	for entry in project_details:
 		entry.hours = flt(entry.hours, 1)
 	return project_details
