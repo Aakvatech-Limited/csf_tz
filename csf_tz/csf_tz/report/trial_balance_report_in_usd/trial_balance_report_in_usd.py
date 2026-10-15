@@ -148,10 +148,7 @@ def get_rootwise_opening_balances(filters, report_type):
 		)
 		.where(gle.company == filters.company)
 		.where(account.report_type == report_type)
-		.where(
-			(gle.posting_date < filters.from_date)
-			| (Coalesce(gle.is_opening, "No") == "Yes")
-		)
+		.where((gle.posting_date < filters.from_date) | (Coalesce(gle.is_opening, "No") == "Yes"))
 		.groupby(gle.account)
 	)
 
