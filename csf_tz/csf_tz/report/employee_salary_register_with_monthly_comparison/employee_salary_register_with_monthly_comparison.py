@@ -179,11 +179,13 @@ def _salary_filters(filters, company_currency):
 
 def get_prev_salary_slips(filters, company_currency, prev_first_date, prev_last_date):
 	query_filters = _salary_filters(filters, company_currency)
-	query_filters.update({
-		"docstatus": ["<=", 1],
-		"start_date": [">=", prev_first_date],
-		"end_date": ["<=", prev_last_date],
-	})
+	query_filters.update(
+		{
+			"docstatus": ["<=", 1],
+			"start_date": [">=", prev_first_date],
+			"end_date": ["<=", prev_last_date],
+		}
+	)
 	rows = frappe.get_all(
 		"Salary Slip",
 		filters=query_filters,
