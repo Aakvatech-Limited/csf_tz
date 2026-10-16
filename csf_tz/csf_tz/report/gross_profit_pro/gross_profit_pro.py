@@ -491,6 +491,7 @@ class GrossProfitGenerator:
 				sales_person_cols=sales_person_cols,
 				sales_team_table=sales_team_table,
 				match_cond=get_match_cond("Sales Invoice"),
+		)
 		self.si_list = frappe.db.sql(query, self.filters, as_dict=1)
 
 	def load_stock_ledger_entries(self):
