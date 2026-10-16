@@ -23,33 +23,32 @@ class EFDZReport(Document):
 
 	@frappe.whitelist()
 	def get_sales_invoice(self):
-		date = datetime.strptime(str(self.z_report_date_time), "%Y-%m-%d %H:%M:%S").date()
-		time = datetime.strptime(str(self.z_report_date_time), "%Y-%m-%d %H:%M:%S").time()
-
-		condition = (
-			"docstatus = 1  and (efd_z_report = '' OR efd_z_report is null) and status !='Return' and posting_date <= '"
-			+ str(date)
-			+ "' and IF(IF(posting_date = '"
-			+ str(date)
-			+ "', IF(posting_time < '"
-			+ str(time)
-			+ "',1,'PostingTime'),'PostingDate') = 1 or IF(posting_date = '"
-			+ str(date)
-			+ "',IF(posting_time < '"
-			+ str(time)
-			+ "',1,'PostingTime'),'PostingDate') = 'PostingDate',1,0)"
+		cutoff = datetime.strptime(str(self.z_report_date_time), "%Y-%m-%d %H:%M:%S")
+		# Keep the original strict time boundary for invoices on the report date.
+		sales_invoices = frappe.db.sql(
+			"""
+			SELECT *
+			FROM `tabSales Invoice`
+			WHERE docstatus = 1
+				AND (efd_z_report = '' OR efd_z_report IS NULL)
+				AND status != 'Return'
+				AND (
+					posting_date < %(report_date)s
+					OR (posting_date = %(report_date)s AND posting_time < %(report_time)s)
+				)
+				AND (
+					electronic_fiscal_device = %(device)s
+					OR electronic_fiscal_device IS NULL
+					OR electronic_fiscal_device = ''
+				)
+			""",
+			{
+				"report_date": cutoff.date(),
+				"report_time": cutoff.time(),
+				"device": self.electronic_fiscal_device,
+			},
+			as_dict=True,
 		)
-
-		condition += (
-			" and ( electronic_fiscal_device = '" + self.electronic_fiscal_device + "'"
-			"or electronic_fiscal_device is null or electronic_fiscal_device = '')"
-		)
-
-		query = f""" select *
-                        from `tabSales Invoice`
-                        where {condition}"""
-
-		sales_invoices = frappe.db.sql(query, as_dict=True)
 
 		if not sales_invoices:
 			frappe.throw("No Sales Invoice Fetch")

@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 
 import frappe
@@ -201,14 +200,10 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=0):
 
 
 def read_multi_pdf(output):
-	fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-	with open(fname, "wb") as f:
-		output.write(f)
-
-	with open(fname, "rb") as fileobj:
-		filedata = fileobj.read()
-
-	return filedata
+	"""Return the generated PDF without creating a temporary filesystem artifact."""
+	buffer = BytesIO()
+	output.write(buffer)
+	return buffer.getvalue()
 
 
 @frappe.whitelist()
