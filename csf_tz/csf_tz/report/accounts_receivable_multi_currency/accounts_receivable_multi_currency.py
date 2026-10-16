@@ -656,8 +656,8 @@ class ReceivablePayableReport:
 		else:
 			select_fields = "debit, credit"
 
-		self.gl_entries = frappe.db.sql(
-			f"""
+		# The SELECT, ordering and filter fragments above are fixed SQL clauses.
+		query = f"""
 			select
 				name, posting_date, account, party_type, party, voucher_type, voucher_no, debit_in_account_currency, credit_in_account_currency,
 				against_voucher_type, against_voucher, account_currency, remarks, {select_fields}
@@ -668,10 +668,8 @@ class ReceivablePayableReport:
 				and (against_voucher_type IS NULL OR against_voucher_type != "Exchange Rate Revaluation")
 				and party_type=%s
 				and (party is not null and party != '')
-				{date_condition} {conditions} {order_by}""",
-			values,
-			as_dict=True,
-		)
+				{date_condition} {conditions} {order_by}"""
+		self.gl_entries = frappe.db.sql(query, values, as_dict=True)
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
