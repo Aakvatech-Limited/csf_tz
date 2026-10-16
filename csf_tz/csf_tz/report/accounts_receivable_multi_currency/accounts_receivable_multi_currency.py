@@ -307,7 +307,7 @@ class ReceivablePayableReport:
 				select parent, delivery_note
 				from `tabSales Invoice Item`
 				where docstatus=1 and parent in ({})
-			""".format(",".join(["%s"] * len(self.invoices))),
+			""".replace("{}", ",".join(["%s"] * len(self.invoices))),
 				tuple(self.invoices),
 				as_dict=1,
 			)
@@ -321,7 +321,7 @@ class ReceivablePayableReport:
 				select distinct parent, against_sales_invoice
 				from `tabDelivery Note Item`
 				where against_sales_invoice in ({})
-			""".format(",".join(["%s"] * len(self.invoices))),
+			""".replace("{}", ",".join(["%s"] * len(self.invoices))),
 				tuple(self.invoices),
 				as_dict=1,
 			)
