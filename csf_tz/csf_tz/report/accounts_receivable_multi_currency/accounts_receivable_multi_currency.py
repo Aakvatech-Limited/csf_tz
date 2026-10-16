@@ -4,6 +4,7 @@
 from collections import OrderedDict
 
 import frappe
+from pypika import Order
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
@@ -410,20 +411,22 @@ class ReceivablePayableReport:
 
 	def get_payment_terms(self, row):
 		# build payment_terms for row
-		payment_terms_details = frappe.db.sql(
-			f"""
-			select
-				si.name, si.party_account_currency, si.currency, si.conversion_rate,
-				ps.due_date, ps.payment_amount, ps.description, ps.paid_amount
-			from `tab{row.voucher_type}` si, `tabPayment Schedule` ps
-			where
-				si.name = ps.parent and
-				si.name = %s
-			order by ps.paid_amount desc, due_date
-		""",
-			row.voucher_no,
-			as_dict=1,
-		)
+		if row.voucher_type not in {"Sales Invoice", "Purchase Invoice"}:
+			frappe.throw(_("Payment terms require a Sales or Purchase Invoice"))
+		invoice = frappe.qb.DocType(row.voucher_type)
+		schedule = frappe.qb.DocType("Payment Schedule")
+		payment_terms_details = (
+			frappe.qb.from_(invoice)
+			.join(schedule).on(invoice.name == schedule.parent)
+			.select(
+				invoice.name, invoice.party_account_currency, invoice.currency,
+				invoice.conversion_rate, schedule.due_date, schedule.payment_amount,
+				schedule.description, schedule.paid_amount,
+			)
+			.where(invoice.name == row.voucher_no)
+			.orderby(schedule.paid_amount, order=Order.desc)
+			.orderby(schedule.due_date)
+		).run(as_dict=True)
 
 		original_row = frappe._dict(row)
 		row.payment_terms = []
