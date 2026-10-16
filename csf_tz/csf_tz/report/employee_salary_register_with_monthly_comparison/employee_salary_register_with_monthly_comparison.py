@@ -6,7 +6,7 @@ import calendar
 import frappe
 from erpnext import get_company_currency
 from frappe import _, msgprint
-from frappe.utils import cint, cstr, flt, getdate
+from frappe.utils import cstr, flt, getdate
 from frappe.utils.nestedset import get_descendants_of
 
 
@@ -164,37 +164,58 @@ def get_difference_amount_detail(bsc_amount_diff):
 	return result
 
 
+def _salary_filters(filters, company_currency):
+	"""Build Frappe filters without interpolating department names into SQL."""
+	out = {}
+	for key in ("company", "employee"):
+		if filters.get(key):
+			out[key] = filters[key]
+	if filters.get("currency") and filters["currency"] != company_currency:
+		out["currency"] = filters["currency"]
+	if filters.get("department") and filters.get("company"):
+		out["department"] = ["in", get_departments(filters["department"], filters["company"])]
+	return out
+
+
 def get_prev_salary_slips(filters, company_currency, prev_first_date, prev_last_date):
-	"""Get submitted salary slips for precious month"""
-
-	custom_filters = filters
-	custom_filters.update({"prev_first_date": prev_first_date, "prev_last_date": prev_last_date})
-	prev_conditions = get_prev_conditions(custom_filters, company_currency)
-	prev_salary_slips = frappe.db.sql(
-		f"""
-		select name, employee, employee_name, department, gross_pay as prev_gross_pay from `tabSalary Slip` where {prev_conditions}
-		order by employee""",
-		filters,
-		as_dict=1,
+	query_filters = _salary_filters(filters, company_currency)
+	query_filters.update({
+		"docstatus": ["<=", 1],
+		"start_date": [">=", prev_first_date],
+		"end_date": ["<=", prev_last_date],
+	})
+	rows = frappe.get_all(
+		"Salary Slip",
+		filters=query_filters,
+		fields=["name", "employee", "employee_name", "department", "gross_pay"],
+		order_by="employee",
 	)
-
-	return prev_salary_slips or []
+	for row in rows:
+		row.prev_gross_pay = row.pop("gross_pay")
+	return rows
 
 
 def get_cur_salary_slips(filters, company_currency):
-	"""Get salary slips for the current month"""
-
-	filters.update({"from_date": filters.get("from_date"), "to_date": filters.get("to_date")})
-	conditions, filters = get_cur_conditions(filters, company_currency)
-	salary_slips = frappe.db.sql(
-		f"""
-		select name, employee, employee_name, department, gross_pay as cur_gross_pay from `tabSalary Slip` where {conditions}
-        order by employee""",
-		filters,
-		as_dict=1,
+	query_filters = _salary_filters(filters, company_currency)
+	if filters.get("from_date"):
+		query_filters["start_date"] = [">=", filters["from_date"]]
+	if filters.get("to_date"):
+		query_filters["end_date"] = ["<=", filters["to_date"]]
+	if filters.get("docstatus") not in (None, ""):
+		status_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+		status = status_map.get(filters["docstatus"], filters["docstatus"])
+		if str(status) not in {"0", "1", "2"}:
+			frappe.throw(_("Invalid Salary Slip document status"))
+		query_filters["docstatus"] = int(status)
+	rows = frappe.get_all(
+		"Salary Slip",
+		filters=query_filters,
+		fields=["name", "employee", "employee_name", "department", "gross_pay"],
+		order_by="employee",
 	)
-
-	return salary_slips or []
+	for row in rows:
+		row.cur_gross_pay = row.pop("gross_pay")
+	return rows
 
 
 def get_prev_month_date(filters):
@@ -213,57 +234,6 @@ def get_prev_month_date(filters):
 	)
 
 	return prev_first_date, prev_last_date, prev_month, prev_year
-
-
-def get_prev_conditions(filters, company_currency):
-	"""Conditions that will be used to get salary slips for previous month"""
-
-	# this is get submitted salary slips for the previous month
-	conditions = "docstatus <= 1"
-
-	if filters.get("prev_first_date"):
-		conditions += " and start_date >= %(prev_first_date)s"
-	if filters.get("prev_last_date"):
-		conditions += " and end_date <= %(prev_last_date)s"
-	if filters.get("company"):
-		conditions += " and company = %(company)s"
-	if filters.get("employee"):
-		conditions += " and employee = %(employee)s"
-	if filters.get("currency") and filters.get("currency") != company_currency:
-		conditions += " and currency = %(currency)s"
-	if filters.get("department") and filters.get("company"):
-		department_list = get_departments(filters.get("department"), filters.get("company"))
-		conditions += "and department in (" + ",".join("'" + n + "'" for n in department_list) + ")"
-
-	return conditions
-
-
-def get_cur_conditions(filters, company_currency):
-	"""Conditions that will be used to get salary slips for current month"""
-
-	conditions = ""
-	doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
-
-	if filters.get("docstatus"):
-		conditions += "docstatus = {}".format(
-			doc_status.get(filters.get("docstatus"), cint(filters.get("docstatus")))
-		)
-
-	if filters.get("from_date"):
-		conditions += " and start_date >= %(from_date)s"
-	if filters.get("to_date"):
-		conditions += " and end_date <= %(to_date)s"
-	if filters.get("company"):
-		conditions += " and company = %(company)s"
-	if filters.get("employee"):
-		conditions += " and employee = %(employee)s"
-	if filters.get("currency") and filters.get("currency") != company_currency:
-		conditions += " and currency = %(currency)s"
-	if filters.get("department") and filters.get("company"):
-		department_list = get_departments(filters.get("department"), filters.get("company"))
-		conditions += "and department in (" + ",".join("'" + n + "'" for n in department_list) + ")"
-
-	return conditions, filters
 
 
 def get_departments(department, company):
