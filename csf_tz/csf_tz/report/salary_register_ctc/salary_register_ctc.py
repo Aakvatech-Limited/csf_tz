@@ -4,7 +4,7 @@
 import erpnext
 import frappe
 from frappe import _
-from frappe.utils import cint, flt
+from frappe.utils import flt
 from frappe.utils.nestedset import get_descendants_of
 
 
@@ -121,15 +121,18 @@ def get_columns(salary_slips):
 
 	salary_components = {_("Earning"): [], _("Deduction"): []}
 
-	for component in frappe.db.sql(
-		"""select distinct sd.salary_component, sc.type
-        from `tabSalary Detail` sd, `tabSalary Component` sc
-        where sc.do_not_include_in_total = 0 and sc.name=sd.salary_component and sd.amount != 0 and sd.parent in ({})""".format(
-			", ".join(["%s"] * len(salary_slips))
-		),
-		tuple([d.name for d in salary_slips]),
-		as_dict=1,
-	):
+	sd = frappe.qb.DocType("Salary Detail")
+	sc = frappe.qb.DocType("Salary Component")
+	components_in_slips = (
+		frappe.qb.from_(sd)
+		.join(sc).on(sc.name == sd.salary_component)
+		.select(sd.salary_component, sc.type)
+		.distinct()
+		.where(sc.do_not_include_in_total == 0)
+		.where(sd.amount != 0)
+		.where(sd.parent.isin([slip.name for slip in salary_slips]))
+	).run(as_dict=True)
+	for component in components_in_slips:
 		salary_components[_(component.type)].append(component.salary_component)
 
 	columns = (
@@ -144,18 +147,16 @@ def get_columns(salary_slips):
 		]
 	)
 	components = {_("Deduction"): []}
-	company_expenses = frappe.db.sql(
-		"""
-        SELECT distinct sd.salary_component, sc.type
-        FROM `tabSalary Detail` sd, `tabSalary Component` sc
-        WHERE sc.do_not_include_in_total = 1
-        AND sc.type = "Deduction"
-        AND sc.name=sd.salary_component
-        AND sd.amount != 0
-        AND sd.parent in ({})""".format(", ".join(["%s"] * len(salary_slips))),
-		tuple([d.name for d in salary_slips]),
-		as_dict=1,
-	)
+	company_expenses = (
+		frappe.qb.from_(sd)
+		.join(sc).on(sc.name == sd.salary_component)
+		.select(sd.salary_component, sc.type)
+		.distinct()
+		.where(sc.do_not_include_in_total == 1)
+		.where(sc.type == "Deduction")
+		.where(sd.amount != 0)
+		.where(sd.parent.isin([slip.name for slip in salary_slips]))
+	).run(as_dict=True)
 	for entry in company_expenses:
 		components[_(entry.type)].append(entry.salary_component)
 
@@ -170,45 +171,36 @@ def get_columns(salary_slips):
 
 
 def get_salary_slips(filters, company_currency):
-	filters.update({"from_date": filters.get("from_date"), "to_date": filters.get("to_date")})
-	conditions, filters = get_conditions(filters, company_currency)
-	salary_slips = frappe.db.sql(
-		f"""select * from `tabSalary Slip` where {conditions}
-        order by employee""",
-		filters,
-		as_dict=1,
-	)
-
-	return salary_slips or []
-
-
-def get_conditions(filters, company_currency):
-	conditions = ""
-	doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
-
-	if filters.get("docstatus"):
-		conditions += "docstatus = {}".format(
-			doc_status.get(filters.get("docstatus"), cint(filters.get("docstatus")))
-		)
-
-	if filters.get("from_date"):
-		conditions += " and start_date >= %(from_date)s"
-	if filters.get("to_date"):
-		conditions += " and end_date <= %(to_date)s"
-	if filters.get("company"):
-		conditions += " and company = %(company)s"
-	if filters.get("employee"):
-		conditions += " and employee = %(employee)s"
-	if filters.get("currency") and filters.get("currency") != company_currency:
-		conditions += " and currency = %(currency)s"
+	"""Select salary slips using parameterized Frappe filters."""
+	filters = filters or {}
+	query_filters = {}
+	if filters.get("docstatus") is not None and filters.get("docstatus") != "":
+		status_map = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+		status = status_map.get(filters["docstatus"], filters["docstatus"])
+		if str(status) not in {"0", "1", "2"}:
+			frappe.throw(_("Invalid Salary Slip document status"))
+		query_filters["docstatus"] = int(status)
+	for key, field, comparison in (
+		("from_date", "start_date", ">="),
+		("to_date", "end_date", "<="),
+	):
+		if filters.get(key):
+			query_filters[field] = [comparison, filters[key]]
+	for field in ("company", "employee"):
+		if filters.get(field):
+			query_filters[field] = filters[field]
+	if filters.get("currency") and filters["currency"] != company_currency:
+		query_filters["currency"] = filters["currency"]
 	if filters.get("department") and filters.get("company"):
-		department_list = get_departments(filters.get("department"), filters.get("company"))
-		conditions += "and department in (" + ",".join("'" + n + "'" for n in department_list) + ")"
+		query_filters["department"] = [
+			"in",
+			get_departments(filters["department"], filters["company"]),
+		]
 	if filters.get("workflow_state"):
-		conditions += " and workflow_state = %(workflow_state)s"
-
-	return conditions, filters
-
+		query_filters["workflow_state"] = filters["workflow_state"]
+	return frappe.get_all(
+		"Salary Slip", filters=query_filters, fields=["*"], order_by="employee"
+	)
 
 def get_employee_doj_map():
 	return frappe._dict(
@@ -224,14 +216,16 @@ def get_employee_doj_map():
 
 
 def get_ss_earning_map(salary_slips, currency, company_currency):
-	ss_earnings = frappe.db.sql(
-		"""select sd.parent, sd.salary_component, sd.amount, ss.exchange_rate, ss.name
-        from `tabSalary Detail` sd, `tabSalary Slip` ss where sd.parent=ss.name and sd.parent in ({})""".format(
-			", ".join(["%s"] * len(salary_slips))
-		),
-		tuple([d.name for d in salary_slips]),
-		as_dict=1,
-	)
+	if not salary_slips:
+		return {}
+	sd = frappe.qb.DocType("Salary Detail")
+	ss = frappe.qb.DocType("Salary Slip")
+	ss_earnings = (
+		frappe.qb.from_(sd)
+		.join(ss).on(sd.parent == ss.name)
+		.select(sd.parent, sd.salary_component, sd.amount, ss.exchange_rate, ss.name)
+		.where(sd.parent.isin([slip.name for slip in salary_slips]))
+	).run(as_dict=True)
 
 	ss_earning_map = {}
 	for d in ss_earnings:
@@ -247,14 +241,16 @@ def get_ss_earning_map(salary_slips, currency, company_currency):
 
 
 def get_ss_ded_map(salary_slips, currency, company_currency):
-	ss_deductions = frappe.db.sql(
-		"""select sd.parent, sd.salary_component, sd.amount, ss.exchange_rate, ss.name
-        from `tabSalary Detail` sd, `tabSalary Slip` ss where sd.parent=ss.name and sd.parent in ({})""".format(
-			", ".join(["%s"] * len(salary_slips))
-		),
-		tuple([d.name for d in salary_slips]),
-		as_dict=1,
-	)
+	if not salary_slips:
+		return {}
+	sd = frappe.qb.DocType("Salary Detail")
+	ss = frappe.qb.DocType("Salary Slip")
+	ss_deductions = (
+		frappe.qb.from_(sd)
+		.join(ss).on(sd.parent == ss.name)
+		.select(sd.parent, sd.salary_component, sd.amount, ss.exchange_rate, ss.name)
+		.where(sd.parent.isin([slip.name for slip in salary_slips]))
+	).run(as_dict=True)
 
 	ss_ded_map = {}
 	for d in ss_deductions:
