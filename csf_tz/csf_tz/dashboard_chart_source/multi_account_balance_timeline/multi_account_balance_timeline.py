@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import frappe
 from erpnext.accounts.utils import get_balance_on
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, flt, formatdate, getdate
 
 
@@ -352,8 +353,8 @@ class MultiBankBalance:
 			# Use ERPNext's permission system
 			return frappe.has_permission("Account", "read", account)
 		except Exception:
-			# Default to True if permission check fails
-			return True
+			# Permission checks must fail closed, never grant access on an error.
+			return False
 
 	def get_account_balances(self, accounts, from_date, to_date):
 		"""
@@ -373,22 +374,20 @@ class MultiBankBalance:
 		account_names = [acc["name"] for acc in accounts]
 
 		# Get all GL entries for these accounts in the date range
-		gl_entries = frappe.db.sql(
-			"""
-            SELECT
-                account,
-                posting_date,
-                SUM(debit - credit) as net_amount
-            FROM `tabGL Entry`
-            WHERE account IN ({})
-                AND posting_date BETWEEN %s AND %s
-                AND is_cancelled = 0
-            GROUP BY account, posting_date
-            ORDER BY posting_date, account
-        """.format(",".join(["%s"] * len(account_names))),
-			account_names + [from_date, to_date],
-			as_dict=True,
-		)
+		gl_entry = frappe.qb.DocType("GL Entry")
+		gl_entries = (
+			frappe.qb.from_(gl_entry)
+			.select(
+				gl_entry.account,
+				gl_entry.posting_date,
+				Sum(gl_entry.debit - gl_entry.credit).as_("net_amount"),
+			)
+			.where(gl_entry.account.isin(account_names))
+			.where(gl_entry.posting_date.between(from_date, to_date))
+			.where(gl_entry.is_cancelled == 0)
+			.groupby(gl_entry.account, gl_entry.posting_date)
+			.orderby(gl_entry.posting_date, gl_entry.account)
+		).run(as_dict=True)
 
 		# Build running balances
 		balance_data = {}
