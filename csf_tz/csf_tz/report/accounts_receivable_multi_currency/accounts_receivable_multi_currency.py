@@ -533,8 +533,8 @@ class ReceivablePayableReport:
 		else:
 			amount_field = "jea.debit - " if self.party_type == "Supplier" else "jea.credit"
 
-		return frappe.db.sql(
-			f"""
+		# Field expression is restricted to fixed account-currency alternatives.
+		query = f"""
 			select
 				jea.reference_name as invoice_no,
 				jea.party,
@@ -554,10 +554,8 @@ class ReceivablePayableReport:
 				and je.voucher_type != "Exchange Rate Revaluation"
 			group by je.name, jea.reference_name
 			having future_amount > 0
-			""",
-			(self.filters.report_date, self.party_type),
-			as_dict=1,
-		)
+			"""
+		return frappe.db.sql(query, (self.filters.report_date, self.party_type), as_dict=1)
 
 	def allocate_future_payments(self, row):
 		# future payments are captured in additional columns
