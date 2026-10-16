@@ -531,16 +531,16 @@ class ReceivablePayableReport:
 
 	def get_party_map(self, party_type):
 		if not hasattr(self, "party_map"):
-			if party_type == "Customer":
-				select_fields = "name, customer_name, territory, customer_group, customer_primary_contact"
-			elif party_type == "Supplier":
-				select_fields = "name, supplier_name, supplier_group"
-
-			self.party_map = dict(
-				(r.name, r)
-				for r in frappe.db.sql(f"select {select_fields} from `tab{party_type}`", as_dict=True)
-			)
-
+			allowed_fields = {
+				"Customer": ["name", "customer_name", "territory", "customer_group", "customer_primary_contact"],
+				"Supplier": ["name", "supplier_name", "supplier_group"],
+			}
+			if party_type not in allowed_fields:
+				frappe.throw(_("Invalid party type"))
+			self.party_map = {
+				row.name: row
+				for row in frappe.get_all(party_type, fields=allowed_fields[party_type])
+			}
 		return self.party_map
 
 	def get_gl_entries(self, party_type, date=None, for_future=False):
@@ -554,10 +554,12 @@ class ReceivablePayableReport:
 			select_fields = "sum(debit) as debit, sum(credit) as credit"
 
 		if date and not for_future:
-			conditions += f" and posting_date <= '{date}'"
+			conditions += " and posting_date <= %s"
+			values.append(date)
 
 		if date and for_future:
-			conditions += f" and posting_date > '{date}'"
+			conditions += " and posting_date > %s"
+			values.append(date)
 
 		self.gl_entries = frappe.db.sql(
 			f"""
@@ -674,10 +676,10 @@ class ReceivablePayableReport:
 			ps.due_date, ps.payment_amount, ps.description
 			from `tabSales Invoice` si, `tabPayment Schedule` ps
 			where si.name = ps.parent and
-			si.docstatus = 1 and si.company = '{}' and
+			si.docstatus = 1 and si.company = %s and
 			si.name in ({}) order by ps.due_date
-		""".format(frappe.db.escape(self.filters.company), ",".join(["%s"] * len(voucher_nos))),
-			(tuple(voucher_nos)),
+		""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
+			(self.filters.company, *voucher_nos),
 			as_dict=1,
 		)
 
