@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from csf_tz.stanbic.doctype.stanbic_payments_initiation.xml import get_xml
@@ -81,12 +82,18 @@ class StanbicPaymentsInitiation(Document):
 
 		from csf_tz.stanbic.sftp import get_absolute_path
 
+		# File codes are configuration values, not trusted filesystem path segments.
+		if not self.file_code or not all(c.isascii() and (c.isalnum() or c in "-_") for c in self.file_code):
+			frappe.throw(_("Stanbic file code must contain only ASCII letters, digits, hyphens or underscores"))
+
 		timestamp = format_datetime(now(), "yyyyMMddHHmmss") + "000"
 		filename = f"WASCO_H2H_Pain001v3_TZ_{self.file_code}_{timestamp}.xml"
-		create_path = get_absolute_path("/private/files/stanbic/outbox")
-		file_path = os.path.join(create_path, filename)
-		os.makedirs(os.path.dirname(file_path), exist_ok=True)
-		with open(file_path, "w") as file:
+		create_path = os.path.realpath(get_absolute_path("/private/files/stanbic/outbox"))
+		file_path = os.path.realpath(os.path.join(create_path, filename))
+		if os.path.commonpath([create_path, file_path]) != create_path:
+			frappe.throw(_("Invalid Stanbic outbox path"))
+		os.makedirs(create_path, exist_ok=True)
+		with open(file_path, "w", encoding="utf-8") as file:
 			file.write(self.encrypted_xml)
 
 	def on_update_after_submit(self):

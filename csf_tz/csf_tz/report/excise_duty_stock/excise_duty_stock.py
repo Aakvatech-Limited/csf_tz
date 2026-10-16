@@ -138,46 +138,53 @@ def get_columns(filters):
 
 
 def get_conditions(filters):
-	conditions = ""
+	"""Build parameterized WHERE fragments; no user-supplied SQL literals."""
 	if not filters.get("from_date"):
 		frappe.throw(_("'From Date' is required"))
-
-	if filters.get("to_date"):
-		conditions += " and sle.posting_date <= {}".format(frappe.db.escape(filters.get("to_date")))
-	else:
+	if not filters.get("to_date"):
 		frappe.throw(_("'To Date' is required"))
 
+	conditions = ["sle.posting_date <= %(to_date)s"]
+	values = {"to_date": filters["to_date"]}
 	if filters.get("company"):
-		conditions += " and sle.company = {}".format(frappe.db.escape(filters.get("company")))
+		conditions.append("sle.company = %(company)s")
+		values["company"] = filters["company"]
 
 	if filters.get("warehouse"):
 		warehouse_details = frappe.db.get_value(
-			"Warehouse", filters.get("warehouse"), ["lft", "rgt"], as_dict=1
+			"Warehouse", filters["warehouse"], ["lft", "rgt"], as_dict=True
 		)
 		if warehouse_details:
-			conditions += f" and exists (select name from `tabWarehouse` wh \
-                where wh.lft >= {warehouse_details.lft} and wh.rgt <= {warehouse_details.rgt} and sle.warehouse = wh.name)"
+			conditions.append(
+				"EXISTS (SELECT name FROM `tabWarehouse` wh "
+				"WHERE wh.lft >= %(warehouse_lft)s AND wh.rgt <= %(warehouse_rgt)s "
+				"AND sle.warehouse = wh.name)"
+			)
+			values["warehouse_lft"] = warehouse_details.lft
+			values["warehouse_rgt"] = warehouse_details.rgt
 
 	if filters.get("warehouse_type") and not filters.get("warehouse"):
-		conditions += " and exists (select name from `tabWarehouse` wh \
-            where wh.warehouse_type = {} and sle.warehouse = wh.name)".format(
-			frappe.db.escape(filters.get("warehouse_type"))
+		conditions.append(
+			"EXISTS (SELECT name FROM `tabWarehouse` wh "
+			"WHERE wh.warehouse_type = %(warehouse_type)s AND sle.warehouse = wh.name)"
 		)
+		values["warehouse_type"] = filters["warehouse_type"]
 
-	return conditions
+	return " AND " + " AND ".join(conditions), values
 
 
 def get_stock_ledger_entries(filters, items):
+	conditions, parameters = get_conditions(filters)
 	item_conditions_sql = ""
 	if items:
-		item_conditions_sql = " and sle.item_code in ({})".format(
-			", ".join([frappe.db.escape(i, percent=False) for i in items])
-		)
+		item_parameters = []
+		for index, item_code in enumerate(items):
+			key = f"item_{index}"
+			parameters[key] = item_code
+			item_parameters.append(f"%({key})s")
+		item_conditions_sql = " AND sle.item_code IN (" + ", ".join(item_parameters) + ")"
 
-	conditions = get_conditions(filters)
-
-	return frappe.db.sql(
-		f"""
+	query = f"""
         select
             sle.item_code, sle.warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
             sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
@@ -214,9 +221,8 @@ def get_stock_ledger_entries(filters, items):
             and sle.voucher_type NOT IN ("Stock Entry", "Sales Invoice")
             and i.excisable_item = 1
             and sle.docstatus < 2 {item_conditions_sql} {conditions}
-        order by 3""",
-		as_dict=1,
-	)
+        order by 3"""
+	return frappe.db.sql(query, parameters, as_dict=1)
 
 
 def get_item_warehouse_map(filters, sle):

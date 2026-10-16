@@ -61,7 +61,14 @@ def process_json_file(json_file_path, created_regions, created_districts, create
 	error_count = 0
 
 	try:
-		with open(json_file_path, encoding="utf-8") as file:
+		# Only bundled region JSON files are valid patch inputs.
+		regions_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "regions_json"))
+		resolved_path = os.path.realpath(json_file_path)
+		if os.path.commonpath([regions_dir, resolved_path]) != regions_dir:
+			raise ValueError("Region JSON file is outside its packaged directory")
+		if not resolved_path.endswith(".json"):
+			raise ValueError("Region input must be a JSON file")
+		with open(resolved_path, encoding="utf-8") as file:
 			data = json.load(file)
 
 		if not isinstance(data, list):

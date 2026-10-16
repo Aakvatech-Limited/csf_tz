@@ -142,8 +142,9 @@ def get_gl_entries(filters):
 	if filters.get("include_default_book_entries"):
 		filters["company_fb"] = frappe.db.get_value("Company", filters.get("company"), "default_finance_book")
 
-	gl_entries = frappe.db.sql(
-		f"""
+	# Dynamic SQL fragments below are selected from fixed clauses and DocType metadata.
+	# User values remain bound to named parameters.
+	query = f"""
 		select
 			name as gl_entry, posting_date, account, party_type, party,
 			voucher_type, voucher_no, cost_center, project,
@@ -152,10 +153,8 @@ def get_gl_entries(filters):
 		from `tabGL Entry`
 		where company=%(company)s {get_conditions(filters)}
 		{order_by_statement}
-		""",
-		filters,
-		as_dict=1,
-	)
+		"""
+	gl_entries = frappe.db.sql(query, filters, as_dict=True)
 
 	if filters.get("presentation_currency"):
 		return convert_to_presentation_currency(gl_entries, currency_map)
@@ -167,9 +166,11 @@ def get_conditions(filters):
 	conditions = []
 	if filters.get("account"):
 		lft, rgt = frappe.db.get_value("Account", filters["account"], ["lft", "rgt"])
+		filters["account_lft"] = lft
+		filters["account_rgt"] = rgt
 		conditions.append(
-			f"""account in (select name from tabAccount
-			where lft>={lft} and rgt<={rgt} and docstatus<2)"""
+			"account in (select name from tabAccount "
+			"where lft >= %(account_lft)s and rgt <= %(account_rgt)s and docstatus < 2)"
 		)
 
 	if filters.get("cost_center"):

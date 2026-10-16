@@ -4,6 +4,7 @@
 from collections import OrderedDict
 
 import frappe
+from pypika import Order
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
 	get_dimension_with_children,
@@ -306,7 +307,7 @@ class ReceivablePayableReport:
 				select parent, delivery_note
 				from `tabSales Invoice Item`
 				where docstatus=1 and parent in ({})
-			""".format(",".join(["%s"] * len(self.invoices))),
+			""".replace("{}", ",".join(["%s"] * len(self.invoices))),
 				tuple(self.invoices),
 				as_dict=1,
 			)
@@ -320,7 +321,7 @@ class ReceivablePayableReport:
 				select distinct parent, against_sales_invoice
 				from `tabDelivery Note Item`
 				where against_sales_invoice in ({})
-			""".format(",".join(["%s"] * len(self.invoices))),
+			""".replace("{}", ",".join(["%s"] * len(self.invoices))),
 				tuple(self.invoices),
 				as_dict=1,
 			)
@@ -410,20 +411,22 @@ class ReceivablePayableReport:
 
 	def get_payment_terms(self, row):
 		# build payment_terms for row
-		payment_terms_details = frappe.db.sql(
-			f"""
-			select
-				si.name, si.party_account_currency, si.currency, si.conversion_rate,
-				ps.due_date, ps.payment_amount, ps.description, ps.paid_amount
-			from `tab{row.voucher_type}` si, `tabPayment Schedule` ps
-			where
-				si.name = ps.parent and
-				si.name = %s
-			order by ps.paid_amount desc, due_date
-		""",
-			row.voucher_no,
-			as_dict=1,
-		)
+		if row.voucher_type not in {"Sales Invoice", "Purchase Invoice"}:
+			frappe.throw(_("Payment terms require a Sales or Purchase Invoice"))
+		invoice = frappe.qb.DocType(row.voucher_type)
+		schedule = frappe.qb.DocType("Payment Schedule")
+		payment_terms_details = (
+			frappe.qb.from_(invoice)
+			.join(schedule).on(invoice.name == schedule.parent)
+			.select(
+				invoice.name, invoice.party_account_currency, invoice.currency,
+				invoice.conversion_rate, schedule.due_date, schedule.payment_amount,
+				schedule.description, schedule.paid_amount,
+			)
+			.where(invoice.name == row.voucher_no)
+			.orderby(schedule.paid_amount, order=Order.desc)
+			.orderby(schedule.due_date)
+		).run(as_dict=True)
 
 		original_row = frappe._dict(row)
 		row.payment_terms = []
@@ -530,8 +533,8 @@ class ReceivablePayableReport:
 		else:
 			amount_field = "jea.debit - " if self.party_type == "Supplier" else "jea.credit"
 
-		return frappe.db.sql(
-			f"""
+		# Field expression is restricted to fixed account-currency alternatives.
+		query = f"""
 			select
 				jea.reference_name as invoice_no,
 				jea.party,
@@ -551,10 +554,8 @@ class ReceivablePayableReport:
 				and je.voucher_type != "Exchange Rate Revaluation"
 			group by je.name, jea.reference_name
 			having future_amount > 0
-			""",
-			(self.filters.report_date, self.party_type),
-			as_dict=1,
-		)
+			"""
+		return frappe.db.sql(query, (self.filters.report_date, self.party_type), as_dict=1)
 
 	def allocate_future_payments(self, row):
 		# future payments are captured in additional columns
@@ -655,8 +656,8 @@ class ReceivablePayableReport:
 		else:
 			select_fields = "debit, credit"
 
-		self.gl_entries = frappe.db.sql(
-			f"""
+		# The SELECT, ordering and filter fragments above are fixed SQL clauses.
+		query = f"""
 			select
 				name, posting_date, account, party_type, party, voucher_type, voucher_no, debit_in_account_currency, credit_in_account_currency,
 				against_voucher_type, against_voucher, account_currency, remarks, {select_fields}
@@ -667,10 +668,8 @@ class ReceivablePayableReport:
 				and (against_voucher_type IS NULL OR against_voucher_type != "Exchange Rate Revaluation")
 				and party_type=%s
 				and (party is not null and party != '')
-				{date_condition} {conditions} {order_by}""",
-			values,
-			as_dict=True,
-		)
+				{date_condition} {conditions} {order_by}"""
+		self.gl_entries = frappe.db.sql(query, values, as_dict=True)
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
