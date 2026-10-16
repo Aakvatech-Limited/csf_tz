@@ -152,7 +152,7 @@ def get_ss_ded_map(salary_slips, currency, company_currency):
 		.join(ss).on(sd.parent == ss.name)
 		.select(
 			sd.salary_component,
-			(-Sum(sd.amount)).as_("total"),
+			(Sum(sd.amount) * -1).as_("total"),
 		)
 		.where(sd.parent.isin([slip.name for slip in salary_slips]))
 		.where(sd.do_not_include_in_total == 0)
