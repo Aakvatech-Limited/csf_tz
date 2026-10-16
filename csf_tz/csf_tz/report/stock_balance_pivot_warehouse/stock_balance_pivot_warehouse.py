@@ -66,10 +66,15 @@ def get_stock_ledger_entries(filters):
 	item = frappe.qb.DocType("Item")
 	query = (
 		frappe.qb.from_(stock_ledger)
-		.join(item).on(stock_ledger.item_code == item.item_code)
+		.join(item)
+		.on(stock_ledger.item_code == item.item_code)
 		.select(
-			stock_ledger.item_code, item.item_name, item.brand, item.item_group,
-			stock_ledger.warehouse, Sum(stock_ledger.actual_qty).as_("actual_qty"),
+			stock_ledger.item_code,
+			item.item_name,
+			item.brand,
+			item.item_group,
+			stock_ledger.warehouse,
+			Sum(stock_ledger.actual_qty).as_("actual_qty"),
 		)
 		.groupby(stock_ledger.item_code, item.item_name, item.brand, item.item_group, stock_ledger.warehouse)
 		.orderby(item.brand, item.item_group, stock_ledger.item_code)
@@ -111,9 +116,11 @@ def get_sle_warehouse_map(stock_ledger_entry):
 	item = frappe.qb.DocType("Item")
 	sle_warehouses = (
 		frappe.qb.from_(stock_ledger)
-		.join(item).on(stock_ledger.item_code == item.item_code)
+		.join(item)
+		.on(stock_ledger.item_code == item.item_code)
 		.select(
-			stock_ledger.item_code, stock_ledger.warehouse,
+			stock_ledger.item_code,
+			stock_ledger.warehouse,
 			Sum(stock_ledger.actual_qty).as_("actual_qty"),
 		)
 		.where(stock_ledger.item_code.isin([d.item_code for d in stock_ledger_entry]))
