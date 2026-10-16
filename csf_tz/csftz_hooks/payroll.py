@@ -205,6 +205,7 @@ def read_multi_pdf(output):
 	output.write(buffer)
 	return buffer.getvalue()
 
+
 @frappe.whitelist()
 def create_journal_entry(payroll_entry):
 	payroll_entry_doc = frappe.get_doc("Payroll Entry", payroll_entry)
