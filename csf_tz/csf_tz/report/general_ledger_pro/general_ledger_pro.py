@@ -4,6 +4,7 @@
 from collections import OrderedDict
 
 import frappe
+import re
 from erpnext import get_company_currency, get_default_company
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -161,7 +162,10 @@ def get_gl_entries(filters, accounting_dimensions):
 
 	dimension_fields = ""
 	if accounting_dimensions:
-		dimension_fields = ", ".join(accounting_dimensions) + ","
+		# Accounting dimension names are identifiers, so validate before interpolating.
+		if any(not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) for name in accounting_dimensions):
+			frappe.throw(_("Invalid accounting dimension field name"))
+		dimension_fields = ", ".join("`" + name + "`" for name in accounting_dimensions) + ","
 
 	distributed_cost_center_query = ""
 	if filters and filters.get("cost_center"):
@@ -201,8 +205,8 @@ def get_gl_entries(filters, accounting_dimensions):
 			conditions=get_conditions(filters).replace("and cost_center in %(cost_center)s ", ""),
 		)
 
-	gl_entries_all_except_students = frappe.db.sql(
-		f"""
+	# Query clauses are generated from fixed options or validated metadata identifiers.
+	query = f"""
         select
             `tabGL Entry`.name as gl_entry, posting_date, account, party_type, party,
             voucher_type, voucher_no, {dimension_fields}
@@ -213,10 +217,8 @@ def get_gl_entries(filters, accounting_dimensions):
         where ifnull(party, '') != 'Student' and company=%(company)s {get_conditions(filters)}
         {distributed_cost_center_query}
         {order_by_statement}
-        """,
-		filters,
-		as_dict=1,
-	)
+        """
+	gl_entries_all_except_students = frappe.db.sql(query, filters, as_dict=1)
 
 	gl_entries_students = []
 	if frappe.db.exists("DocType", "Student"):
@@ -236,8 +238,8 @@ def get_student_gl_entries(
 	filters, dimension_fields, select_fields, distributed_cost_center_query, order_by_statement
 ):
 	"""Student party names come from the education app, so this only runs when it is installed."""
-	return frappe.db.sql(
-		f"""
+	# Bound filters and validated accounting dimensions are shared with the main GL query.
+	query = f"""
         select
             `tabGL Entry`.name as gl_entry, posting_date, account, party_type, CONCAT(std.first_name, " ", IFNULL(std.middle_name, ''), " ", IFNULL(std.last_name, '')) as party,
             voucher_type, voucher_no, {dimension_fields}
@@ -249,10 +251,8 @@ def get_student_gl_entries(
         where gle.party_type = 'Student' and company=%(company)s {get_conditions(filters)}
         {distributed_cost_center_query}
         {order_by_statement}
-        """,
-		filters,
-		as_dict=1,
-	)
+        """
+	return frappe.db.sql(query, filters, as_dict=1)
 
 
 def get_conditions(filters):
