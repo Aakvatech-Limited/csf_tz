@@ -532,14 +532,19 @@ class ReceivablePayableReport:
 	def get_party_map(self, party_type):
 		if not hasattr(self, "party_map"):
 			allowed_fields = {
-				"Customer": ["name", "customer_name", "territory", "customer_group", "customer_primary_contact"],
+				"Customer": [
+					"name",
+					"customer_name",
+					"territory",
+					"customer_group",
+					"customer_primary_contact",
+				],
 				"Supplier": ["name", "supplier_name", "supplier_group"],
 			}
 			if party_type not in allowed_fields:
 				frappe.throw(_("Invalid party type"))
 			self.party_map = {
-				row.name: row
-				for row in frappe.get_all(party_type, fields=allowed_fields[party_type])
+				row.name: row for row in frappe.get_all(party_type, fields=allowed_fields[party_type])
 			}
 		return self.party_map
 
