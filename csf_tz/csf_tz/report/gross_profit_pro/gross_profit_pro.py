@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from pypika import Order
 from erpnext.controllers.queries import get_match_cond
 from erpnext.stock.utils import get_incoming_rate
 from frappe import _, scrub
@@ -428,7 +429,7 @@ class GrossProfitGenerator:
 			.select(purchase_item.base_rate / purchase_item.conversion_factor)
 			.where(purchase_item.item_code == item_code)
 			.where(purchase_item.docstatus == 1)
-			.orderby(purchase_item.modified, order=frappe.qb.Order.desc)
+			.orderby(purchase_item.modified, order=Order.desc)
 			.limit(1)
 		)
 		if row.project:
