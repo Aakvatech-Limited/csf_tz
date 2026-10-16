@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from csf_tz.stanbic.doctype.stanbic_payments_initiation.xml import get_xml
