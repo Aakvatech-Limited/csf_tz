@@ -463,8 +463,8 @@ class GrossProfitGenerator:
 		if self.filters.get("item_code"):
 			conditions += " and `tabSales Invoice Item`.item_code = %(item_code)s"
 
-		self.si_list = frappe.db.sql(
-			"""
+		# Fragments originate from fixed clauses and Frappe permission match conditions.
+		query = """
 			select
 				`tabSales Invoice Item`.parenttype, `tabSales Invoice Item`.parent,
 				`tabSales Invoice`.posting_date, `tabSales Invoice`.posting_time,
@@ -491,10 +491,7 @@ class GrossProfitGenerator:
 				sales_person_cols=sales_person_cols,
 				sales_team_table=sales_team_table,
 				match_cond=get_match_cond("Sales Invoice"),
-			),
-			self.filters,
-			as_dict=1,
-		)
+		self.si_list = frappe.db.sql(query, self.filters, as_dict=1)
 
 	def load_stock_ledger_entries(self):
 		res = frappe.db.sql(
