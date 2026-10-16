@@ -27,10 +27,13 @@ def execute(filters=None):
 
 	custom_loan_repayment_records = get_custom_loan_repayment_not_from_salary(filters)
 
+	custom_repayments_by_loan = {
+		row.loan: flt(row.amount_paid_not_from_salary) for row in custom_loan_repayment_records
+	}
 	for loan in loans:
-		for custom_loan_repayment in custom_loan_repayment_records:
-			if custom_loan_repayment.loan in loan.loan:
-				loan.amount_paid_not_from_salary += flt(custom_loan_repayment.amount_paid_not_from_salary)
+		loan.amount_paid_not_from_salary = flt(loan.amount_paid_not_from_salary)
+		loan_names = {name.strip() for name in (loan.loan or "").split(",") if name.strip()}
+		loan.amount_paid_not_from_salary += sum(custom_repayments_by_loan.get(name, 0) for name in loan_names)
 
 		loan.update(
 			{

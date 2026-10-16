@@ -284,45 +284,43 @@ def get_items(filters):
 def get_item_details(items, sle, filters):
 	item_details = {}
 	if not items:
-		items = list(set([d.item_code for d in sle]))
-
+		items = list({entry.item_code for entry in sle})
 	if not items:
 		return item_details
 
-	cf_field = cf_join = ""
-	if filters.get("include_uom"):
-		cf_field = ", ucd.conversion_factor"
-		cf_join = "left join `tabUOM Conversion Detail` ucd on ucd.parent=item.name and ucd.uom={}".format(
-			frappe.db.escape(filters.get("include_uom"))
+	item = frappe.qb.DocType("Item")
+	query = (
+		frappe.qb.from_(item)
+		.select(
+			item.name,
+			item.item_name,
+			item.description,
+			item.item_group,
+			item.brand,
+			item.stock_uom,
 		)
-
-	res = frappe.db.sql(
-		"""
-        select
-            item.name, item.item_name, item.description, item.item_group, item.brand, item.stock_uom {}
-        from
-            `tabItem` item
-            {}
-        where
-            item.name in ({})
-    """.format(cf_field, cf_join, ",".join(["%s"] * len(items))),
-		items,
-		as_dict=1,
+		.where(item.name.isin(items))
 	)
-
-	for item in res:
-		item_details.setdefault(item.name, item)
+	if filters.get("include_uom"):
+		conversion = frappe.qb.DocType("UOM Conversion Detail")
+		query = (
+			query.left_join(conversion)
+			.on((conversion.parent == item.name) & (conversion.uom == filters["include_uom"]))
+			.select(conversion.conversion_factor)
+		)
+	for row in query.run(as_dict=True):
+		item_details.setdefault(row.name, row)
 
 	if filters.get("show_variant_attributes", 0) == 1:
 		variant_values = get_variant_values_for(list(item_details))
-		item_details = {k: v.update(variant_values.get(k, {})) for k, v in iteritems(item_details)}
-
+		for item_code, row in item_details.items():
+			row.update(variant_values.get(item_code, {}))
 	return item_details
 
 
 def validate_filters(filters):
 	if not (filters.get("item_code") or filters.get("warehouse")):
-		sle_count = flt(frappe.db.sql("""select count(name) from `tabStock Ledger Entry`""")[0][0])
+		sle_count = frappe.db.count("Stock Ledger Entry")
 		if sle_count > 500000:
 			frappe.throw(_("Please set filter based on Item or Warehouse due to a large amount of entries."))
 
@@ -333,16 +331,17 @@ def get_variants_attributes():
 
 
 def get_variant_values_for(items):
-	"""Returns variant values for items."""
+	"""Return variant attributes for the supplied item codes."""
+	if not items:
+		return {}
+	attribute = frappe.qb.DocType("Item Variant Attribute")
+	rows = (
+		frappe.qb.from_(attribute)
+		.select(attribute.parent, attribute.attribute, attribute.attribute_value)
+		.where(attribute.parent.isin(items))
+		.run(as_dict=True)
+	)
 	attribute_map = {}
-	for attr in frappe.db.sql(
-		"""select parent, attribute, attribute_value
-        from `tabItem Variant Attribute` where parent in ({})
-        """.format(", ".join(["%s"] * len(items))),
-		tuple(items),
-		as_dict=1,
-	):
-		attribute_map.setdefault(attr["parent"], {})
-		attribute_map[attr["parent"]].update({attr["attribute"]: attr["attribute_value"]})
-
+	for row in rows:
+		attribute_map.setdefault(row.parent, {})[row.attribute] = row.attribute_value
 	return attribute_map
