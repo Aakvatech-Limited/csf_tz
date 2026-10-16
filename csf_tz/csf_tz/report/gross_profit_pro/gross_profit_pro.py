@@ -2,11 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
-from pypika import Order
 from erpnext.controllers.queries import get_match_cond
 from erpnext.stock.utils import get_incoming_rate
 from frappe import _, scrub
 from frappe.utils import cint, flt
+from pypika import Order
 
 from csf_tz import console
 
@@ -487,10 +487,10 @@ class GrossProfitGenerator:
 				`tabSales Invoice`.docstatus=1 and `tabSales Invoice`.is_opening!='Yes' {conditions} {match_cond}
 			order by
 				`tabSales Invoice`.posting_date desc, `tabSales Invoice`.posting_time desc""".format(
-				conditions=conditions,
-				sales_person_cols=sales_person_cols,
-				sales_team_table=sales_team_table,
-				match_cond=get_match_cond("Sales Invoice"),
+			conditions=conditions,
+			sales_person_cols=sales_person_cols,
+			sales_team_table=sales_team_table,
+			match_cond=get_match_cond("Sales Invoice"),
 		)
 		self.si_list = frappe.db.sql(query, self.filters, as_dict=1)
 
