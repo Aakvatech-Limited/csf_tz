@@ -160,7 +160,9 @@ def get_conditions(filters):
 
 	if filters.get("warehouse_type") and not filters.get("warehouse"):
 		conditions += " and exists (select name from `tabWarehouse` wh \
-            where wh.warehouse_type = '{}' and sle.warehouse = wh.name)".format(filters.get("warehouse_type"))
+            where wh.warehouse_type = {} and sle.warehouse = wh.name)".format(
+			frappe.db.escape(filters.get("warehouse_type"))
+		)
 
 	return conditions
 
