@@ -1,10 +1,10 @@
 # Copyright (c) 2013, Aakvatech and contributors
 # For license information, please see license.txt
 
+import re
 from collections import OrderedDict
 
 import frappe
-import re
 from erpnext import get_company_currency, get_default_company
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
