@@ -561,8 +561,8 @@ class ReceivablePayableReport:
 			conditions += " and posting_date > %s"
 			values.append(date)
 
-		self.gl_entries = frappe.db.sql(
-			f"""
+		# The selectable aggregate fields are restricted to the two fixed alternatives above.
+		query = f"""
 			select
 				name, posting_date, account, party_type, party, voucher_type, voucher_no,
 				against_voucher_type, against_voucher, account_currency, remarks, {select_fields}
@@ -571,10 +571,8 @@ class ReceivablePayableReport:
 			where
 				docstatus < 2 and party_type=%s and (party is not null and party != '') {conditions}
 				group by voucher_type, voucher_no, against_voucher_type, against_voucher, party
-				order by posting_date, party""",
-			values,
-			as_dict=True,
-		)
+				order by posting_date, party"""
+		self.gl_entries = frappe.db.sql(query, values, as_dict=True)
 
 		return self.gl_entries
 
@@ -771,8 +769,8 @@ def get_pdc_details(party_type, report_date):
 	else:
 		amount_field = "jea.debit + jea.credit"
 
-	pdc_via_je = frappe.db.sql(
-		f"""
+	# Amount expression comes from a fixed Customer/Supplier allowlist.
+	query = f"""
 		select
 			jea.reference_name as invoice_no, jea.party, jea.party_type,
 			je.posting_date as pdc_date, ifnull({amount_field},0) as pdc_amount,
@@ -784,10 +782,8 @@ def get_pdc_details(party_type, report_date):
 		where
 			je.docstatus < 2 and je.posting_date > %s
 			and jea.party_type = %s
-		""",
-		(report_date, party_type),
-		as_dict=1,
-	)
+		"""
+	pdc_via_je = frappe.db.sql(query, (report_date, party_type), as_dict=1)
 
 	for pdc in pdc_via_je:
 		pdc_details.setdefault((pdc.invoice_no, pdc.party), []).append(pdc)
@@ -808,7 +804,7 @@ def get_dn_details(party_type, voucher_nos):
 			where
 				docstatus=1 and delivery_note is not null and delivery_note != ''
 				and parent in ({}) group by parent
-			""".format(",".join(["%s"] * len(voucher_nos))),
+			""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
 			tuple(voucher_nos),
 			as_dict=1,
 		):
@@ -824,7 +820,7 @@ def get_dn_details(party_type, voucher_nos):
 				docstatus=1 and against_sales_invoice is not null and against_sales_invoice != ''
 				and against_sales_invoice in ({})
 				group by against_sales_invoice
-			""".format(",".join(["%s"] * len(voucher_nos))),
+			""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
 			tuple(voucher_nos),
 			as_dict=1,
 		):
@@ -847,7 +843,7 @@ def get_voucher_details(party_type, voucher_nos, dn_details):
 			left join `tabSales Team` steam on steam.parent = inv.name and steam.parenttype = 'Sales Invoice'
 			where inv.docstatus=1 and inv.name in ({})
 			group by inv.name
-			""".format(",".join(["%s"] * len(voucher_nos))),
+			""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
 			(tuple(voucher_nos)),
 			as_dict=1,
 		):
@@ -858,7 +854,7 @@ def get_voucher_details(party_type, voucher_nos, dn_details):
 		for pi in frappe.db.sql(
 			"""select name, due_date, bill_no, bill_date
 			from `tabPurchase Invoice` where docstatus = 1 and name in ({})
-			""".format(",".join(["%s"] * len(voucher_nos))),
+			""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
 			(tuple(voucher_nos)),
 			as_dict=1,
 		):
@@ -867,7 +863,7 @@ def get_voucher_details(party_type, voucher_nos, dn_details):
 	for pi in frappe.db.sql(
 		"""select name, due_date, bill_no, bill_date from
 		`tabJournal Entry` where docstatus = 1 and bill_no is not NULL and name in ({})
-		""".format(",".join(["%s"] * len(voucher_nos))),
+		""".replace("{}", ",".join(["%s"] * len(voucher_nos))),
 		(tuple(voucher_nos)),
 		as_dict=1,
 	):
