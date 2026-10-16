@@ -93,9 +93,7 @@ def get_salary_slips(filters, company_currency):
 			"in",
 			get_departments(filters["department"], filters["company"]),
 		]
-	return frappe.get_all(
-		"Salary Slip", filters=query_filters, fields=["*"], order_by="employee"
-	)
+	return frappe.get_all("Salary Slip", filters=query_filters, fields=["*"], order_by="employee")
 
 
 def get_ss_basic_map(salary_slips, currency, company_currency):
@@ -105,7 +103,8 @@ def get_ss_basic_map(salary_slips, currency, company_currency):
 	ss = frappe.qb.DocType("Salary Slip")
 	query = (
 		frappe.qb.from_(sd)
-		.join(ss).on(sd.parent == ss.name)
+		.join(ss)
+		.on(sd.parent == ss.name)
 		.select(
 			sd.salary_component,
 			Sum(sd.amount).as_("total"),
@@ -127,7 +126,8 @@ def get_ss_earning_map(salary_slips, currency, company_currency):
 	ss = frappe.qb.DocType("Salary Slip")
 	query = (
 		frappe.qb.from_(sd)
-		.join(ss).on(sd.parent == ss.name)
+		.join(ss)
+		.on(sd.parent == ss.name)
 		.select(
 			sd.salary_component,
 			Sum(sd.amount).as_("total"),
@@ -149,7 +149,8 @@ def get_ss_ded_map(salary_slips, currency, company_currency):
 	ss = frappe.qb.DocType("Salary Slip")
 	query = (
 		frappe.qb.from_(sd)
-		.join(ss).on(sd.parent == ss.name)
+		.join(ss)
+		.on(sd.parent == ss.name)
 		.select(
 			sd.salary_component,
 			(Sum(sd.amount) * -1).as_("total"),
@@ -157,7 +158,6 @@ def get_ss_ded_map(salary_slips, currency, company_currency):
 		.where(sd.parent.isin([slip.name for slip in salary_slips]))
 		.where(sd.do_not_include_in_total == 0)
 		.where(sd.parentfield == "deductions")
-		
 		.groupby(sd.salary_component)
 		.orderby(sd.salary_component)
 	)
