@@ -96,26 +96,40 @@ function checkMaxUnclaimedAndCreateEA(frm, unclaimed_count) {
         'frappe.client.get_value',
         {
             doctype: 'Company',
-            fieldname: ['max_unclaimed_ea', 'abbr'],
+            fieldname: ['max_unclaimed_ea', 'default_employee_advance_account'],
             filters: {
                 name: frm.doc.company
             }
         },
         function (company_response) {
             let max_unclaimed_ea = company_response.max_unclaimed_ea;
-            let company_abbr = company_response.abbr;
-
-            if (unclaimed_count < max_unclaimed_ea) {
-                createEmployeeAdvance(frm, company_abbr);
-            } else {
+            if (unclaimed_count >= max_unclaimed_ea) {
                 frappe.msgprint(__('The maximum number of unclaimed Employee Advances has been reached. Cannot create a new Employee Advance.'));
+                return;
             }
+
+            makeFrappeCall(
+                'frappe.client.get_value',
+                {
+                    doctype: 'Employee',
+                    filters: { name: frm.doc.employee },
+                    fieldname: ['employee_advance_account']
+                },
+                function (employee_response) {
+                    const advance_account = employee_response.employee_advance_account ||
+                        company_response.default_employee_advance_account;
+                    if (!advance_account) {
+                        frappe.msgprint(__('Please configure Employee Advance Account on the Employee or Default Employee Advance Account on the Company.'));
+                        return;
+                    }
+                    createEmployeeAdvance(frm, advance_account);
+                }
+            );
         }
     );
 }
 
-function createEmployeeAdvance(frm, company_abbr) {
-    let advance_account = "Employee Advances - " + company_abbr;
+function createEmployeeAdvance(frm, advance_account) {
 
     makeFrappeCall(
         'frappe.client.insert',
