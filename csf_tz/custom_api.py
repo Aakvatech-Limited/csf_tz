@@ -1010,27 +1010,27 @@ def check_validate_delivery_note(doc=None, method=None, doc_name=None):
 
 def check_submit_delivery_note(doc, method):
     if doc.update_stock:
-        doc.db_set("delivery_status", "Delivered", commit=True)
+        doc.db_set("delivery_status", "Delivered")
         for item in doc.items:
-            item.db_set("delivered_qty", item.stock_qty, commit=True)
-            item.db_set("delivery_status", "Delivered", commit=True)
+            item.db_set("delivered_qty", item.stock_qty)
+            item.db_set("delivery_status", "Delivered")
     else:
         part_deivery = False
         for item in doc.items:
             if not check_item_is_maintain(item.item_code):
-                item.db_set("delivered_qty", item.stock_qty, commit=True)
-                item.db_set("delivery_status", "Delivered", commit=True)
+                item.db_set("delivered_qty", item.stock_qty)
+                item.db_set("delivery_status", "Delivered")
                 part_deivery = True
         if part_deivery:
-            doc.db_set("delivery_status", "Part Delivered", commit=True)
+            doc.db_set("delivery_status", "Part Delivered")
 
 
 def check_cancel_delivery_note(doc, method):
     if not doc.update_stock:
-        doc.db_set("delivery_status", "Not Delivered", commit=True)
+        doc.db_set("delivery_status", "Not Delivered")
         for item in doc.items:
-            item.db_set("delivered_qty", 0, commit=True)
-            item.db_set("delivery_status", "Not Delivered", commit=True)
+            item.db_set("delivered_qty", 0)
+            item.db_set("delivery_status", "Not Delivered")
 
 
 def update_delivery_on_sales_invoice(doc, method):

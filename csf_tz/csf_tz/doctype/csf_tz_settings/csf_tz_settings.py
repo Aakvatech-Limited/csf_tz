@@ -28,7 +28,7 @@ class CSFTZSettings(Document):
             update_site_config("email_queue_batch_size", self.email_qatch_batch_size)
 
     def on_update(self):
-        self.manage_trade_in_functionality()
+        # Trade-In resources are managed by AV Tools; do not mutate shared item/account here.
         self.manage_tz_regions_population()
 
     def manage_trade_in_functionality(self):
