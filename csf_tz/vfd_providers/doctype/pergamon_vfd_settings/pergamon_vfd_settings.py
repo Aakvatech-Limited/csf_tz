@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import quote
 import frappe
 import requests
+from time import monotonic
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, now_datetime
@@ -15,6 +16,41 @@ from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except
 SETTINGS_DOCTYPE = "Pergamon VFD Settings"
 TAX_CODES = {1: "A", 2: "B", 3: "C", 4: "D", 5: "E"}
 TIMEOUT = (5, 60)
+
+
+def log_pergamon_diagnostic(operation, exc=None, status_code=None, started=None):
+	"""Opt-in diagnostics, never logging credentials, URLs or customer payloads."""
+	if not frappe.conf.get("pergamon_debug_logging"):
+		return
+	elapsed_ms = round((monotonic() - started) * 1000) if started is not None else None
+	exception_type = type(exc).__name__ if exc is not None else "HTTPResponse"
+	cause = getattr(exc, "__cause__", None) if exc is not None else None
+	cause_type = type(cause).__name__ if cause is not None else "None"
+	reason = "not_applicable"
+	if isinstance(exc, requests.exceptions.SSLError):
+		# Classify known certificate errors without logging the original exception
+		# string (which may contain a URL or credentials).
+		detail = str(exc).lower()
+		if "self-signed" in detail or "self signed" in detail:
+			reason = "self_signed_certificate"
+		elif "hostname" in detail or "ip address mismatch" in detail:
+			reason = "certificate_name_mismatch"
+		elif "expired" in detail:
+			reason = "certificate_expired"
+		elif "unable to get local issuer" in detail:
+			reason = "untrusted_issuer"
+		else:
+			reason = "other_tls_error"
+	frappe.logger("pergamon_vfd", allow_site=True).warning(
+		"operation=%s exception=%s cause=%s reason=%s http_status=%s elapsed_ms=%s ca_bundle_configured=%s",
+		operation,
+		exception_type,
+		cause_type,
+		reason,
+		status_code,
+		elapsed_ms,
+		bool(frappe.conf.get("pergamon_ca_bundle")),
+	)
 
 
 def get_tls_verify():
@@ -230,6 +266,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	fiscal_datetime = now_datetime()
 	request_data = get_payload(doc, fiscal_datetime=fiscal_datetime)
 	safe_headers = {"Accept": "application/json", "Content-Type": "application/json"}
+	started = monotonic()
 	try:
 		response = requests.post(
 			url,
@@ -245,13 +282,15 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			result = {"message": "Non-JSON response from Pergamon"}
 		if not isinstance(result, dict):
 			result = {"message": "Unexpected Pergamon response type"}
-	except requests.exceptions.SSLError:
+	except requests.exceptions.SSLError as exc:
+		log_pergamon_diagnostic("post_invoice", exc=exc, started=started)
 		# TLS verification fails before an authenticated HTTP request is sent.
 		result, response = (
 			{"message": "Pergamon HTTPS certificate verification failed; configure a trusted CA certificate"},
 			None,
 		)
-	except requests.RequestException:
+	except requests.RequestException as exc:
+		log_pergamon_diagnostic("post_invoice", exc=exc, started=started)
 		# No automatic retry: request may have reached the fiscal server.
 		result, response = (
 			{"message": "Transport outcome uncertain; reconcile with Pergamon before retry"},
@@ -332,6 +371,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 		frappe.throw(_("Unexpected Pergamon invoice lookup endpoint configuration"))
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
 	url = provider.base_url.rstrip("/") + endpoint.replace("{id}", quote(provider_invoice_id, safe=""))
+	started = monotonic()
 	try:
 		response = requests.get(
 			url,
@@ -340,14 +380,17 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 			timeout=TIMEOUT,
 			verify=get_tls_verify(),
 		)
-	except requests.exceptions.SSLError:
+	except requests.exceptions.SSLError as exc:
+		log_pergamon_diagnostic("get_invoice", exc=exc, started=started)
 		raise_tls_error()
-	except requests.RequestException:
+	except requests.RequestException as exc:
+		log_pergamon_diagnostic("get_invoice", exc=exc, started=started)
 		frappe.throw(_("Pergamon invoice lookup failed. Check connectivity and retry."))
 
 	if response.status_code == 404:
 		return {"found": False, "verified": False, "message": _("Invoice ID not found at Pergamon")}
 	if not response.ok:
+		log_pergamon_diagnostic("get_invoice", status_code=response.status_code, started=started)
 		frappe.throw(
 			_("Pergamon invoice lookup failed with HTTP status {0}").format(response.status_code)
 		)
@@ -469,6 +512,7 @@ def list_pergamon_invoices(sales_invoice):
 	if endpoint != "/invoices":
 		frappe.throw(_("Unexpected Pergamon invoice list endpoint configuration"))
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
+	started = monotonic()
 	try:
 		response = requests.get(
 			provider.base_url.rstrip("/") + endpoint,
@@ -477,11 +521,14 @@ def list_pergamon_invoices(sales_invoice):
 			timeout=TIMEOUT,
 			verify=get_tls_verify(),
 		)
-	except requests.exceptions.SSLError:
+	except requests.exceptions.SSLError as exc:
+		log_pergamon_diagnostic("list_invoices", exc=exc, started=started)
 		raise_tls_error()
-	except requests.RequestException:
+	except requests.RequestException as exc:
+		log_pergamon_diagnostic("list_invoices", exc=exc, started=started)
 		frappe.throw(_("Pergamon invoice register could not be retrieved"))
 	if not response.ok:
+		log_pergamon_diagnostic("list_invoices", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon invoice register returned HTTP {0}").format(response.status_code))
 	try:
 		body = response.json()
@@ -561,6 +608,7 @@ def fetch_pergamon_zreport(company, report_date):
 	if endpoint != "/zreports":
 		frappe.throw(_("Unexpected Pergamon Z Report endpoint configuration"))
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, company)
+	started = monotonic()
 	try:
 		response = requests.get(
 			provider.base_url.rstrip("/") + endpoint,
@@ -570,11 +618,14 @@ def fetch_pergamon_zreport(company, report_date):
 			timeout=TIMEOUT,
 			verify=get_tls_verify(),
 		)
-	except requests.exceptions.SSLError:
+	except requests.exceptions.SSLError as exc:
+		log_pergamon_diagnostic("get_zreports", exc=exc, started=started)
 		raise_tls_error()
-	except requests.RequestException:
+	except requests.RequestException as exc:
+		log_pergamon_diagnostic("get_zreports", exc=exc, started=started)
 		frappe.throw(_("Pergamon Z Report retrieval failed. Check connectivity and retry"))
 	if not response.ok:
+		log_pergamon_diagnostic("get_zreports", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon Z Report request returned HTTP {0}").format(response.status_code))
 	try:
 		body = response.json()
@@ -671,6 +722,7 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 	if endpoint != "/periodic-reports":
 		frappe.throw(_("Unexpected Pergamon periodic report endpoint configuration"))
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, company)
+	started = monotonic()
 	try:
 		response = requests.get(
 			provider.base_url.rstrip("/") + endpoint,
@@ -680,11 +732,14 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 			timeout=TIMEOUT,
 			verify=get_tls_verify(),
 		)
-	except requests.exceptions.SSLError:
+	except requests.exceptions.SSLError as exc:
+		log_pergamon_diagnostic("get_periodic_reports", exc=exc, started=started)
 		raise_tls_error()
-	except requests.RequestException:
+	except requests.RequestException as exc:
+		log_pergamon_diagnostic("get_periodic_reports", exc=exc, started=started)
 		frappe.throw(_("Pergamon periodic report retrieval failed. Check connectivity and retry"))
 	if not response.ok:
+		log_pergamon_diagnostic("get_periodic_reports", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon periodic report returned HTTP {0}").format(response.status_code))
 	try:
 		body = response.json()
