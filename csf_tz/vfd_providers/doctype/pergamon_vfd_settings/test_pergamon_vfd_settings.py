@@ -106,6 +106,50 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(len(payload["salesItems"]), 6)
 		self.assertTrue(all(line["amount"] == 423360 and line["taxCode"] == "C" for line in payload["salesItems"]))
 
+	def test_six_standard_rated_tzs_lines_round_to_invoice_total(self):
+		"""ACC-SINV-2026-00077: six base rates plus 18% VAT and rounding."""
+		doc = self.make_invoice()
+		doc.name = "ACC-SINV-2026-00077"
+		doc.customer_name = "Export Trading Co. Ltd"
+		doc.vfd_cust_id = "125082890.0"
+		doc.posting_date = "2026-10-29"
+		doc.posting_time = "11:42:3.181251"
+		doc.base_grand_total = 2699999.98
+		doc.base_rounded_total = 2700000
+		doc.base_rounding_adjustment = 0.02
+		doc.items = [
+			frappe._dict(
+				{
+					"item_code": "STO-ITEM-2026-00366",
+					"item_name": "Local Transportation",
+					"item_tax_template": "STANDARD-VAT",
+					"qty": 1,
+					"base_rate": 381355.93,
+					"base_amount": 381355.93,
+					"base_net_amount": 381355.93,
+					"distributed_discount_amount": 0,
+				}
+			)
+			for _ in range(6)
+		]
+		with (
+			patch.object(pergamon, "get_item_taxcode", return_value=1),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+		):
+			payload = pergamon.get_payload(doc)
+		self.assertEqual(payload["totalAmount"], 2700000)
+		self.assertEqual(payload["currency"], "TZS")
+		self.assertEqual(payload["custId"], "125082890")
+		self.assertEqual(payload["dateTime"], "2026-10-29 11:42:03")
+		self.assertEqual(len(payload["salesItems"]), 6)
+		self.assertTrue(all(row["taxCode"] == "A" and row["amount"] == 450000 for row in payload["salesItems"]))
+
+	def test_inconsistent_base_rounding_is_rejected(self):
+		doc = self.make_invoice()
+		doc.base_rounded_total = 51
+		with patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"):
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
+
 	def test_rejects_non_tzs_company_base_currency(self):
 		doc = self.make_invoice()
 		with patch.object(pergamon.frappe, "get_cached_value", return_value="USD"):
