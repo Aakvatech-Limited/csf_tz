@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import json
-from datetime import datetime
 from decimal import Decimal
 
 import frappe
@@ -101,9 +100,11 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
     validate_postable(doc)
     settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
     provider = get_provider()
+    if provider.sandbox:
+        frappe.throw(_("Pergamon sandbox endpoint is not configured. Disable Sandbox before posting."))
     if not provider.base_url.lower().startswith("https://"):
         frappe.throw(_("Pergamon endpoint must use HTTPS"))
-    url = provider.base_url.rstrip("/") + "/invoices"
+    url = provider.base_url.rstrip("/") + provider.get_endpoint("post_receipt")
     # Always rebuild the payload on the server; the preview is not trusted input.
     request_data = get_payload(doc)
     safe_headers = {"Accept": "application/json", "Content-Type": "application/json"}
@@ -124,6 +125,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
         result, response = {"message": "Transport outcome uncertain; reconcile with Pergamon before retry"}, None
 
     accepted, receipt = parse_receipt(result)
+    accepted = bool(accepted and response is not None and response.ok)
     posting = frappe.new_doc("VFD Provider Posting")
     posting.sales_invoice = doc.name
     posting.req_data = json.dumps(request_data)
@@ -133,7 +135,9 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
     posting.date = now_datetime().date()
     posting.time = now_datetime().time()
     if accepted:
-        posting.rctnum = receipt.get("receiptNumber") or receipt.get("rctNum")
+        receipt_number = receipt.get("receiptNumber") or receipt.get("rctNum")
+        if str(receipt_number or "").isdigit():
+            posting.rctnum = int(receipt_number)
     posting.insert(ignore_permissions=True)
 
     values = {"vfd_status": "Success" if accepted else "Failed", "vfd_posting_info": posting.name}
