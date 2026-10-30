@@ -328,7 +328,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 	expected = flt(doc.get("base_rounded_total") or doc.base_grand_total, 2)
 	matches_reference = str(reference or "") == doc.name
 	matches_amount = amount is not None and abs(flt(amount, 2) - expected) <= 0.05
-	verification_code = receipt_field(result, "verificationCode", "traReceiptVerificationCode")
+	verification_code = get_verification_code(result)
 	provider_currency = receipt_field(result, "currency")
 	currency_matches = provider_currency == "TZS"
 	return {
@@ -342,7 +342,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 		"provider_reference": reference,
 		"provider_amount": amount,
 		"verification_code": verification_code,
-		"verification_url": receipt_field(result, "verificationUrl", "traReceiptVerificationUrl"),
+		"verification_url": get_verification_url(result),
 		"data": result,
 		"message": _("Lookup completed; no Sales Invoice fields were changed"),
 	}
@@ -377,7 +377,7 @@ def compare_pergamon_invoices(records, erpnext_invoices):
 		invoice = index.get(reference)
 		provider_amount = receipt_field(receipt, "totalAmount")
 		currency = receipt_field(receipt, "currency")
-		verification = receipt_field(receipt, "verificationCode", "traReceiptVerificationCode")
+		verification = get_verification_code(receipt)
 		expected = (
 			flt(invoice.base_rounded_total or invoice.base_grand_total, 2) if invoice else None
 		)
