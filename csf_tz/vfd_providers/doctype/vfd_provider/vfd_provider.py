@@ -8,6 +8,18 @@ from frappe.model.document import Document
 # URLs and endpoints of the providers this app talks to, keyed by settings
 # doctype because the provider record can be renamed by the user.
 PROVIDER_DEFAULTS = {
+	"Pergamon VFD Settings": {
+		"live_url": "https://5.161.57.127:9040/api/v1",
+		"test_url": "https://5.161.57.127:9040/api/v1",
+		"endpoints": {
+			"post_receipt": "/invoices",
+			"get_invoices": "/invoices",
+			"get_invoice": "/invoices/{id}",
+			"zreports": "/zreports",
+			"periodic_reports": "/periodic-reports",
+			"generate_invoices": "/generate-invoices",
+		},
+	},
 	"DIRM VFD Settings": {
 		"test_url": "https://dirmvfd.co.tz/api_demo",
 		"live_url": "https://dirmvfd.co.tz/api_live",
