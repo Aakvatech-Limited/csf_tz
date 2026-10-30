@@ -399,6 +399,37 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			"2026-10-30",
 		)
 
+	def test_actual_pergamon_duplicate_response(self):
+		response = {
+			"status": 200,
+			"statusCode": "SUCCES",
+			"message": "Invoice already exists",
+			"data": {
+				"receiptNo": 1251,
+				"traderInvoiceNo": "ACC-SINV-2026-00014",
+				"totalAmount": 11800.0,
+				"currency": "TZS",
+				"dateTime": "20261030225008",
+				"receipVerificationNo": "P83AOR1251",
+				"invoiceVerificationUrl": "https://stg-verify.tra.go.tz/P83AOR1251_225008",
+			},
+		}
+		accepted, receipt = pergamon.parse_receipt(response)
+		self.assertTrue(accepted)
+		self.assertEqual(pergamon.get_verification_code(receipt), "P83AOR1251")
+		self.assertEqual(
+			pergamon.get_verification_url(receipt),
+			"https://stg-verify.tra.go.tz/P83AOR1251_225008",
+		)
+		self.assertEqual(pergamon.receipt_field(receipt, "receiptNo"), 1251)
+		self.assertEqual(
+			pergamon.get_receipt_timestamp(receipt, datetime(2026, 10, 30, 22, 48, 1)),
+			datetime(2026, 10, 30, 22, 50, 8),
+		)
+
+	def test_pergamon_missing_verification_never_counts_as_success(self):
+		self.assertFalse(pergamon.parse_receipt({"statusCode": "SUCCES", "data": {}})[0])
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
