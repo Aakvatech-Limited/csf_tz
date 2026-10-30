@@ -226,6 +226,43 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertFalse(pergamon.parse_receipt({"success": True})[0])
 		self.assertTrue(pergamon.parse_receipt({"success": True, "verificationCode": "VERIFY-123"})[0])
 
+	def test_verification_url_in_nested_success_response(self):
+		response = {
+			"success": True,
+			"data": {
+				"verificationCode": "VFD-2026-42",
+				"verificationUrl": "https://verify.tra.go.tz/example",
+			},
+		}
+		accepted, receipt = pergamon.parse_receipt(response)
+		self.assertTrue(accepted)
+		self.assertEqual(
+			pergamon.receipt_field(receipt, "verificationUrl", "traReceiptVerificationUrl"),
+			"https://verify.tra.go.tz/example",
+		)
+
+	def test_verification_url_in_result_envelope(self):
+		response = {
+			"status": "SUCCESS",
+			"result": {
+				"traReceiptVerificationCode": "VFD-2026-42",
+				"traReceiptVerificationUrl": "https://verify.tra.go.tz/another",
+			},
+		}
+		accepted, receipt = pergamon.parse_receipt(response)
+		self.assertTrue(accepted)
+		self.assertEqual(
+			pergamon.receipt_field(receipt, "verificationUrl", "traReceiptVerificationUrl"),
+			"https://verify.tra.go.tz/another",
+		)
+
+	def test_missing_verification_url_does_not_invent_one(self):
+		response = {"success": True, "verificationCode": "VFD-2026-42"}
+		self.assertTrue(pergamon.parse_receipt(response)[0])
+		self.assertIsNone(
+			pergamon.receipt_field(response, "verificationUrl", "traReceiptVerificationUrl")
+		)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
