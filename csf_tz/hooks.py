@@ -122,7 +122,7 @@ after_install = [
 	"csf_tz.utils.create_custom_fields.execute",
 	"csf_tz.utils.create_property_setter.execute",
 	"csf_tz.utils.setup.execute",
-	"csf_tz.vfd_providers.setup_pergamon.ensure_pergamon_provider",
+	"csf_tz.patches.setup_pergamon_vfd.execute",
 ]
 
 before_migrate = ["csf_tz.vfd_support.upgrade.block_stale_vfd_providers"]
@@ -132,7 +132,7 @@ after_migrate = [
 	"csf_tz.utils.create_property_setter.execute",
 	"csf_tz.patches.custom_fields.vfd_providers_updated_custom_fields.execute",
 	"csf_tz.patches.migrate_vfd_providers_to_csf_tz.execute",
-	"csf_tz.vfd_providers.setup_pergamon.ensure_pergamon_provider",
+	"csf_tz.patches.setup_pergamon_vfd.execute",
 	"csf_tz.patches.remove_ot_component_custom_fields.execute",
 	"csf_tz.patches.custom_fields.attendance_overtime_calculation_custom_fields.execute",
 ]
