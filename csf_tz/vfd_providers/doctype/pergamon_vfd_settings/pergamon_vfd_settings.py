@@ -294,9 +294,13 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 	matches_reference = str(reference or "") == doc.name
 	matches_amount = amount is not None and abs(flt(amount, 2) - expected) <= 0.05
 	verification_code = receipt_field(result, "verificationCode", "traReceiptVerificationCode")
+	provider_currency = receipt_field(result, "currency")
+	currency_matches = provider_currency == "TZS"
 	return {
 		"found": True,
-		"verified": bool(matches_reference and matches_amount and verification_code),
+		"verified": bool(matches_reference and matches_amount and currency_matches and verification_code),
+		"currency_matches": currency_matches,
+		"provider_currency": provider_currency,
 		"reference_matches": matches_reference,
 		"amount_matches": matches_amount,
 		"expected_tzs": expected,
