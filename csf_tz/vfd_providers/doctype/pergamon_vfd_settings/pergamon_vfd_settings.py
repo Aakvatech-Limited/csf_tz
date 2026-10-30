@@ -147,12 +147,38 @@ def receipt_field(response, *names):
 	return None
 
 
+def get_verification_code(response):
+	return receipt_field(
+		response, "receipVerificationNo", "verificationCode", "traReceiptVerificationCode"
+	)
+
+
+def get_verification_url(response):
+	return receipt_field(
+		response, "invoiceVerificationUrl", "verificationUrl", "traReceiptVerificationUrl"
+	)
+
+
 def parse_receipt(response):
-	"""Require explicit acceptance and a verification code before marking success."""
+	"""Recognize the actual Pergamon SUCCES response, including existing receipts."""
+	if not isinstance(response, dict):
+		return False, response
 	success = receipt_field(response, "success") is True
-	status = str(receipt_field(response, "status") or "").upper()
-	verification = receipt_field(response, "verificationCode", "traReceiptVerificationCode")
-	return bool((success or status in ("SUCCESS", "ACCEPTED")) and verification), response
+	status = str(receipt_field(response, "statusCode", "status") or "").upper()
+	return bool((success or status in ("SUCCES", "SUCCESS", "ACCEPTED")) and get_verification_code(response)), response
+
+
+def get_receipt_timestamp(response, fallback):
+	"""Use the original provider receipt timestamp when it is supplied."""
+	from datetime import datetime
+
+	value = receipt_field(response, "dateTime")
+	if value:
+		try:
+			return datetime.strptime(str(value), "%Y%m%d%H%M%S")
+		except ValueError:
+			pass
+	return fallback
 
 
 @frappe.whitelist()
@@ -200,6 +226,17 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 
 	accepted, receipt = parse_receipt(result)
 	accepted = bool(accepted and response is not None and response.ok)
+	if accepted:
+		reference = receipt_field(receipt, "traderInvoiceNo")
+		amount = receipt_field(receipt, "totalAmount")
+		currency = receipt_field(receipt, "currency")
+		accepted = bool(
+			str(reference or "") == doc.name
+			and amount is not None
+			and abs(flt(amount, 2) - flt(request_data["totalAmount"], 2)) <= 0.05
+			and currency == "TZS"
+		)
+	receipt_datetime = get_receipt_timestamp(receipt, fiscal_datetime) if accepted else fiscal_datetime
 	posting = frappe.new_doc("VFD Provider Posting")
 	posting.sales_invoice = doc.name
 	posting.req_data = json.dumps(request_data)
@@ -209,7 +246,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	posting.date = fiscal_datetime.date()
 	posting.time = fiscal_datetime.time().replace(microsecond=0)
 	if accepted:
-		receipt_number = receipt_field(receipt, "receiptNumber", "rctNum")
+		receipt_number = receipt_field(receipt, "receiptNo", "receiptNumber", "rctNum")
 		if str(receipt_number or "").isdigit():
 			posting.rctnum = int(receipt_number)
 	posting.insert(ignore_permissions=True)
@@ -218,12 +255,10 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	if accepted:
 		values.update(
 			{
-				"vfd_rctvnum": receipt_field(receipt, "verificationCode", "traReceiptVerificationCode"),
-				"vfd_verification_url": receipt_field(
-					receipt, "verificationUrl", "traReceiptVerificationUrl"
-				),
-				"vfd_date": posting.date,
-				"vfd_time": posting.time,
+				"vfd_rctvnum": get_verification_code(receipt),
+				"vfd_verification_url": get_verification_url(receipt),
+				"vfd_date": receipt_datetime.date(),
+				"vfd_time": receipt_datetime.time().replace(microsecond=0),
 			}
 		)
 	if method == "on_submit":
