@@ -226,6 +226,27 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertFalse(pergamon.parse_receipt({"success": True})[0])
 		self.assertTrue(pergamon.parse_receipt({"success": True, "verificationCode": "VERIFY-123"})[0])
 
+	def test_customer_vfd_identifiers_are_used(self):
+		doc = self.make_invoice()
+		doc.vfd_cust_id_type = "1- TIN"
+		doc.vfd_cust_id = "125082890.0"
+		with (
+			patch.object(pergamon, "get_item_taxcode", return_value=1),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+		):
+			payload = pergamon.get_payload(doc)
+		self.assertEqual(payload["custIdType"], "1")
+		self.assertEqual(payload["custId"], "125082890")
+
+	def test_missing_customer_vfd_identifiers_are_rejected(self):
+		doc = self.make_invoice()
+		with patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"):
+			doc.vfd_cust_id_type = ""
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
+			doc.vfd_cust_id_type = "1- TIN"
+			doc.vfd_cust_id = ""
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
+
 	def test_verification_url_in_nested_success_response(self):
 		response = {
 			"success": True,
