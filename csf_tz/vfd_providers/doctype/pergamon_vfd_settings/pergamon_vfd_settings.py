@@ -26,12 +26,27 @@ def log_pergamon_diagnostic(operation, exc=None, status_code=None, started=None)
 	exception_type = type(exc).__name__ if exc is not None else "HTTPResponse"
 	cause = getattr(exc, "__cause__", None) if exc is not None else None
 	cause_type = type(cause).__name__ if cause is not None else "None"
+	reason = "not_applicable"
+	if isinstance(exc, requests.exceptions.SSLError):
+		# Classify known certificate errors without logging the original exception
+		# string (which may contain a URL or credentials).
+		detail = str(exc).lower()
+		if "self-signed" in detail or "self signed" in detail:
+			reason = "self_signed_certificate"
+		elif "hostname" in detail or "ip address mismatch" in detail:
+			reason = "certificate_name_mismatch"
+		elif "expired" in detail:
+			reason = "certificate_expired"
+		elif "unable to get local issuer" in detail:
+			reason = "untrusted_issuer"
+		else:
+			reason = "other_tls_error"
 	frappe.logger("pergamon_vfd", allow_site=True).warning(
-		"operation=%s exception=%s cause=%s tls_error=%s http_status=%s elapsed_ms=%s ca_bundle_configured=%s",
+		"operation=%s exception=%s cause=%s reason=%s http_status=%s elapsed_ms=%s ca_bundle_configured=%s",
 		operation,
 		exception_type,
 		cause_type,
-		isinstance(exc, requests.exceptions.SSLError),
+		reason,
 		status_code,
 		elapsed_ms,
 		bool(frappe.conf.get("pergamon_ca_bundle")),
