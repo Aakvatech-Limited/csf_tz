@@ -22,6 +22,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 				"currency": "TZS",
 				"conversion_rate": 1,
 				"grand_total": 50,
+				"base_grand_total": 50,
 				"posting_date": "2026-10-30",
 				"posting_time": "05:01:15",
 				"items": [
@@ -31,6 +32,10 @@ class TestPergamonVFDSettings(FrappeTestCase):
 							"item_name": "Item A",
 							"item_tax_template": "VAT-A",
 							"qty": 1,
+							"base_rate": 50,
+							"base_amount": 50,
+							"base_net_amount": 42.37,
+							"distributed_discount_amount": 0,
 						}
 					),
 				],
@@ -41,7 +46,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		doc = self.make_invoice()
 		with (
 			patch.object(pergamon, "get_item_taxcode", return_value=1),
-			patch.object(pergamon, "get_vat_amount", return_value=50),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
 		):
 			result = pergamon.get_payload(doc)
 		self.assertEqual(result["traderInvoiceNo"], doc.name)
@@ -57,11 +62,11 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		doc.grand_total = 2
 		with (
 			patch.object(pergamon, "get_item_taxcode", return_value=1),
-			patch.object(pergamon, "get_vat_amount", return_value=5000),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
 		):
 			result = pergamon.get_payload(doc)
-		self.assertEqual(result["totalAmount"], 2)
-		self.assertEqual(result["exchangeRate"], 2500)
+		self.assertEqual(result["totalAmount"], 50)
+		self.assertEqual(result["exchangeRate"], 1)
 
 	def test_all_five_tax_codes(self):
 		doc = self.make_invoice()
@@ -69,7 +74,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		doc.grand_total = 50
 		with (
 			patch.object(pergamon, "get_item_taxcode", side_effect=[1, 2, 3, 4, 5]),
-			patch.object(pergamon, "get_vat_amount", return_value=10),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
 		):
 			result = pergamon.get_payload(doc)
 		self.assertEqual([row["taxCode"] for row in result["salesItems"]], list("ABCDE"))
@@ -81,9 +86,9 @@ class TestPergamonVFDSettings(FrappeTestCase):
 
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
-		doc.grand_total = 100
+		doc.base_grand_total = 100
 		with (
 			patch.object(pergamon, "get_item_taxcode", return_value=1),
-			patch.object(pergamon, "get_vat_amount", return_value=50),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
 		):
 			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
