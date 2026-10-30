@@ -50,12 +50,23 @@ def get_line_amount(item, tax_code):
 	return flt(base_rate * qty, 2)
 
 
+def normalize_customer_id(value):
+	"""Avoid trailing .0 on numeric identifiers imported through spreadsheets."""
+	value = str(value or "").strip()
+	if value.endswith(".0") and value[:-2].isdigit():
+		return value[:-2]
+	return value
+
+
 def get_payload(doc):
 	"""Build the Pergamon receipt using base rates and Total VFD VAT rules.
 
 	All values are in company/base currency; discounts are always zero.
 	The base-currency amount must reconcile to the base invoice total.
 	"""
+	company_currency = frappe.get_cached_value("Company", doc.company, "default_currency")
+	if company_currency != "TZS":
+		frappe.throw(_("Pergamon requires company base currency TZS; found {0}").format(company_currency))
 	lines = []
 	for item in doc.items:
 		code = TAX_CODES[get_item_taxcode(item.item_tax_template, item.item_code, doc.name)]
@@ -83,12 +94,12 @@ def get_payload(doc):
 		"totalAmount": total,
 		"paymentType": "CASH",
 		"custIdType": id_type,
-		"custId": doc.vfd_cust_id or "",
+		"custId": normalize_customer_id(doc.vfd_cust_id),
 		"custName": doc.customer_name or doc.customer,
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
-		"currency": frappe.get_cached_value("Company", doc.company, "default_currency"),
+		"currency": "TZS",
 		"exchangeRate": 1.0,
-		"dateTime": str(doc.get("posting_date")) + " " + str(doc.get("posting_time") or "00:00:00"),
+		"dateTime": str(doc.get("posting_date")) + " " + str(doc.get("posting_time") or "00:00:00")[:8],
 		"salesItems": lines,
 	}
 
