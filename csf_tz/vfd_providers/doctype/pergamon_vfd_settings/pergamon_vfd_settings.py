@@ -570,7 +570,10 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 	The Postman collection documents from/to parameters but no response schema.
 	Only a recognizable summary can be compared, and then indicatively.
 	"""
-	from_day, to_day = getdate(from_date), getdate(to_date)
+	try:
+		from_day, to_day = getdate(from_date), getdate(to_date)
+	except (TypeError, ValueError):
+		frappe.throw(_("Enter valid report dates in YYYY-MM-DD format"))
 	if str(from_day) != str(from_date or "") or str(to_day) != str(to_date or ""):
 		frappe.throw(_("Enter valid report dates in YYYY-MM-DD format"))
 	if from_day > to_day:
