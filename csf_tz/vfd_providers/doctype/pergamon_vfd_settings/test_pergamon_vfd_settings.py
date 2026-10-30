@@ -73,8 +73,13 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		doc = self.make_invoice()
 		doc.items = [
 			frappe._dict(
-				dict(doc.items[0], item_code=str(i), base_rate=10, base_amount=10,
-					base_net_amount=(8.47 if i == 1 else 10))
+				dict(
+						doc.items[0],
+						item_code=str(i),
+						base_rate=10,
+						base_amount=10,
+						base_net_amount=(8.47 if i == 1 else 10),
+					)
 			)
 			for i in range(1, 6)
 		]
