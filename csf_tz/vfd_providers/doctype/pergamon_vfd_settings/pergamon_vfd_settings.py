@@ -73,6 +73,8 @@ def get_payload(doc):
 
 
 def validate_postable(doc):
+	if doc.docstatus != 1:
+		frappe.throw(_("Only submitted Sales Invoices can be sent to Pergamon"))
 	if doc.is_return or doc.is_not_vfd_invoice or doc.vfd_status == "Success":
 		frappe.throw(_("This Sales Invoice is ineligible or already fiscalised"))
 	# Timeouts may occur after the provider has already created the receipt.
@@ -97,9 +99,13 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 		if not invoice_id:
 			frappe.throw(_("Sales Invoice is required"))
 		doc = frappe.get_doc("Sales Invoice", invoice_id)
+		doc.check_permission("read")
 	validate_postable(doc)
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
 	provider = get_provider()
+	selected = frappe.db.get_value("Company VFD Provider", doc.company, "vfd_provider")
+	if selected != provider.name:
+		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
 	if provider.sandbox:
 		frappe.throw(_("Pergamon sandbox endpoint is not configured. Disable Sandbox before posting."))
 	if not provider.base_url.lower().startswith("https://"):
