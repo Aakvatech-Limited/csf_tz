@@ -10,8 +10,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, now_datetime
 
-from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 from csf_tz.vfd_providers.utils import get_vat_amount
+from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
 SETTINGS_DOCTYPE = "Pergamon VFD Settings"
 TAX_CODES = {1: "A", 2: "B", 3: "C", 4: "D", 5: "E"}
@@ -41,20 +41,24 @@ def get_payload(doc):
 		base_gross = flt(get_vat_amount(item, code, precision=2), 2)
 		rate = flt(doc.conversion_rate) or 1
 		gross = flt(base_gross / rate, 2)
-		lines.append({
-			"name": item.item_name or item.item_code,
-			"qty": flt(item.qty),
-			"unitPrice": flt(gross / flt(item.qty), 2),
-			"amount": gross,
-			# The provided API collection does not establish whether discount
-			# is already included in amount. Never deduct it a second time.
-			"discount": 0,
-			"taxCode": code,
-		})
+		lines.append(
+			{
+				"name": item.item_name or item.item_code,
+				"qty": flt(item.qty),
+				"unitPrice": flt(gross / flt(item.qty), 2),
+				"amount": gross,
+				# The provided API collection does not establish whether discount
+				# is already included in amount. Never deduct it a second time.
+				"discount": 0,
+				"taxCode": code,
+			}
+		)
 
 	total = flt(sum(Decimal(str(row["amount"])) for row in lines), 2)
 	if abs(total - flt(doc.grand_total, 2)) > 0.05:
-		frappe.throw(_("Pergamon item totals do not match Sales Invoice grand total; check taxes and discounts"))
+		frappe.throw(
+			_("Pergamon item totals do not match Sales Invoice grand total; check taxes and discounts")
+		)
 
 	id_type = str(doc.vfd_cust_id_type or "6")[:1]
 	return {
@@ -116,7 +120,9 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	safe_headers = {"Accept": "application/json", "Content-Type": "application/json"}
 	try:
 		response = requests.post(
-			url, json=request_data, headers=safe_headers,
+			url,
+			json=request_data,
+			headers=safe_headers,
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 		)
@@ -128,7 +134,10 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			result = {"message": "Unexpected Pergamon response type"}
 	except requests.RequestException:
 		# No automatic retry: request may have reached the fiscal server.
-		result, response = {"message": "Transport outcome uncertain; reconcile with Pergamon before retry"}, None
+		result, response = (
+			{"message": "Transport outcome uncertain; reconcile with Pergamon before retry"},
+			None,
+		)
 
 	accepted, receipt = parse_receipt(result)
 	accepted = bool(accepted and response is not None and response.ok)
@@ -148,11 +157,15 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 
 	values = {"vfd_status": "Success" if accepted else "Failed", "vfd_posting_info": posting.name}
 	if accepted:
-		values.update({
-			"vfd_rctvnum": receipt.get("verificationCode") or receipt.get("traReceiptVerificationCode"),
-			"vfd_verification_url": receipt.get("verificationUrl") or receipt.get("traReceiptVerificationUrl"),
-			"vfd_date": posting.date, "vfd_time": posting.time,
-		})
+		values.update(
+			{
+				"vfd_rctvnum": receipt.get("verificationCode") or receipt.get("traReceiptVerificationCode"),
+				"vfd_verification_url": receipt.get("verificationUrl")
+				or receipt.get("traReceiptVerificationUrl"),
+				"vfd_date": posting.date,
+				"vfd_time": posting.time,
+			}
+		)
 	if method == "on_submit":
 		doc.update(values)
 		doc.save(ignore_permissions=True)
