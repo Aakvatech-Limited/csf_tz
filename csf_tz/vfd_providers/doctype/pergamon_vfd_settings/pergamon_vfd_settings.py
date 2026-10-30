@@ -58,15 +58,12 @@ def normalize_customer_id(value):
 	return value
 
 
-def get_posting_datetime(doc):
-	"""Normalize ERPNext's occasional one-digit seconds and microseconds."""
-	parts = str(doc.get("posting_time") or "00:00:00").split(".")[0].split(":")
-	if len(parts) != 3 or any(not part.isdigit() for part in parts):
-		frappe.throw(_("Invalid invoice posting time for Pergamon"))
-	return f"{doc.posting_date} {int(parts[0]):02d}:{int(parts[1]):02d}:{int(parts[2]):02d}"
+def get_fiscal_datetime(fiscal_datetime=None):
+	"""Format the site-local timestamp used for the actual fiscal submission."""
+	return (fiscal_datetime or now_datetime()).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def get_payload(doc):
+def get_payload(doc, fiscal_datetime=None):
 	"""Build the Pergamon receipt using base rates and Total VFD VAT rules.
 
 	All values are in company/base currency; discounts are always zero.
@@ -101,18 +98,24 @@ def get_payload(doc):
 			_("Pergamon item totals do not match Sales Invoice base rounded total; check taxes and discounts")
 		)
 
-	id_type = str(doc.vfd_cust_id_type or "6")[:1]
+	id_type_value = str(doc.get("vfd_cust_id_type") or "").strip()
+	id_type = id_type_value.split("-", 1)[0].strip()
+	if not id_type.isdigit() or len(id_type) != 1:
+		frappe.throw(_("Select a valid VFD Customer ID Type before sending to Pergamon"))
+	customer_id = normalize_customer_id(doc.get("vfd_cust_id"))
+	if not customer_id:
+		frappe.throw(_("Enter a VFD Customer ID before sending to Pergamon"))
 	return {
 		"traderInvoiceNo": doc.name,
 		"totalAmount": total,
 		"paymentType": "CASH",
 		"custIdType": id_type,
-		"custId": normalize_customer_id(doc.vfd_cust_id),
+		"custId": customer_id,
 		"custName": doc.customer_name or doc.customer,
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
 		"currency": "TZS",
 		"exchangeRate": 1.0,
-		"dateTime": get_posting_datetime(doc),
+		"dateTime": get_fiscal_datetime(fiscal_datetime),
 		"salesItems": lines,
 	}
 
@@ -128,14 +131,30 @@ def validate_postable(doc):
 		frappe.throw(_("A VFD posting already exists. Reconcile with Pergamon before resending."))
 
 
+def receipt_field(response, *names):
+	"""Read receipt fields from documented-style response envelopes, without inventing values."""
+	if not isinstance(response, dict):
+		return None
+	for data in (
+		response.get("data"),
+		response.get("receipt"),
+		response.get("result"),
+		response,
+	):
+		if not isinstance(data, dict):
+			continue
+		for name in names:
+			if data.get(name):
+				return data[name]
+	return None
+
+
 def parse_receipt(response):
-	"""Fail closed until a documented acceptance response is supplied."""
-	data = response.get("data") if isinstance(response.get("data"), dict) else response
-	accepted = data.get("success") is True or str(data.get("status", "")).upper() in ("SUCCESS", "ACCEPTED")
-	verification = data.get("verificationCode") or data.get("traReceiptVerificationCode")
-	if not accepted or not verification:
-		return False, data
-	return True, data
+	"""Require explicit acceptance and a verification code before marking success."""
+	success = receipt_field(response, "success") is True
+	status = str(receipt_field(response, "status") or "").upper()
+	verification = receipt_field(response, "verificationCode", "traReceiptVerificationCode")
+	return bool((success or status in ("SUCCESS", "ACCEPTED")) and verification), response
 
 
 @frappe.whitelist()
@@ -157,7 +176,8 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 		frappe.throw(_("Pergamon endpoint must use HTTPS"))
 	url = provider.base_url.rstrip("/") + provider.get_endpoint("post_receipt")
 	# Always rebuild the payload on the server; the preview is not trusted input.
-	request_data = get_payload(doc)
+	fiscal_datetime = now_datetime()
+	request_data = get_payload(doc, fiscal_datetime=fiscal_datetime)
 	safe_headers = {"Accept": "application/json", "Content-Type": "application/json"}
 	try:
 		response = requests.post(
@@ -188,10 +208,10 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	posting.req_headers = json.dumps(safe_headers)  # never persist Basic Auth
 	posting.ackcode = response.status_code if response is not None else 0
 	posting.ackmsg = json.dumps(result)
-	posting.date = now_datetime().date()
-	posting.time = now_datetime().time()
+	posting.date = fiscal_datetime.date()
+	posting.time = fiscal_datetime.time().replace(microsecond=0)
 	if accepted:
-		receipt_number = receipt.get("receiptNumber") or receipt.get("rctNum")
+		receipt_number = receipt_field(receipt, "receiptNumber", "rctNum")
 		if str(receipt_number or "").isdigit():
 			posting.rctnum = int(receipt_number)
 	posting.insert(ignore_permissions=True)
@@ -200,9 +220,10 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	if accepted:
 		values.update(
 			{
-				"vfd_rctvnum": receipt.get("verificationCode") or receipt.get("traReceiptVerificationCode"),
-				"vfd_verification_url": receipt.get("verificationUrl")
-				or receipt.get("traReceiptVerificationUrl"),
+				"vfd_rctvnum": receipt_field(receipt, "verificationCode", "traReceiptVerificationCode"),
+				"vfd_verification_url": receipt_field(
+					receipt, "verificationUrl", "traReceiptVerificationUrl"
+				),
 				"vfd_date": posting.date,
 				"vfd_time": posting.time,
 			}
