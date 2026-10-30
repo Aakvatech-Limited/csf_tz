@@ -307,6 +307,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			"data": {
 				"traderInvoiceNo": doc.name,
 				"totalAmount": 50,
+				"currency": "TZS",
 				"verificationCode": "VFD-123",
 				"verificationUrl": "https://example.org/verify",
 			}
