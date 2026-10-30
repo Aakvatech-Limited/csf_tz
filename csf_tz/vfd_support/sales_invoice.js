@@ -30,6 +30,7 @@ frappe.ui.form.on("Sales Invoice", {
                       __("Verified against ERPNext: {0}", [result.verified ? __("Yes") : __("No")]),
                       __("Reference matches: {0}", [result.reference_matches ? __("Yes") : __("No")]),
                       __("Amount matches: {0}", [result.amount_matches ? __("Yes") : __("No")]),
+                      __("Currency is TZS: {0}", [result.currency_matches ? __("Yes") : __("No")]),
                       __("Verification code: {0}", [frappe.utils.escape_html(String(result.verification_code || "-"))]),
                       __("Verification URL: {0}", [frappe.utils.escape_html(String(result.verification_url || "-"))]),
                     ].join("<br>");
