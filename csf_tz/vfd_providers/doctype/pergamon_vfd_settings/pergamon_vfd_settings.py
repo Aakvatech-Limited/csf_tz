@@ -127,8 +127,26 @@ def validate_postable(doc):
 		frappe.throw(_("This Sales Invoice is ineligible or already fiscalised"))
 	# Timeouts may occur after the provider has already created the receipt.
 	# Require manual reconciliation instead of blindly sending a duplicate.
-	if frappe.db.exists("VFD Provider Posting", {"sales_invoice": doc.name}):
-		frappe.throw(_("A VFD posting already exists. Reconcile with Pergamon before resending."))
+	previous = frappe.get_all(
+		"VFD Provider Posting",
+		filters={"sales_invoice": doc.name},
+		fields=["name", "ackcode", "rctnum"],
+		order_by="creation desc",
+		limit_page_length=1,
+	)
+	if previous:
+		attempt = previous[0]
+		frappe.throw(
+			_(
+				"Pergamon submission blocked: previous VFD posting {0} (HTTP status {1}, "
+				"receipt number {2}). Review its ACKMSG and verify the fiscal receipt "
+				"with Pergamon before any retry. No additional request was sent."
+			).format(
+				attempt.name,
+				attempt.ackcode if attempt.ackcode is not None else _("Unknown"),
+				attempt.rctnum or _("Not recorded"),
+			)
+		)
 
 
 def receipt_field(response, *names):
