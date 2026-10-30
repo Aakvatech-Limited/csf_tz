@@ -58,15 +58,12 @@ def normalize_customer_id(value):
 	return value
 
 
-def get_posting_datetime(doc):
-	"""Normalize ERPNext's occasional one-digit seconds and microseconds."""
-	parts = str(doc.get("posting_time") or "00:00:00").split(".")[0].split(":")
-	if len(parts) != 3 or any(not part.isdigit() for part in parts):
-		frappe.throw(_("Invalid invoice posting time for Pergamon"))
-	return f"{doc.posting_date} {int(parts[0]):02d}:{int(parts[1]):02d}:{int(parts[2]):02d}"
+def get_fiscal_datetime(fiscal_datetime=None):
+	"""Format the site-local timestamp used for the actual fiscal submission."""
+	return (fiscal_datetime or now_datetime()).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def get_payload(doc):
+def get_payload(doc, fiscal_datetime=None):
 	"""Build the Pergamon receipt using base rates and Total VFD VAT rules.
 
 	All values are in company/base currency; discounts are always zero.
@@ -112,7 +109,7 @@ def get_payload(doc):
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
 		"currency": "TZS",
 		"exchangeRate": 1.0,
-		"dateTime": get_posting_datetime(doc),
+		"dateTime": get_fiscal_datetime(fiscal_datetime),
 		"salesItems": lines,
 	}
 
@@ -157,7 +154,8 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 		frappe.throw(_("Pergamon endpoint must use HTTPS"))
 	url = provider.base_url.rstrip("/") + provider.get_endpoint("post_receipt")
 	# Always rebuild the payload on the server; the preview is not trusted input.
-	request_data = get_payload(doc)
+	fiscal_datetime = now_datetime()
+	request_data = get_payload(doc, fiscal_datetime=fiscal_datetime)
 	safe_headers = {"Accept": "application/json", "Content-Type": "application/json"}
 	try:
 		response = requests.post(
@@ -188,8 +186,8 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	posting.req_headers = json.dumps(safe_headers)  # never persist Basic Auth
 	posting.ackcode = response.status_code if response is not None else 0
 	posting.ackmsg = json.dumps(result)
-	posting.date = now_datetime().date()
-	posting.time = now_datetime().time()
+	posting.date = fiscal_datetime.date()
+	posting.time = fiscal_datetime.time().replace(microsecond=0)
 	if accepted:
 		receipt_number = receipt.get("receiptNumber") or receipt.get("rctNum")
 		if str(receipt_number or "").isdigit():
