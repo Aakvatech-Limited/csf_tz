@@ -121,14 +121,11 @@ def get_payload(doc, fiscal_datetime=None):
 
 
 def validate_postable(doc):
+	"""Use the normal VFD retry lifecycle, consistent with Total VFD."""
 	if doc.docstatus != 1:
 		frappe.throw(_("Only submitted Sales Invoices can be sent to Pergamon"))
 	if doc.is_return or doc.is_not_vfd_invoice or doc.vfd_status == "Success":
 		frappe.throw(_("This Sales Invoice is ineligible or already fiscalised"))
-	# Timeouts may occur after the provider has already created the receipt.
-	# Require manual reconciliation instead of blindly sending a duplicate.
-	if frappe.db.exists("VFD Provider Posting", {"sales_invoice": doc.name}):
-		frappe.throw(_("A VFD posting already exists. Reconcile with Pergamon before resending."))
 
 
 def receipt_field(response, *names):
