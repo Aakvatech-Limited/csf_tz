@@ -98,13 +98,19 @@ def get_payload(doc, fiscal_datetime=None):
 			_("Pergamon item totals do not match Sales Invoice base rounded total; check taxes and discounts")
 		)
 
-	id_type = str(doc.vfd_cust_id_type or "6")[:1]
+	id_type_value = str(doc.get("vfd_cust_id_type") or "").strip()
+	id_type = id_type_value.split("-", 1)[0].strip()
+	if not id_type.isdigit() or len(id_type) != 1:
+		frappe.throw(_("Select a valid VFD Customer ID Type before sending to Pergamon"))
+	customer_id = normalize_customer_id(doc.get("vfd_cust_id"))
+	if not customer_id:
+		frappe.throw(_("Enter a VFD Customer ID before sending to Pergamon"))
 	return {
 		"traderInvoiceNo": doc.name,
 		"totalAmount": total,
 		"paymentType": "CASH",
 		"custIdType": id_type,
-		"custId": normalize_customer_id(doc.vfd_cust_id),
+		"custId": customer_id,
 		"custName": doc.customer_name or doc.customer,
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
 		"currency": "TZS",
