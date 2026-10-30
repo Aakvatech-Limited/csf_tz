@@ -125,14 +125,30 @@ def validate_postable(doc):
 		frappe.throw(_("A VFD posting already exists. Reconcile with Pergamon before resending."))
 
 
+def receipt_field(response, *names):
+	"""Read receipt fields from documented-style response envelopes, without inventing values."""
+	if not isinstance(response, dict):
+		return None
+	for data in (
+		response.get("data"),
+		response.get("receipt"),
+		response.get("result"),
+		response,
+	):
+		if not isinstance(data, dict):
+			continue
+		for name in names:
+			if data.get(name):
+				return data[name]
+	return None
+
+
 def parse_receipt(response):
-	"""Fail closed until a documented acceptance response is supplied."""
-	data = response.get("data") if isinstance(response.get("data"), dict) else response
-	accepted = data.get("success") is True or str(data.get("status", "")).upper() in ("SUCCESS", "ACCEPTED")
-	verification = data.get("verificationCode") or data.get("traReceiptVerificationCode")
-	if not accepted or not verification:
-		return False, data
-	return True, data
+	"""Require explicit acceptance and a verification code before marking success."""
+	success = receipt_field(response, "success") is True
+	status = str(receipt_field(response, "status") or "").upper()
+	verification = receipt_field(response, "verificationCode", "traReceiptVerificationCode")
+	return bool((success or status in ("SUCCESS", "ACCEPTED")) and verification), response
 
 
 @frappe.whitelist()
@@ -189,7 +205,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	posting.date = fiscal_datetime.date()
 	posting.time = fiscal_datetime.time().replace(microsecond=0)
 	if accepted:
-		receipt_number = receipt.get("receiptNumber") or receipt.get("rctNum")
+		receipt_number = receipt_field(receipt, "receiptNumber", "rctNum")
 		if str(receipt_number or "").isdigit():
 			posting.rctnum = int(receipt_number)
 	posting.insert(ignore_permissions=True)
@@ -198,9 +214,10 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	if accepted:
 		values.update(
 			{
-				"vfd_rctvnum": receipt.get("verificationCode") or receipt.get("traReceiptVerificationCode"),
-				"vfd_verification_url": receipt.get("verificationUrl")
-				or receipt.get("traReceiptVerificationUrl"),
+				"vfd_rctvnum": receipt_field(receipt, "verificationCode", "traReceiptVerificationCode"),
+				"vfd_verification_url": receipt_field(
+					receipt, "verificationUrl", "traReceiptVerificationUrl"
+				),
 				"vfd_date": posting.date,
 				"vfd_time": posting.time,
 			}
