@@ -45,6 +45,43 @@ frappe.ui.form.on("Sales Invoice", {
                 __("Lookup")
               );
             }, __("VFD"));
+            if (frappe.user.has_role("System Manager") || frappe.user.has_role("Accounts Manager") ||
+                frappe.user.has_role("Sales Manager")) {
+              frm.add_custom_button(__("Pergamon Invoice Register"), () => {
+                frappe.call({
+                  method: "csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings.list_pergamon_invoices",
+                  args: {sales_invoice: frm.doc.name},
+                  freeze: true,
+                  freeze_message: __("Retrieving Pergamon invoice register..."),
+                }).then((res) => {
+                  const data = res.message || {};
+                  const esc = value => frappe.utils.escape_html(String(value === undefined || value === null ? "" : value));
+                  const rows = (data.rows || []).map(row =>
+                    "<tr>" + [
+                      row.trader_invoice_no,
+                      row.erpnext_invoice,
+                      row.provider_amount,
+                      row.expected_tzs,
+                      row.currency,
+                      row.status,
+                    ].map(value => "<td style='padding:6px;border:1px solid #ddd'>" + esc(value) + "</td>").join("") + "</tr>"
+                  ).join("");
+                  const html = "<p>" + esc(data.message || "") + "</p>" +
+                    "<p>" + __("Records returned: {0}; matched ERPNext invoices: {1}", [
+                      data.count_returned || 0, data.matched_count || 0,
+                    ]) + "</p>" +
+                    "<div style='overflow:auto;max-height:420px'><table class='table table-bordered'>" +
+                    "<thead><tr><th>Trader Invoice</th><th>ERPNext Invoice</th><th>Provider TZS</th>" +
+                    "<th>ERPNext TZS</th><th>Currency</th><th>Status</th></tr></thead><tbody>" +
+                    rows + "</tbody></table></div>";
+                  frappe.msgprint({
+                    title: __("Pergamon Invoice Register (Read Only)"),
+                    message: html,
+                    wide: true,
+                  });
+                }).catch(show_vfd_request_error);
+              }, __("VFD"));
+            }
           });
       });
   },
