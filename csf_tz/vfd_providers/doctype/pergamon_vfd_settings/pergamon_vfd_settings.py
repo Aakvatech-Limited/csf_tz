@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+from pathlib import Path
 from urllib.parse import quote
 import frappe
 import requests
@@ -14,6 +15,32 @@ from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except
 SETTINGS_DOCTYPE = "Pergamon VFD Settings"
 TAX_CODES = {1: "A", 2: "B", 3: "C", 4: "D", 5: "E"}
 TIMEOUT = (5, 60)
+
+
+def get_tls_verify():
+	"""Use the system trust store or an explicitly configured private CA bundle.
+
+	Configure pergamon_ca_bundle in site_config.json. TLS verification remains
+	enabled and certificate hostname/IP validation is enforced by requests.
+	"""
+	ca_bundle = frappe.conf.get("pergamon_ca_bundle")
+	if not ca_bundle:
+		return True
+	path = Path(str(ca_bundle))
+	if not path.is_absolute() or not path.is_file():
+		frappe.throw(_("Pergamon CA bundle must be an existing absolute PEM file path"))
+	return str(path)
+
+
+def raise_tls_error():
+	frappe.throw(
+		_(
+			"Pergamon HTTPS certificate verification failed. Configure a trusted "
+			"certificate for the Pergamon server or set pergamon_ca_bundle to a "
+			"trusted PEM CA file in the site's configuration. SSL verification "
+			"must remain enabled."
+		)
+	)
 
 
 class PergamonVFDSettings(Document):
@@ -210,6 +237,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			headers=safe_headers,
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
+			verify=get_tls_verify(),
 		)
 		try:
 			result = response.json()
@@ -217,6 +245,12 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			result = {"message": "Non-JSON response from Pergamon"}
 		if not isinstance(result, dict):
 			result = {"message": "Unexpected Pergamon response type"}
+	except requests.exceptions.SSLError:
+		# TLS verification fails before an authenticated HTTP request is sent.
+		result, response = (
+			{"message": "Pergamon HTTPS certificate verification failed; configure a trusted CA certificate"},
+			None,
+		)
 	except requests.RequestException:
 		# No automatic retry: request may have reached the fiscal server.
 		result, response = (
@@ -304,7 +338,10 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
+			verify=get_tls_verify(),
 		)
+	except requests.exceptions.SSLError:
+		raise_tls_error()
 	except requests.RequestException:
 		frappe.throw(_("Pergamon invoice lookup failed. Check connectivity and retry."))
 
@@ -438,7 +475,10 @@ def list_pergamon_invoices(sales_invoice):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
+			verify=get_tls_verify(),
 		)
+	except requests.exceptions.SSLError:
+		raise_tls_error()
 	except requests.RequestException:
 		frappe.throw(_("Pergamon invoice register could not be retrieved"))
 	if not response.ok:
@@ -528,7 +568,10 @@ def fetch_pergamon_zreport(company, report_date):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
+			verify=get_tls_verify(),
 		)
+	except requests.exceptions.SSLError:
+		raise_tls_error()
 	except requests.RequestException:
 		frappe.throw(_("Pergamon Z Report retrieval failed. Check connectivity and retry"))
 	if not response.ok:
@@ -635,7 +678,10 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
+			verify=get_tls_verify(),
 		)
+	except requests.exceptions.SSLError:
+		raise_tls_error()
 	except requests.RequestException:
 		frappe.throw(_("Pergamon periodic report retrieval failed. Check connectivity and retry"))
 	if not response.ok:
