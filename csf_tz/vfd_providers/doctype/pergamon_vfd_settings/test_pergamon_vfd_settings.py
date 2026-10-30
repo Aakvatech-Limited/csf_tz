@@ -338,6 +338,39 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, pergamon.get_pergamon_invoice, "123")
 
 
+	def test_invoice_list_reconciliation_matches_tzs_and_verification(self):
+		doc = frappe._dict({
+			"name": "SINV-1", "vfd_status": "Failed",
+			"base_grand_total": 250, "base_rounded_total": 250,
+		})
+		records = [
+			{"traderInvoiceNo": "SINV-1", "totalAmount": 250,
+			 "currency": "TZS", "verificationCode": "VERIFY-1"},
+			{"traderInvoiceNo": "SINV-2", "totalAmount": 100, "currency": "TZS"},
+		]
+		rows = pergamon.compare_pergamon_invoices(records, [doc])
+		self.assertEqual(rows[0]["status"], "Verified")
+		self.assertEqual(rows[1]["status"], "Not linked to accessible Sales Invoice")
+
+	def test_invoice_list_mismatch_is_not_fiscal_verification(self):
+		doc = frappe._dict({
+			"name": "SINV-1", "vfd_status": "Failed",
+			"base_grand_total": 250, "base_rounded_total": 250,
+		})
+		rows = pergamon.compare_pergamon_invoices(
+			[{"traderInvoiceNo": "SINV-1", "totalAmount": 250,
+			  "currency": "USD", "verificationCode": "VERIFY-1"}],
+			[doc],
+		)
+		self.assertEqual(rows[0]["status"], "Mismatch")
+
+	def test_invoice_list_envelope_parsing(self):
+		self.assertEqual(
+			pergamon.extract_invoice_list({"data": {"invoices": [{"traderInvoiceNo": "SINV-1"}]}}),
+			[{"traderInvoiceNo": "SINV-1"}],
+		)
+		self.assertRaises(frappe.ValidationError, pergamon.extract_invoice_list, {"data": {}})
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
