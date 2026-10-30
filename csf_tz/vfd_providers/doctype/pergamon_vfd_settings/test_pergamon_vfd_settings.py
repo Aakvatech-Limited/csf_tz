@@ -330,10 +330,12 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(result["verification_code"], "VFD-123")
 		self.assertEqual(get.call_args.args[0], "https://example.org/api/v1/invoices/123")
 
-	def test_invoice_lookup_mismatch_is_not_verified(self):
-		self.assertFalse(
-			pergamon.receipt_field({"data": {"traderInvoiceNo": "OTHER"}}, "verificationCode")
-		)
+	def test_invoice_lookup_rejects_invalid_id(self):
+		self.assertRaises(frappe.ValidationError, pergamon.get_pergamon_invoice, "../123", "SINV-1")
+
+	def test_invoice_lookup_requires_linked_sales_invoice(self):
+		self.assertRaises(frappe.ValidationError, pergamon.get_pergamon_invoice, "123")
+
 
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
