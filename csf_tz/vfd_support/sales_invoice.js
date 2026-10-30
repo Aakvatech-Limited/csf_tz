@@ -1,47 +1,5 @@
 frappe.ui.form.on("Sales Invoice", {
-  refresh: function (frm) {
-    if (frm.is_new() || frm.doc.docstatus !== 1 || frm.doc.vfd_status !== "Failed") {
-      return;
-    }
-    // The backend also verifies the provider, permission, and invoice status.
-    frappe.db.get_value("Company VFD Provider", frm.doc.company, "vfd_provider")
-      .then((result) => {
-        const provider = result.message && result.message.vfd_provider;
-        if (!provider) return;
-        return frappe.db.get_value("VFD Provider", provider, "vfd_provider_settings")
-          .then((settings) => {
-            if (!settings.message || settings.message.vfd_provider_settings !== "Pergamon VFD Settings") {
-              return;
-            }
-            frm.add_custom_button(__("Retry Pergamon VFD"), () => {
-              frappe.confirm(
-                __("This invoice may already have a fiscal receipt at Pergamon. Before retrying, check the previous VFD Provider Posting and confirm that no receipt exists. Continuing can create a duplicate fiscal receipt. Do you want to send again?"),
-                () => {
-                  frappe.call({
-                    method: "csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings.post_fiscal_receipt",
-                    args: {
-                      invoice_id: frm.doc.name,
-                      manual_retry: 1,
-                    },
-                    freeze: true,
-                    freeze_message: __("Retrying Pergamon VFD..."),
-                  }).then((response) => {
-                    frm.reload_doc();
-                    if (response.message && response.message.success === true) {
-                      frappe.show_alert({
-                        message: __("VFD successfully sent to TRA"),
-                        indicator: "green",
-                      });
-                    } else {
-                      show_vfd_not_sent(response.message && response.message.data);
-                    }
-                  }).catch(show_vfd_request_error);
-                }
-              );
-            }, __("VFD"));
-          });
-      });
-  },
+  refresh: function (frm) {},
   generate_vfd: (frm) => {
     if (!frm.doc.vfd_cust_id) {
       frappe.msgprint({
