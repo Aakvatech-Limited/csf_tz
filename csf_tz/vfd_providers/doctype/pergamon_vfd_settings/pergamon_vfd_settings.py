@@ -561,3 +561,119 @@ def fetch_pergamon_zreport(company, report_date):
 			"and report scope are verified."
 		),
 	}
+
+
+@frappe.whitelist()
+def fetch_pergamon_periodic_report(company, from_date, to_date):
+	"""Retrieve and archive a Pergamon period summary without changing fiscal invoices.
+
+	The Postman collection documents from/to parameters but no response schema.
+	Only a recognizable summary can be compared, and then indicatively.
+	"""
+	from_day, to_day = getdate(from_date), getdate(to_date)
+	if str(from_day) != str(from_date or "") or str(to_day) != str(to_date or ""):
+		frappe.throw(_("Enter valid report dates in YYYY-MM-DD format"))
+	if from_day > to_day:
+		frappe.throw(_("From Date must not be after To Date"))
+	if (to_day - from_day).days > 366:
+		frappe.throw(_("Choose a reporting period of no more than 367 days"))
+	if not set(frappe.get_roles()).intersection({"System Manager", "Accounts Manager"}):
+		frappe.throw(_("Retrieving Pergamon periodic reports requires an authorized manager"))
+	frappe.has_permission("Company", "read", doc=company, throw=True)
+	provider = get_provider()
+	selected = frappe.db.get_value("Company VFD Provider", company, "vfd_provider")
+	if selected != provider.name:
+		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
+	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon periodic report requires an HTTPS production endpoint"))
+	endpoint = provider.get_endpoint("periodic_reports")
+	if endpoint != "/periodic-reports":
+		frappe.throw(_("Unexpected Pergamon periodic report endpoint configuration"))
+	settings = frappe.get_doc(SETTINGS_DOCTYPE, company)
+	try:
+		response = requests.get(
+			provider.base_url.rstrip("/") + endpoint,
+			params={"from": str(from_day), "to": str(to_day)},
+			headers={"Accept": "application/json"},
+			auth=(settings.username, settings.get_password("password")),
+			timeout=TIMEOUT,
+		)
+	except requests.RequestException:
+		frappe.throw(_("Pergamon periodic report retrieval failed. Check connectivity and retry"))
+	if not response.ok:
+		frappe.throw(_("Pergamon periodic report returned HTTP {0}").format(response.status_code))
+	try:
+		body = response.json()
+	except ValueError:
+		frappe.throw(_("Pergamon returned a non-JSON periodic report response"))
+	if not isinstance(body, (dict, list)):
+		frappe.throw(_("Pergamon returned an unexpected periodic report response"))
+
+	amount, count = get_zreport_totals(body)
+	# vfd_date represents the fiscal receipt date, which may differ from posting_date.
+	local = frappe.get_list(
+		"Sales Invoice",
+		filters={
+			"company": company,
+			"docstatus": 1,
+			"vfd_status": "Success",
+			"vfd_date": ["between", [str(from_day), str(to_day)]],
+		},
+		fields=["base_grand_total", "base_rounded_total"],
+		limit_page_length=0,
+	)
+	local_total = flt(
+		sum(flt(row.base_rounded_total or row.base_grand_total, 2) for row in local), 2
+	)
+	provider_total = flt(amount, 2) if amount is not None else None
+	difference = flt(provider_total - local_total, 2) if provider_total is not None else None
+	status = "Pending Schema Confirmation"
+	if provider_total is not None and count is not None:
+		status = (
+			"Indicative Match"
+			if abs(difference) <= 0.05 and int(count) == len(local)
+			else "Indicative Difference"
+		)
+
+	existing = frappe.get_all(
+		"VFD Periodic Report",
+		filters={
+			"company": company,
+			"vfd_provider": provider.name,
+			"from_date": str(from_day),
+			"to_date": str(to_day),
+		},
+		pluck="name",
+		limit_page_length=1,
+	)
+	doc = (
+		frappe.get_doc("VFD Periodic Report", existing[0])
+		if existing
+		else frappe.new_doc("VFD Periodic Report")
+	)
+	doc.company = company
+	doc.vfd_provider = provider.name
+	doc.from_date = from_day
+	doc.to_date = to_day
+	doc.fetched_at = now_datetime()
+	doc.comparison_status = status
+	doc.provider_total = provider_total
+	doc.erpnext_total = local_total
+	doc.difference = difference
+	doc.provider_receipt_count = int(count) if count is not None else None
+	doc.erpnext_receipt_count = len(local)
+	doc.raw_response = json.dumps(body, ensure_ascii=False, indent=2)
+	doc.save() if existing else doc.insert()
+	return {
+		"periodic_report": doc.name,
+		"status": status,
+		"provider_total": provider_total,
+		"erpnext_total": local_total,
+		"difference": difference,
+		"provider_receipt_count": count,
+		"erpnext_receipt_count": len(local),
+		"message": _(
+			"Periodic report archived. Comparison remains indicative until Pergamon's "
+			"response schema and summary scope have been confirmed."
+		),
+	}
