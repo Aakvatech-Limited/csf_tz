@@ -480,16 +480,21 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
 			self.assertIs(pergamon.get_tls_verify(provider), True)
 
-	def test_tls_bypass_rejected_for_production_host_even_in_sandbox(self):
+	def test_tls_override_allowed_for_confirmed_test_host(self):
 		provider = frappe._dict({
 			"sandbox": 1,
 			"base_url": "https://5.161.57.127:9040/api/v1",
 		})
-		values = {
-			"pergamon_sandbox_url": "https://5.161.57.127:9040/api/v1",
-			"pergamon_sandbox_skip_tls_verification": 1,
-		}
+		values = {"pergamon_sandbox_skip_tls_verification": 1}
 		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
+			self.assertIs(pergamon.get_tls_verify(provider), False)
+
+	def test_confirmed_test_host_rejected_in_production(self):
+		provider = frappe._dict({
+			"sandbox": 0,
+			"base_url": "https://5.161.57.127:9040/api/v1",
+		})
+		with patch.object(pergamon.frappe.conf, "get", return_value=None):
 			self.assertRaises(frappe.ValidationError, pergamon.get_tls_verify, provider)
 
 	def test_tls_bypass_rejected_when_active_url_is_not_configured_sandbox(self):

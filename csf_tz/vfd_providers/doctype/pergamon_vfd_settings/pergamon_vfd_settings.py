@@ -54,23 +54,31 @@ def log_pergamon_diagnostic(operation, exc=None, status_code=None, started=None)
 
 
 def get_tls_verify(provider=None):
-	"""TLS bypass is only permitted for a distinct, configured sandbox host."""
+	"""Verify TLS except for explicitly enabled, confirmed Pergamon test endpoint."""
 	if provider and provider.sandbox:
-		sandbox_url = str(frappe.conf.get("pergamon_sandbox_url") or "").rstrip("/")
-		production_host = "5.161.57.127"
+		sandbox_url = str(
+			frappe.conf.get("pergamon_sandbox_url") or "https://5.161.57.127:9040/api/v1"
+		).rstrip("/")
+		production_url = str(frappe.conf.get("pergamon_production_url") or "").rstrip("/")
 		sandbox = urlsplit(sandbox_url)
 		active = urlsplit(provider.base_url or "")
+		production = urlsplit(production_url)
 		if (
 			sandbox.scheme != "https"
 			or not sandbox.hostname
-			or sandbox.hostname == production_host
 			or active.scheme != "https"
 			or active.netloc != sandbox.netloc
-			or not active.path.rstrip("/") == sandbox.path.rstrip("/")
+			or active.path.rstrip("/") != sandbox.path.rstrip("/")
+			or (production.hostname and production.hostname == sandbox.hostname)
 		):
-			frappe.throw(_("Pergamon sandbox must use the separately configured HTTPS test endpoint"))
+			frappe.throw(_("Pergamon sandbox must use the configured HTTPS test endpoint"))
 		if cint(frappe.conf.get("pergamon_sandbox_skip_tls_verification") or 0):
 			return False
+	elif provider:
+		# Production may not point at the confirmed test host.
+		active = urlsplit(provider.base_url or "")
+		if active.hostname == "5.161.57.127":
+			frappe.throw(_("The configured Pergamon address is a test server; enable Sandbox"))
 
 	ca_bundle = frappe.conf.get("pergamon_ca_bundle")
 	if not ca_bundle:
