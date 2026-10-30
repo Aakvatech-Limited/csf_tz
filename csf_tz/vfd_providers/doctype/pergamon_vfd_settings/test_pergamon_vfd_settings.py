@@ -55,11 +55,12 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(result["salesItems"][0]["amount"], 50)
 		self.assertEqual(result["custPhone"], "0768044059")
 
-	def test_currency_conversion_not_applied_twice(self):
+	def test_usd_invoice_uses_base_tzs_values(self):
 		doc = self.make_invoice()
 		doc.currency = "USD"
 		doc.conversion_rate = 2500
 		doc.grand_total = 2
+		doc.base_grand_total = 50
 		with (
 			patch.object(pergamon, "get_item_taxcode", return_value=1),
 			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
@@ -68,6 +69,47 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(result["totalAmount"], 50)
 		self.assertEqual(result["currency"], "TZS")
 		self.assertEqual(result["exchangeRate"], 1)
+		self.assertEqual(result["salesItems"][0]["unitPrice"], 50)
+
+	def test_six_zero_rated_usd_lines_in_tzs(self):
+		doc = self.make_invoice()
+		doc.name = "ACC-SINV-2026-00080"
+		doc.company = "R&K Trucking Company"
+		doc.currency = "USD"
+		doc.conversion_rate = 2646
+		doc.grand_total = 960
+		doc.base_grand_total = 2540160
+		doc.vfd_cust_id = "999999999.0"
+		doc.posting_date = "2026-10-29"
+		doc.posting_time = "12:53:17.300057"
+		doc.items = [
+			frappe._dict({
+				"item_code": "STO-ITEM-2026-00367",
+				"item_name": "Transit Transportation",
+				"item_tax_template": "ZERO-RATED",
+				"qty": 1,
+				"base_rate": 423360,
+				"base_amount": 423360,
+				"base_net_amount": 423360,
+			}) for _ in range(6)
+		]
+		with (
+			patch.object(pergamon, "get_item_taxcode", return_value=3),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+		):
+			payload = pergamon.get_payload(doc)
+		self.assertEqual(payload["totalAmount"], 2540160)
+		self.assertEqual(payload["currency"], "TZS")
+		self.assertEqual(payload["exchangeRate"], 1)
+		self.assertEqual(payload["custId"], "999999999")
+		self.assertEqual(payload["dateTime"], "2026-10-29 12:53:17")
+		self.assertEqual(len(payload["salesItems"]), 6)
+		self.assertTrue(all(line["amount"] == 423360 and line["taxCode"] == "C" for line in payload["salesItems"]))
+
+	def test_rejects_non_tzs_company_base_currency(self):
+		doc = self.make_invoice()
+		with patch.object(pergamon.frappe, "get_cached_value", return_value="USD"):
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
 
 	def test_all_five_tax_codes(self):
 		doc = self.make_invoice()
