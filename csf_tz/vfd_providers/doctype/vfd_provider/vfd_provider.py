@@ -11,6 +11,11 @@ PROVIDER_DEFAULTS = {
 	"Pergamon VFD Settings": {
 		"live_url": "https://5.161.57.127:9040/api/v1",
 		"test_url": "https://5.161.57.127:9040/api/v1",
+		"endpoints": {"post_receipt": "/invoices", "get_invoices": "/invoices", "get_zreports": "/zreports", "get_periodic_reports": "/periodic-reports"},
+	},
+	"Pergamon VFD Settings": {
+		"live_url": "https://5.161.57.127:9040/api/v1",
+		"test_url": "https://5.161.57.127:9040/api/v1",
 		"endpoints": {
 			"post_receipt": "/invoices",
 			"get_invoices": "/invoices",
