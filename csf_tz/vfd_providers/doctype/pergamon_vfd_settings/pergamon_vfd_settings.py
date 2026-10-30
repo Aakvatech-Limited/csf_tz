@@ -6,7 +6,7 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, now_datetime
+from frappe.utils import cint, flt, now_datetime
 
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
@@ -120,7 +120,7 @@ def get_payload(doc, fiscal_datetime=None):
 	}
 
 
-def validate_postable(doc):
+def validate_postable(doc, manual_retry=False):
 	if doc.docstatus != 1:
 		frappe.throw(_("Only submitted Sales Invoices can be sent to Pergamon"))
 	if doc.is_return or doc.is_not_vfd_invoice or doc.vfd_status == "Success":
@@ -136,6 +136,14 @@ def validate_postable(doc):
 	)
 	if previous:
 		attempt = previous[0]
+		if cint(manual_retry):
+			if frappe.session.user == "Guest" or not set(frappe.get_roles()).intersection(
+				{"System Manager", "Accounts Manager", "Sales Manager"}
+			):
+				frappe.throw(_("Manual Pergamon retry requires an authorized manager"))
+			if attempt.rctnum or doc.get("vfd_rctvnum"):
+				frappe.throw(_("A fiscal receipt identifier exists; reconcile instead of retrying"))
+			return
 		frappe.throw(
 			_(
 				"Pergamon submission blocked: previous VFD posting {0} (HTTP status {1}, "
@@ -176,13 +184,17 @@ def parse_receipt(response):
 
 
 @frappe.whitelist()
-def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, preview=False):
+def post_fiscal_receipt(
+	doc=None, method="POST", payload=None, invoice_id=None, preview=False, manual_retry=False,
+):
 	if not doc:
 		if not invoice_id:
 			frappe.throw(_("Sales Invoice is required"))
 		doc = frappe.get_doc("Sales Invoice", invoice_id)
 		doc.check_permission("read")
-	validate_postable(doc)
+	if cint(manual_retry):
+		doc.check_permission("read")
+	validate_postable(doc, manual_retry=manual_retry)
 	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
 	provider = get_provider()
 	selected = frappe.db.get_value("Company VFD Provider", doc.company, "vfd_provider")
