@@ -10,28 +10,32 @@ from csf_tz.vfd_providers.doctype.pergamon_vfd_settings import pergamon_vfd_sett
 
 class TestPergamonVFDSettings(FrappeTestCase):
 	def make_invoice(self):
-		return frappe._dict({
-			"name": "SINV-TEST-0001",
-			"company": "_Test Company",
-			"customer": "_Test Customer",
-			"customer_name": "Customer",
-			"vfd_cust_id_type": "1- TIN",
-			"vfd_cust_id": "123456789",
-			"contact_mobile": "0768 044 059",
-			"currency": "TZS",
-			"conversion_rate": 1,
-			"grand_total": 50,
-			"posting_date": "2026-10-30",
-			"posting_time": "05:01:15",
-			"items": [
-				frappe._dict({
-					"item_code": "ITEM-A",
-					"item_name": "Item A",
-					"item_tax_template": "VAT-A",
-					"qty": 1,
-				}),
-			],
-		})
+		return frappe._dict(
+			{
+				"name": "SINV-TEST-0001",
+				"company": "_Test Company",
+				"customer": "_Test Customer",
+				"customer_name": "Customer",
+				"vfd_cust_id_type": "1- TIN",
+				"vfd_cust_id": "123456789",
+				"contact_mobile": "0768 044 059",
+				"currency": "TZS",
+				"conversion_rate": 1,
+				"grand_total": 50,
+				"posting_date": "2026-10-30",
+				"posting_time": "05:01:15",
+				"items": [
+					frappe._dict(
+						{
+							"item_code": "ITEM-A",
+							"item_name": "Item A",
+							"item_tax_template": "VAT-A",
+							"qty": 1,
+						}
+					),
+				],
+			}
+		)
 
 	def test_payload_contract(self):
 		doc = self.make_invoice()
@@ -73,9 +77,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 	def test_unknown_response_never_marks_fiscal_success(self):
 		self.assertFalse(pergamon.parse_receipt({"message": "OK"})[0])
 		self.assertFalse(pergamon.parse_receipt({"success": True})[0])
-		self.assertTrue(pergamon.parse_receipt({
-			"success": True, "verificationCode": "VERIFY-123"
-		})[0])
+		self.assertTrue(pergamon.parse_receipt({"success": True, "verificationCode": "VERIFY-123"})[0])
 
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
