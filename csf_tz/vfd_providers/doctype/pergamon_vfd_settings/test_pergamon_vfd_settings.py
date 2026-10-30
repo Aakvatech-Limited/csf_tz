@@ -430,6 +430,14 @@ class TestPergamonVFDSettings(FrappeTestCase):
 	def test_pergamon_missing_verification_never_counts_as_success(self):
 		self.assertFalse(pergamon.parse_receipt({"statusCode": "SUCCES", "data": {}})[0])
 
+	def test_pergamon_tls_verification_enabled_by_default(self):
+		with patch.object(pergamon.frappe.conf, "get", return_value=None):
+			self.assertIs(pergamon.get_tls_verify(), True)
+
+	def test_pergamon_tls_invalid_ca_bundle_fails_closed(self):
+		with patch.object(pergamon.frappe.conf, "get", return_value="/nonexistent/pergamon-ca.pem"):
+			self.assertRaises(frappe.ValidationError, pergamon.get_tls_verify)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
