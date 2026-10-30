@@ -10,6 +10,8 @@ from csf_tz.vfd_providers.doctype.dirm_vfd_settings.dirm_vfd_settings import (
 )
 from csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings import (
 	get_payload as get_pergamon_payload,
+)
+from csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings import (
 	post_fiscal_receipt as pergamon_post_fiscal_receipt,
 )
 from csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings import (
