@@ -2,15 +2,12 @@
 # For license information, please see license.txt
 
 import json
-from decimal import Decimal
-
 import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, now_datetime
 
-from csf_tz.vfd_providers.utils import get_vat_amount
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
 SETTINGS_DOCTYPE = "Pergamon VFD Settings"
@@ -29,35 +26,55 @@ def get_provider():
 	return frappe.get_cached_doc("VFD Provider", name)
 
 
+def get_line_amount(item, tax_code):
+	"""Total VFD VAT-inclusive detection, with base_rate as the starting rate.
+
+	For VAT code A the existing Total VFD rule treats base_amount as VAT
+	inclusive when it differs from base_net_amount + distributed discount.
+	Otherwise 18% VAT is added to base_rate * qty. Other VAT groups use
+	base_rate * qty without adding VAT.
+	"""
+	qty = flt(item.qty)
+	if qty <= 0:
+		frappe.throw(_("Pergamon requires a positive quantity on every line"))
+	base_rate = flt(item.base_rate)
+	base_amount = flt(item.base_amount)
+	base_net_amount = flt(item.base_net_amount)
+	distributed_discount = flt(item.get("distributed_discount_amount", 0))
+
+	if tax_code == "A":
+		if flt(base_net_amount + distributed_discount, 2) != flt(base_amount, 2):
+			return flt(base_amount, 2)
+		return flt(base_rate * qty * 1.18, 2)
+
+	return flt(base_rate * qty, 2)
+
+
 def get_payload(doc):
-	"""Use invoice-currency amounts. ERPNext net amounts already include discounts."""
+	"""Build the Pergamon receipt using base rates and Total VFD VAT rules.
+
+	All values are in company/base currency; discounts are always zero.
+	The base-currency amount must reconcile to the base invoice total.
+	"""
 	lines = []
 	for item in doc.items:
 		code = TAX_CODES[get_item_taxcode(item.item_tax_template, item.item_code, doc.name)]
-		if flt(item.qty) <= 0:
-			frappe.throw(_("Pergamon requires a positive quantity on every line"))
-		# Convert from existing base-currency-inclusive calculation into invoice
-		# currency; avoid applying the exchange rate twice.
-		base_gross = flt(get_vat_amount(item, code, precision=2), 2)
-		rate = flt(doc.conversion_rate) or 1
-		gross = flt(base_gross / rate, 2)
+		gross = get_line_amount(item, code)
 		lines.append(
 			{
 				"name": item.item_name or item.item_code,
 				"qty": flt(item.qty),
-				"unitPrice": flt(gross / flt(item.qty), 2),
+				"unitPrice": flt(gross / flt(item.qty), 6),
 				"amount": gross,
-				# The provided API collection does not establish whether discount
-				# is already included in amount. Never deduct it a second time.
 				"discount": 0,
 				"taxCode": code,
 			}
 		)
 
-	total = flt(sum(Decimal(str(row["amount"])) for row in lines), 2)
-	if abs(total - flt(doc.grand_total, 2)) > 0.05:
+	total = flt(sum(row["amount"] for row in lines), 2)
+	if abs(total - flt(doc.base_grand_total, 2)) > 0.05:
 		frappe.throw(
-			_("Pergamon item totals do not match Sales Invoice grand total; check taxes and discounts")
+			_("Pergamon item totals do not match Sales Invoice base grand total; check taxes and discounts")
 		)
 
 	id_type = str(doc.vfd_cust_id_type or "6")[:1]
@@ -69,8 +86,8 @@ def get_payload(doc):
 		"custId": doc.vfd_cust_id or "",
 		"custName": doc.customer_name or doc.customer,
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
-		"currency": doc.currency,
-		"exchangeRate": flt(doc.conversion_rate) or 1,
+		"currency": frappe.get_cached_value("Company", doc.company, "default_currency"),
+		"exchangeRate": 1.0,
 		"dateTime": str(doc.get("posting_date")) + " " + str(doc.get("posting_time") or "00:00:00"),
 		"salesItems": lines,
 	}
