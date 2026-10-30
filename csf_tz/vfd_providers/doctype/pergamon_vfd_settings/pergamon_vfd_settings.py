@@ -6,7 +6,7 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, get_datetime, now_datetime
+from frappe.utils import flt, now_datetime
 
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
@@ -58,6 +58,14 @@ def normalize_customer_id(value):
 	return value
 
 
+def get_posting_datetime(doc):
+	"""Normalize ERPNext's occasional one-digit seconds and microseconds."""
+	parts = str(doc.get("posting_time") or "00:00:00").split(".")[0].split(":")
+	if len(parts) != 3 or any(not part.isdigit() for part in parts):
+		frappe.throw(_("Invalid invoice posting time for Pergamon"))
+	return f"{doc.posting_date} {int(parts[0]):02d}:{int(parts[1]):02d}:{int(parts[2]):02d}"
+
+
 def get_payload(doc):
 	"""Build the Pergamon receipt using base rates and Total VFD VAT rules.
 
@@ -104,7 +112,7 @@ def get_payload(doc):
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
 		"currency": "TZS",
 		"exchangeRate": 1.0,
-		"dateTime": get_datetime(f"{doc.get('posting_date')} {doc.get('posting_time') or '00:00:00'}").strftime("%Y-%m-%d %H:%M:%S"),
+		"dateTime": get_posting_datetime(doc),
 		"salesItems": lines,
 	}
 
