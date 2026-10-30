@@ -143,6 +143,16 @@ def validate_postable(doc, manual_retry=False):
 				frappe.throw(_("Manual Pergamon retry requires an authorized manager"))
 			if attempt.rctnum or doc.get("vfd_rctvnum"):
 				frappe.throw(_("A fiscal receipt identifier exists; reconcile instead of retrying"))
+			previous_response = frappe.db.get_value("VFD Provider Posting", attempt.name, "ackmsg")
+			try:
+				previous_data = json.loads(previous_response or "{}")
+			except (TypeError, ValueError):
+				previous_data = {}
+			if isinstance(previous_data, dict) and (
+				parse_receipt(previous_data)[0]
+				or receipt_field(previous_data, "verificationCode", "traReceiptVerificationCode")
+			):
+				frappe.throw(_("Previous Pergamon response includes a fiscal verification code; reconcile instead of retrying"))
 			return
 		frappe.throw(
 			_(
