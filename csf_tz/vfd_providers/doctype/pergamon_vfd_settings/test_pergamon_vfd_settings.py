@@ -66,11 +66,12 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		):
 			result = pergamon.get_payload(doc)
 		self.assertEqual(result["totalAmount"], 50)
+		self.assertEqual(result["currency"], "TZS")
 		self.assertEqual(result["exchangeRate"], 1)
 
 	def test_all_five_tax_codes(self):
 		doc = self.make_invoice()
-		doc.items = [frappe._dict(dict(doc.items[0], item_code=str(i))) for i in range(1, 6)]
+		doc.items = [frappe._dict(dict(doc.items[0], item_code=str(i), base_rate=10, base_amount=10, base_net_amount=(8.47 if i == 1 else 10))) for i in range(1, 6)]
 		doc.grand_total = 50
 		with (
 			patch.object(pergamon, "get_item_taxcode", side_effect=[1, 2, 3, 4, 5]),
@@ -78,6 +79,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		):
 			result = pergamon.get_payload(doc)
 		self.assertEqual([row["taxCode"] for row in result["salesItems"]], list("ABCDE"))
+		self.assertTrue(all(row["discount"] == 0 for row in result["salesItems"]))
 
 	def test_unknown_response_never_marks_fiscal_success(self):
 		self.assertFalse(pergamon.parse_receipt({"message": "OK"})[0])
