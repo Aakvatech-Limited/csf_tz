@@ -288,6 +288,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 			verify=get_tls_verify(provider),
+			allow_redirects=False,
 		)
 		try:
 			result = response.json()
@@ -311,7 +312,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 		)
 
 	accepted, receipt = parse_receipt(result)
-	accepted = bool(accepted and response is not None and response.ok)
+	accepted = bool(accepted and response is not None and response.ok and response.status_code < 300)
 	if accepted:
 		reference = receipt_field(receipt, "traderInvoiceNo")
 		amount = receipt_field(receipt, "totalAmount")
@@ -392,6 +393,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 			verify=get_tls_verify(provider),
+			allow_redirects=False,
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_invoice", exc=exc, started=started)
@@ -402,7 +404,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 
 	if response.status_code == 404:
 		return {"found": False, "verified": False, "message": _("Invoice ID not found at Pergamon")}
-	if not response.ok:
+	if not response.ok or response.status_code >= 300:
 		log_pergamon_diagnostic("get_invoice", status_code=response.status_code, started=started)
 		frappe.throw(
 			_("Pergamon invoice lookup failed with HTTP status {0}").format(response.status_code)
@@ -535,6 +537,7 @@ def list_pergamon_invoices(sales_invoice):
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 			verify=get_tls_verify(provider),
+			allow_redirects=False,
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("list_invoices", exc=exc, started=started)
@@ -542,7 +545,7 @@ def list_pergamon_invoices(sales_invoice):
 	except requests.RequestException as exc:
 		log_pergamon_diagnostic("list_invoices", exc=exc, started=started)
 		frappe.throw(_("Pergamon invoice register could not be retrieved"))
-	if not response.ok:
+	if not response.ok or response.status_code >= 300:
 		log_pergamon_diagnostic("list_invoices", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon invoice register returned HTTP {0}").format(response.status_code))
 	try:
@@ -634,6 +637,7 @@ def fetch_pergamon_zreport(company, report_date):
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 			verify=get_tls_verify(provider),
+			allow_redirects=False,
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_zreports", exc=exc, started=started)
@@ -641,7 +645,7 @@ def fetch_pergamon_zreport(company, report_date):
 	except requests.RequestException as exc:
 		log_pergamon_diagnostic("get_zreports", exc=exc, started=started)
 		frappe.throw(_("Pergamon Z Report retrieval failed. Check connectivity and retry"))
-	if not response.ok:
+	if not response.ok or response.status_code >= 300:
 		log_pergamon_diagnostic("get_zreports", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon Z Report request returned HTTP {0}").format(response.status_code))
 	try:
@@ -750,6 +754,7 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
 			verify=get_tls_verify(provider),
+			allow_redirects=False,
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_periodic_reports", exc=exc, started=started)
@@ -757,7 +762,7 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 	except requests.RequestException as exc:
 		log_pergamon_diagnostic("get_periodic_reports", exc=exc, started=started)
 		frappe.throw(_("Pergamon periodic report retrieval failed. Check connectivity and retry"))
-	if not response.ok:
+	if not response.ok or response.status_code >= 300:
 		log_pergamon_diagnostic("get_periodic_reports", status_code=response.status_code, started=started)
 		frappe.throw(_("Pergamon periodic report returned HTTP {0}").format(response.status_code))
 	try:
