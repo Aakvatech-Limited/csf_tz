@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+from urllib.parse import quote
 import frappe
 import requests
 from frappe import _
@@ -231,3 +232,78 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	else:
 		frappe.db.set_value("Sales Invoice", doc.name, values)
 	return {"data": result, "vfd_provider": provider.name, "preview": preview, "success": accepted}
+
+
+@frappe.whitelist()
+def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
+	"""Fetch one Pergamon invoice by its provider ID, without fiscalizing again.
+
+	The Postman collection does not define the GET response schema or prove
+	that its ID is the ERPNext Sales Invoice name. Never infer that mapping.
+	"""
+	provider_invoice_id = str(provider_invoice_id or "").strip()
+	if not provider_invoice_id or len(provider_invoice_id) > 128 or "/" in provider_invoice_id:
+		frappe.throw(_("Enter a valid Pergamon invoice ID"))
+
+	if not sales_invoice:
+		frappe.throw(_("Select the Sales Invoice for verification"))
+	doc = frappe.get_doc("Sales Invoice", sales_invoice)
+	doc.check_permission("read")
+
+	provider = get_provider()
+	selected = frappe.db.get_value("Company VFD Provider", doc.company, "vfd_provider")
+	if selected != provider.name:
+		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
+	if provider.sandbox:
+		frappe.throw(_("Pergamon sandbox endpoint is not configured"))
+	if not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon endpoint must use HTTPS"))
+	endpoint = provider.get_endpoint("get_invoice")
+	if endpoint != "/invoices/{id}":
+		frappe.throw(_("Unexpected Pergamon invoice lookup endpoint configuration"))
+	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
+	url = provider.base_url.rstrip("/") + endpoint.replace("{id}", quote(provider_invoice_id, safe=""))
+	try:
+		response = requests.get(
+			url,
+			headers={"Accept": "application/json"},
+			auth=(settings.username, settings.get_password("password")),
+			timeout=TIMEOUT,
+		)
+	except requests.RequestException:
+		frappe.throw(_("Pergamon invoice lookup failed. Check connectivity and retry."))
+
+	if response.status_code == 404:
+		return {"found": False, "verified": False, "message": _("Invoice ID not found at Pergamon")}
+	if not response.ok:
+		frappe.throw(
+			_("Pergamon invoice lookup failed with HTTP status {0}").format(response.status_code)
+		)
+	try:
+		result = response.json()
+	except ValueError:
+		frappe.throw(_("Pergamon returned a non-JSON invoice lookup response"))
+	if not isinstance(result, dict):
+		frappe.throw(_("Pergamon returned an unexpected invoice lookup response"))
+
+	# Do not assert reconciliation unless the provider identifies the same
+	# originating Sales Invoice and returns an amount in the expected TZS.
+	reference = receipt_field(result, "traderInvoiceNo")
+	amount = receipt_field(result, "totalAmount")
+	expected = flt(doc.get("base_rounded_total") or doc.base_grand_total, 2)
+	matches_reference = str(reference or "") == doc.name
+	matches_amount = amount is not None and abs(flt(amount, 2) - expected) <= 0.05
+	verification_code = receipt_field(result, "verificationCode", "traReceiptVerificationCode")
+	return {
+		"found": True,
+		"verified": bool(matches_reference and matches_amount and verification_code),
+		"reference_matches": matches_reference,
+		"amount_matches": matches_amount,
+		"expected_tzs": expected,
+		"provider_reference": reference,
+		"provider_amount": amount,
+		"verification_code": verification_code,
+		"verification_url": receipt_field(result, "verificationUrl", "traReceiptVerificationUrl"),
+		"data": result,
+		"message": _("Lookup completed; no Sales Invoice fields were changed"),
+	}
