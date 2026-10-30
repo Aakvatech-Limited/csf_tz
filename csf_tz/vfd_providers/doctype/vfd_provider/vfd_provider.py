@@ -47,6 +47,17 @@ class VFDProvider(Document):
 		if not defaults:
 			return
 
+		if self.vfd_provider_settings == "Pergamon VFD Settings" and self.sandbox:
+			# Pergamon has not supplied an independently verified sandbox URL.
+			# Never silently route sandbox requests to the production endpoint.
+			sandbox_url = (frappe.conf.get("pergamon_sandbox_url") or "").rstrip("/")
+			if not sandbox_url or not sandbox_url.startswith("https://"):
+				frappe.throw(_("Configure pergamon_sandbox_url as a separate HTTPS test endpoint"))
+			if sandbox_url == defaults["live_url"].rstrip("/"):
+				frappe.throw(_("Pergamon sandbox URL must differ from the production URL"))
+			self.base_url = sandbox_url
+			return
+
 		self.base_url = defaults["test_url"] if self.sandbox else defaults["live_url"]
 
 	def set_endpoints(self):
