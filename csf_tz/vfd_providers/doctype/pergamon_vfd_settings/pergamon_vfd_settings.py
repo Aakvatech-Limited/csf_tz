@@ -7,7 +7,7 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, now_datetime
+from frappe.utils import flt, getdate, now_datetime
 
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
@@ -439,5 +439,125 @@ def list_pergamon_invoices(sales_invoice):
 		"message": _(
 			"Only records returned by Pergamon are compared. Pagination and full-register "
 			"coverage are not documented; missing ERPNext fiscal receipts cannot yet be inferred."
+		),
+	}
+
+
+def get_zreport_totals(body):
+	"""Extract report totals only when their schema is recognizable."""
+	if not isinstance(body, dict):
+		return None, None
+	for node in (body.get("data"), body.get("report"), body):
+		if not isinstance(node, dict):
+			continue
+		amount = next(
+			(node[k] for k in ("totalAmount", "totalSales", "totalTurnover") if node.get(k) is not None),
+			None,
+		)
+		count = next(
+			(node[k] for k in ("receiptCount", "receiptsIssued", "invoiceCount") if node.get(k) is not None),
+			None,
+		)
+		if amount is not None or count is not None:
+			return amount, count
+	return None, None
+
+
+@frappe.whitelist()
+def fetch_pergamon_zreport(company, report_date):
+	"""Retrieve and archive the daily Pergamon Z report, without altering fiscal invoices.
+
+	Pergamon response schema is not documented in the supplied Postman collection.
+	The raw response is authoritative; comparisons are explicitly indicative.
+	"""
+	if not set(frappe.get_roles()).intersection({"System Manager", "Accounts Manager"}):
+		frappe.throw(_("Retrieving Pergamon Z Reports requires an authorized manager"))
+	frappe.has_permission("Company", "read", doc=company, throw=True)
+	report_day = getdate(report_date)
+	if str(report_day) != str(report_date or ""):
+		frappe.throw(_("Enter a valid Z Report date in YYYY-MM-DD format"))
+	provider = get_provider()
+	selected = frappe.db.get_value("Company VFD Provider", company, "vfd_provider")
+	if selected != provider.name:
+		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
+	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon Z Report requires an HTTPS production endpoint"))
+	endpoint = provider.get_endpoint("zreports")
+	if endpoint != "/zreports":
+		frappe.throw(_("Unexpected Pergamon Z Report endpoint configuration"))
+	settings = frappe.get_doc(SETTINGS_DOCTYPE, company)
+	try:
+		response = requests.get(
+			provider.base_url.rstrip("/") + endpoint,
+			params={"date": str(report_day)},
+			headers={"Accept": "application/json"},
+			auth=(settings.username, settings.get_password("password")),
+			timeout=TIMEOUT,
+		)
+	except requests.RequestException:
+		frappe.throw(_("Pergamon Z Report retrieval failed. Check connectivity and retry"))
+	if not response.ok:
+		frappe.throw(_("Pergamon Z Report request returned HTTP {0}").format(response.status_code))
+	try:
+		body = response.json()
+	except ValueError:
+		frappe.throw(_("Pergamon returned a non-JSON Z Report response"))
+	if not isinstance(body, (dict, list)):
+		frappe.throw(_("Pergamon returned an unexpected Z Report response"))
+	amount, count = get_zreport_totals(body)
+	# Use fiscal submission date; invoice posting_date may differ.
+	local = frappe.get_list(
+		"Sales Invoice",
+		filters={
+			"company": company,
+			"docstatus": 1,
+			"vfd_status": "Success",
+			"vfd_date": str(report_day),
+		},
+		fields=["base_grand_total", "base_rounded_total"],
+		limit_page_length=0,
+	)
+	local_amount = flt(
+		sum(flt(row.base_rounded_total or row.base_grand_total, 2) for row in local), 2
+	)
+	provider_amount = flt(amount, 2) if amount is not None else None
+	difference = flt(provider_amount - local_amount, 2) if provider_amount is not None else None
+	status = "Pending Schema Confirmation"
+	if provider_amount is not None and count is not None:
+		status = (
+			"Indicative Match"
+			if abs(difference) <= 0.05 and int(count) == len(local)
+			else "Indicative Difference"
+		)
+	existing = frappe.get_all(
+		"VFD Z Report",
+		filters={"company": company, "vfd_provider": provider.name, "report_date": str(report_day)},
+		pluck="name",
+		limit_page_length=1,
+	)
+	doc = frappe.get_doc("VFD Z Report", existing[0]) if existing else frappe.new_doc("VFD Z Report")
+	doc.company = company
+	doc.vfd_provider = provider.name
+	doc.report_date = report_day
+	doc.fetched_at = now_datetime()
+	doc.reconciliation_status = status
+	doc.provider_total = provider_amount
+	doc.provider_receipt_count = int(count) if count is not None else None
+	doc.erpnext_total = local_amount
+	doc.erpnext_receipt_count = len(local)
+	doc.difference = difference
+	doc.raw_response = json.dumps(body, ensure_ascii=False, indent=2)
+	doc.save() if existing else doc.insert()
+	return {
+		"z_report": doc.name,
+		"status": status,
+		"provider_total": provider_amount,
+		"erpnext_total": local_amount,
+		"provider_receipt_count": count,
+		"erpnext_receipt_count": len(local),
+		"difference": difference,
+		"message": _(
+			"Z Report archived. Reconciliation is indicative until Pergamon's response schema "
+			"and report scope are verified."
 		),
 	}
