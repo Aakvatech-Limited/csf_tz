@@ -1,5 +1,53 @@
 frappe.ui.form.on("Sales Invoice", {
-  refresh: function (frm) {},
+  refresh: function (frm) {
+    if (frm.is_new() || frm.doc.docstatus !== 1) return;
+    frappe.db.get_value("Company VFD Provider", frm.doc.company, "vfd_provider")
+      .then((companyProvider) => {
+        const name = companyProvider.message && companyProvider.message.vfd_provider;
+        if (!name) return;
+        return frappe.db.get_value("VFD Provider", name, "vfd_provider_settings")
+          .then((provider) => {
+            if (!provider.message || provider.message.vfd_provider_settings !== "Pergamon VFD Settings") return;
+            frm.add_custom_button(__("Lookup Pergamon Receipt"), () => {
+              frappe.prompt(
+                [{
+                  fieldname: "provider_invoice_id",
+                  fieldtype: "Data",
+                  label: __("Pergamon Invoice ID"),
+                  reqd: 1,
+                  description: __("Enter the Pergamon-generated invoice ID, not the ERPNext invoice number unless confirmed by the provider."),
+                }],
+                (values) => {
+                  frappe.call({
+                    method: "csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings.get_pergamon_invoice",
+                    args: { provider_invoice_id: values.provider_invoice_id, sales_invoice: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __("Retrieving Pergamon receipt..."),
+                  }).then((response) => {
+                    const result = response.message || {};
+                    const summary = [
+                      __("Found at Pergamon: {0}", [result.found ? __("Yes") : __("No")]),
+                      __("Verified against ERPNext: {0}", [result.verified ? __("Yes") : __("No")]),
+                      __("Reference matches: {0}", [result.reference_matches ? __("Yes") : __("No")]),
+                      __("Amount matches: {0}", [result.amount_matches ? __("Yes") : __("No")]),
+                      __("Currency is TZS: {0}", [result.currency_matches ? __("Yes") : __("No")]),
+                      __("Verification code: {0}", [frappe.utils.escape_html(String(result.verification_code || "-"))]),
+                      __("Verification URL: {0}", [frappe.utils.escape_html(String(result.verification_url || "-"))]),
+                    ].join("<br>");
+                    frappe.msgprint({
+                      title: __("Pergamon Receipt Lookup"),
+                      message: summary,
+                      indicator: result.verified ? "green" : "orange",
+                    });
+                  }).catch(show_vfd_request_error);
+                },
+                __("Lookup Pergamon Receipt"),
+                __("Lookup")
+              );
+            }, __("VFD"));
+          });
+      });
+  },
   generate_vfd: (frm) => {
     if (!frm.doc.vfd_cust_id) {
       frappe.msgprint({

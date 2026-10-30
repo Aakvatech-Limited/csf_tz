@@ -1,7 +1,7 @@
 """Offline contract tests: never contact the live Pergamon endpoint."""
 
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -299,6 +299,44 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		doc.is_not_vfd_invoice = 0
 		doc.vfd_status = "Success"
 		self.assertRaises(frappe.ValidationError, pergamon.validate_postable, doc)
+
+	def test_invoice_lookup_matches_reference_amount_and_verification(self):
+		doc = self.make_invoice()
+		response = Mock(ok=True, status_code=200)
+		response.json.return_value = {
+			"data": {
+				"traderInvoiceNo": doc.name,
+				"totalAmount": 50,
+				"currency": "TZS",
+				"verificationCode": "VFD-123",
+				"verificationUrl": "https://example.org/verify",
+			}
+		}
+		provider = Mock(name="Pergamon")
+		provider.name = "Pergamon"
+		provider.sandbox = 0
+		provider.base_url = "https://example.org/api/v1"
+		provider.get_endpoint.return_value = "/invoices/{id}"
+		settings = Mock(username="test")
+		settings.get_password.return_value = "test-password"
+		with (
+			patch.object(pergamon.frappe, "get_doc", side_effect=[doc, settings]),
+			patch.object(pergamon, "get_provider", return_value=provider),
+			patch.object(pergamon.frappe.db, "get_value", return_value="Pergamon"),
+			patch.object(pergamon.requests, "get", return_value=response) as get,
+			patch.object(doc, "check_permission", create=True),
+		):
+			result = pergamon.get_pergamon_invoice("123", sales_invoice=doc.name)
+		self.assertTrue(result["verified"])
+		self.assertEqual(result["verification_code"], "VFD-123")
+		self.assertEqual(get.call_args.args[0], "https://example.org/api/v1/invoices/123")
+
+	def test_invoice_lookup_rejects_invalid_id(self):
+		self.assertRaises(frappe.ValidationError, pergamon.get_pergamon_invoice, "../123", "SINV-1")
+
+	def test_invoice_lookup_requires_linked_sales_invoice(self):
+		self.assertRaises(frappe.ValidationError, pergamon.get_pergamon_invoice, "123")
+
 
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
