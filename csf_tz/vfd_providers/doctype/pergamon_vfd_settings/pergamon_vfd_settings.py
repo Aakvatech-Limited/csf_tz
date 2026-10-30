@@ -3,13 +3,13 @@
 
 import json
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 import frappe
 import requests
 from time import monotonic
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, getdate, now_datetime
+from frappe.utils import cint, flt, getdate, now_datetime
 
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
@@ -53,12 +53,25 @@ def log_pergamon_diagnostic(operation, exc=None, status_code=None, started=None)
 	)
 
 
-def get_tls_verify():
-	"""Use the system trust store or an explicitly configured private CA bundle.
+def get_tls_verify(provider=None):
+	"""TLS bypass is only permitted for a distinct, configured sandbox host."""
+	if provider and provider.sandbox:
+		sandbox_url = str(frappe.conf.get("pergamon_sandbox_url") or "").rstrip("/")
+		production_host = "5.161.57.127"
+		sandbox = urlsplit(sandbox_url)
+		active = urlsplit(provider.base_url or "")
+		if (
+			sandbox.scheme != "https"
+			or not sandbox.hostname
+			or sandbox.hostname == production_host
+			or active.scheme != "https"
+			or active.netloc != sandbox.netloc
+			or not active.path.rstrip("/") == sandbox.path.rstrip("/")
+		):
+			frappe.throw(_("Pergamon sandbox must use the separately configured HTTPS test endpoint"))
+		if cint(frappe.conf.get("pergamon_sandbox_skip_tls_verification") or 0):
+			return False
 
-	Configure pergamon_ca_bundle in site_config.json. TLS verification remains
-	enabled and certificate hostname/IP validation is enforced by requests.
-	"""
 	ca_bundle = frappe.conf.get("pergamon_ca_bundle")
 	if not ca_bundle:
 		return True
@@ -258,7 +271,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 	if selected != provider.name:
 		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
 	if provider.sandbox:
-		frappe.throw(_("Pergamon sandbox endpoint is not configured. Disable Sandbox before posting."))
+		get_tls_verify(provider)
 	if not provider.base_url.lower().startswith("https://"):
 		frappe.throw(_("Pergamon endpoint must use HTTPS"))
 	url = provider.base_url.rstrip("/") + provider.get_endpoint("post_receipt")
@@ -274,7 +287,7 @@ def post_fiscal_receipt(doc=None, method="POST", payload=None, invoice_id=None, 
 			headers=safe_headers,
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
-			verify=get_tls_verify(),
+			verify=get_tls_verify(provider),
 		)
 		try:
 			result = response.json()
@@ -363,7 +376,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 	if selected != provider.name:
 		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
 	if provider.sandbox:
-		frappe.throw(_("Pergamon sandbox endpoint is not configured"))
+		get_tls_verify(provider)
 	if not provider.base_url.lower().startswith("https://"):
 		frappe.throw(_("Pergamon endpoint must use HTTPS"))
 	endpoint = provider.get_endpoint("get_invoice")
@@ -378,7 +391,7 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
-			verify=get_tls_verify(),
+			verify=get_tls_verify(provider),
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_invoice", exc=exc, started=started)
@@ -506,8 +519,10 @@ def list_pergamon_invoices(sales_invoice):
 	selected = frappe.db.get_value("Company VFD Provider", doc.company, "vfd_provider")
 	if selected != provider.name:
 		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
-	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
-		frappe.throw(_("Pergamon requires a configured HTTPS production endpoint"))
+	if not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon requires an HTTPS endpoint"))
+	if provider.sandbox:
+		get_tls_verify(provider)
 	endpoint = provider.get_endpoint("get_invoices")
 	if endpoint != "/invoices":
 		frappe.throw(_("Unexpected Pergamon invoice list endpoint configuration"))
@@ -519,7 +534,7 @@ def list_pergamon_invoices(sales_invoice):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
-			verify=get_tls_verify(),
+			verify=get_tls_verify(provider),
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("list_invoices", exc=exc, started=started)
@@ -602,8 +617,10 @@ def fetch_pergamon_zreport(company, report_date):
 	selected = frappe.db.get_value("Company VFD Provider", company, "vfd_provider")
 	if selected != provider.name:
 		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
-	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
-		frappe.throw(_("Pergamon Z Report requires an HTTPS production endpoint"))
+	if not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon requires an HTTPS endpoint"))
+	if provider.sandbox:
+		get_tls_verify(provider)
 	endpoint = provider.get_endpoint("zreports")
 	if endpoint != "/zreports":
 		frappe.throw(_("Unexpected Pergamon Z Report endpoint configuration"))
@@ -616,7 +633,7 @@ def fetch_pergamon_zreport(company, report_date):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
-			verify=get_tls_verify(),
+			verify=get_tls_verify(provider),
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_zreports", exc=exc, started=started)
@@ -716,8 +733,10 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 	selected = frappe.db.get_value("Company VFD Provider", company, "vfd_provider")
 	if selected != provider.name:
 		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
-	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
-		frappe.throw(_("Pergamon periodic report requires an HTTPS production endpoint"))
+	if not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon requires an HTTPS endpoint"))
+	if provider.sandbox:
+		get_tls_verify(provider)
 	endpoint = provider.get_endpoint("periodic_reports")
 	if endpoint != "/periodic-reports":
 		frappe.throw(_("Unexpected Pergamon periodic report endpoint configuration"))
@@ -730,7 +749,7 @@ def fetch_pergamon_periodic_report(company, from_date, to_date):
 			headers={"Accept": "application/json"},
 			auth=(settings.username, settings.get_password("password")),
 			timeout=TIMEOUT,
-			verify=get_tls_verify(),
+			verify=get_tls_verify(provider),
 		)
 	except requests.exceptions.SSLError as exc:
 		log_pergamon_diagnostic("get_periodic_reports", exc=exc, started=started)
