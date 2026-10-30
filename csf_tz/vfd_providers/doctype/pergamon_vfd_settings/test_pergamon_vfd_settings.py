@@ -284,6 +284,17 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			pergamon.receipt_field(response, "verificationUrl", "traReceiptVerificationUrl")
 		)
 
+	def test_retry_blocks_existing_fiscal_number(self):
+		doc = self.make_invoice()
+		doc.docstatus = 1
+		doc.is_return = 0
+		doc.is_not_vfd_invoice = 0
+		doc.vfd_status = "Failed"
+		doc.vfd_rctvnum = "VERIFIED"
+		with patch.object(pergamon.frappe, "get_all", return_value=[frappe._dict({"name": "VFDPP-1", "ackcode": 200, "rctnum": 12})]):
+			with patch.object(pergamon.frappe, "get_roles", return_value=["Accounts Manager"]):
+				self.assertRaises(frappe.ValidationError, pergamon.validate_postable, doc, True)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
