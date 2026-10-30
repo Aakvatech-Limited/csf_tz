@@ -311,3 +311,133 @@ def get_pergamon_invoice(provider_invoice_id, sales_invoice=None):
 		"data": result,
 		"message": _("Lookup completed; no Sales Invoice fields were changed"),
 	}
+
+
+def extract_invoice_list(response):
+	"""Accept a direct array or a common list envelope; reject unknown schemas."""
+	if isinstance(response, list):
+		return response
+	if not isinstance(response, dict):
+		frappe.throw(_("Unexpected Pergamon invoice list response"))
+	for key in ("data", "invoices", "results"):
+		value = response.get(key)
+		if isinstance(value, list):
+			return value
+		if isinstance(value, dict):
+			for nested_key in ("invoices", "items", "results", "data"):
+				if isinstance(value.get(nested_key), list):
+					return value[nested_key]
+	frappe.throw(_("Pergamon invoice list format is not recognized; no reconciliation was performed"))
+
+
+def compare_pergamon_invoices(records, erpnext_invoices):
+	"""Read-only comparison; absence from an unpaginated list is not proof of a missing receipt."""
+	index = {row.name: row for row in erpnext_invoices}
+	rows = []
+	for receipt in records:
+		if not isinstance(receipt, dict):
+			continue
+		reference = receipt_field(receipt, "traderInvoiceNo")
+		reference = str(reference or "").strip()
+		invoice = index.get(reference)
+		provider_amount = receipt_field(receipt, "totalAmount")
+		currency = receipt_field(receipt, "currency")
+		verification = receipt_field(receipt, "verificationCode", "traReceiptVerificationCode")
+		expected = (
+			flt(invoice.base_rounded_total or invoice.base_grand_total, 2) if invoice else None
+		)
+		amount_matches = (
+			invoice is not None
+			and provider_amount is not None
+			and abs(flt(provider_amount, 2) - expected) <= 0.05
+		)
+		rows.append(
+			{
+				"trader_invoice_no": reference,
+				"erpnext_invoice": invoice.name if invoice else None,
+				"erpnext_vfd_status": invoice.vfd_status if invoice else None,
+				"provider_invoice_id": receipt_field(receipt, "id", "invoiceId"),
+				"provider_amount": provider_amount,
+				"expected_tzs": expected,
+				"currency": currency,
+				"verification_code": verification,
+				"verification_url": receipt_field(
+					receipt, "verificationUrl", "traReceiptVerificationUrl"
+				),
+				"status": (
+					"Verified"
+					if invoice and amount_matches and currency == "TZS" and verification
+					else "Mismatch" if invoice else "Not linked to accessible Sales Invoice"
+				),
+			}
+		)
+	return rows
+
+
+@frappe.whitelist()
+def list_pergamon_invoices(sales_invoice):
+	"""Read Pergamon's invoice register and compare returned entries with ERPNext.
+
+	The Postman collection does not specify filters, ordering or pagination.
+	No missing-invoice conclusion may be drawn from an incomplete/unknown list.
+	"""
+	if not sales_invoice:
+		frappe.throw(_("Sales Invoice is required to select the company"))
+	doc = frappe.get_doc("Sales Invoice", sales_invoice)
+	doc.check_permission("read")
+	if not set(frappe.get_roles()).intersection({"System Manager", "Accounts Manager", "Sales Manager"}):
+		frappe.throw(_("Viewing the Pergamon invoice register requires a manager role"))
+	provider = get_provider()
+	selected = frappe.db.get_value("Company VFD Provider", doc.company, "vfd_provider")
+	if selected != provider.name:
+		frappe.throw(_("Pergamon is not the selected VFD provider for this company"))
+	if provider.sandbox or not provider.base_url.lower().startswith("https://"):
+		frappe.throw(_("Pergamon requires a configured HTTPS production endpoint"))
+	endpoint = provider.get_endpoint("get_invoices")
+	if endpoint != "/invoices":
+		frappe.throw(_("Unexpected Pergamon invoice list endpoint configuration"))
+	settings = frappe.get_doc(SETTINGS_DOCTYPE, doc.company)
+	try:
+		response = requests.get(
+			provider.base_url.rstrip("/") + endpoint,
+			headers={"Accept": "application/json"},
+			auth=(settings.username, settings.get_password("password")),
+			timeout=TIMEOUT,
+		)
+	except requests.RequestException:
+		frappe.throw(_("Pergamon invoice register could not be retrieved"))
+	if not response.ok:
+		frappe.throw(_("Pergamon invoice register returned HTTP {0}").format(response.status_code))
+	try:
+		body = response.json()
+	except ValueError:
+		frappe.throw(_("Pergamon invoice register returned non-JSON content"))
+	records = extract_invoice_list(body)
+	if len(records) > 2000:
+		frappe.throw(_("Pergamon response contains too many invoices for an interactive comparison"))
+	references = [
+		str(receipt_field(row, "traderInvoiceNo") or "").strip()
+		for row in records if isinstance(row, dict)
+	]
+	references = list({ref for ref in references if ref})
+	matched = (
+		frappe.get_list(
+			"Sales Invoice",
+			filters={"company": doc.company, "name": ["in", references]},
+			fields=["name", "vfd_status", "base_grand_total", "base_rounded_total"],
+			limit_page_length=len(references),
+		)
+		if references else []
+	)
+	rows = compare_pergamon_invoices(records, matched)
+	return {
+		"company": doc.company,
+		"count_returned": len(records),
+		"matched_count": sum(bool(row["erpnext_invoice"]) for row in rows),
+		"rows": rows,
+		"complete_register": False,
+		"message": _(
+			"Only records returned by Pergamon are compared. Pagination and full-register "
+			"coverage are not documented; missing ERPNext fiscal receipts cannot yet be inferred."
+		),
+	}
