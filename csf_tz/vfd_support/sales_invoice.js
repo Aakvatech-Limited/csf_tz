@@ -31,6 +31,33 @@ frappe.ui.form.on("Sales Invoice", {
   },
 });
 
+function show_vfd_request_error(xhr) {
+  // Frappe returns frappe.throw messages in _server_messages; do not replace
+  // a useful validation error with the generic "VFD generation failed".
+  let message = "";
+  const response = (xhr && xhr.responseJSON) || {};
+  if (response._server_messages) {
+    try {
+      const messages = typeof response._server_messages === "string"
+        ? JSON.parse(response._server_messages)
+        : response._server_messages;
+      const last = Array.isArray(messages) ? messages[messages.length - 1] : null;
+      if (last) {
+        const detail = typeof last === "string" ? JSON.parse(last) : last;
+        message = detail.message || "";
+      }
+    } catch (e) {
+      // Some Frappe responses do not contain parseable structured messages.
+    }
+  }
+  message = message || response.message || response.exception || "";
+  frappe.msgprint({
+    title: __("VFD Generation Failed"),
+    message: message ? frappe.utils.escape_html(String(message)) : __("VFD generation failed. Please review the invoice details."),
+    indicator: "red",
+  });
+}
+
 function _generate_vfd(frm) {
   frappe.call({
     method: "csf_tz.vfd_support.utils.generate_tra_vfd",
@@ -61,8 +88,8 @@ function _generate_vfd(frm) {
         frappe.msgprint(__("VFD generation failed"));
       }
     },
-    error: () => {
-      frappe.msgprint(__("VFD generation failed"));
+    error: (xhr) => {
+      show_vfd_request_error(xhr);
     },
   });
 }
@@ -391,6 +418,9 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider, method) {
               show_vfd_not_sent(res.message.data);
             }
         })
+        .catch((xhr) => {
+          show_vfd_request_error(xhr);
+        });
     },
     secondary_action_label: __("Close"),
     secondary_action() {
