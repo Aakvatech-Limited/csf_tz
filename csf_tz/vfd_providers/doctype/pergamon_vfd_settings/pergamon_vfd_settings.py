@@ -6,7 +6,7 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, now_datetime
+from frappe.utils import flt, get_datetime, now_datetime
 
 from csf_tz.vfd_support.sales_invoice import get_item_taxcode, remove_all_except_numbers
 
@@ -83,9 +83,14 @@ def get_payload(doc):
 		)
 
 	total = flt(sum(row["amount"] for row in lines), 2)
-	if abs(total - flt(doc.base_grand_total, 2)) > 0.05:
+	base_grand_total = flt(doc.base_grand_total, 2)
+	base_rounded_total = flt(doc.get("base_rounded_total") or base_grand_total, 2)
+	base_rounding_adjustment = flt(doc.get("base_rounding_adjustment") or 0, 2)
+	if abs(base_grand_total + base_rounding_adjustment - base_rounded_total) > 0.01:
+		frappe.throw(_("Pergamon base rounded total does not match the rounding adjustment"))
+	if abs(total - base_rounded_total) > 0.05:
 		frappe.throw(
-			_("Pergamon item totals do not match Sales Invoice base grand total; check taxes and discounts")
+			_("Pergamon item totals do not match Sales Invoice base rounded total; check taxes and discounts")
 		)
 
 	id_type = str(doc.vfd_cust_id_type or "6")[:1]
@@ -99,7 +104,7 @@ def get_payload(doc):
 		"custPhone": remove_all_except_numbers(doc.get("contact_mobile") or ""),
 		"currency": "TZS",
 		"exchangeRate": 1.0,
-		"dateTime": str(doc.get("posting_date")) + " " + str(doc.get("posting_time") or "00:00:00")[:8],
+		"dateTime": get_datetime(f"{doc.get('posting_date')} {doc.get('posting_time') or '00:00:00'}").strftime("%Y-%m-%d %H:%M:%S"),
 		"salesItems": lines,
 	}
 
