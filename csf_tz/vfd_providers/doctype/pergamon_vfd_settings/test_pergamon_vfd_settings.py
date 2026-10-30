@@ -465,6 +465,45 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			self.assertIn("self_signed_certificate", args)
 			self.assertNotIn("secret.example", str(args))
 
+	def test_tls_bypass_allowed_only_for_distinct_sandbox_host(self):
+		provider = frappe._dict({
+			"sandbox": 1,
+			"base_url": "https://sandbox.pergamon.example/api/v1",
+		})
+		values = {
+			"pergamon_sandbox_url": "https://sandbox.pergamon.example/api/v1",
+			"pergamon_sandbox_skip_tls_verification": 1,
+		}
+		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
+			self.assertIs(pergamon.get_tls_verify(provider), False)
+		provider.sandbox = 0
+		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
+			self.assertIs(pergamon.get_tls_verify(provider), True)
+
+	def test_tls_bypass_rejected_for_production_host_even_in_sandbox(self):
+		provider = frappe._dict({
+			"sandbox": 1,
+			"base_url": "https://5.161.57.127:9040/api/v1",
+		})
+		values = {
+			"pergamon_sandbox_url": "https://5.161.57.127:9040/api/v1",
+			"pergamon_sandbox_skip_tls_verification": 1,
+		}
+		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
+			self.assertRaises(frappe.ValidationError, pergamon.get_tls_verify, provider)
+
+	def test_tls_bypass_rejected_when_active_url_is_not_configured_sandbox(self):
+		provider = frappe._dict({
+			"sandbox": 1,
+			"base_url": "https://different.example/api/v1",
+		})
+		values = {
+			"pergamon_sandbox_url": "https://sandbox.pergamon.example/api/v1",
+			"pergamon_sandbox_skip_tls_verification": 1,
+		}
+		with patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: values.get(key)):
+			self.assertRaises(frappe.ValidationError, pergamon.get_tls_verify, provider)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100

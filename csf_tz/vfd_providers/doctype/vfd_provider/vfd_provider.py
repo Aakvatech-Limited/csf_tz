@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from urllib.parse import urlsplit
 from frappe import _
 from frappe.model.document import Document
 
@@ -45,6 +46,19 @@ class VFDProvider(Document):
 		"""
 		defaults = PROVIDER_DEFAULTS.get(self.vfd_provider_settings)
 		if not defaults:
+			return
+
+		if self.vfd_provider_settings == "Pergamon VFD Settings" and self.sandbox:
+			# Pergamon has not supplied an independently verified sandbox URL.
+			# Never silently route sandbox requests to the production endpoint.
+			sandbox_url = (frappe.conf.get("pergamon_sandbox_url") or "").rstrip("/")
+			if not sandbox_url or urlsplit(sandbox_url).scheme != "https":
+				frappe.throw(_("Configure pergamon_sandbox_url as a separate HTTPS test endpoint"))
+			if not urlsplit(sandbox_url).hostname or (
+				urlsplit(sandbox_url).hostname == urlsplit(defaults["live_url"]).hostname
+			):
+				frappe.throw(_("Pergamon sandbox must use a different host from production"))
+			self.base_url = sandbox_url
 			return
 
 		self.base_url = defaults["test_url"] if self.sandbox else defaults["live_url"]
