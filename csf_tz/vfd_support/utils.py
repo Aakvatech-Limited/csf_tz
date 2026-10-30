@@ -8,6 +8,10 @@ from csf_tz.vfd_providers.doctype.dirm_vfd_settings.dirm_vfd_settings import (
 from csf_tz.vfd_providers.doctype.dirm_vfd_settings.dirm_vfd_settings import (
 	post_fiscal_receipt as dirm_vfd_post_fiscal_receipt,
 )
+from csf_tz.vfd_providers.doctype.pergamon_vfd_settings.pergamon_vfd_settings import (
+	get_payload as get_pergamon_payload,
+	post_fiscal_receipt as pergamon_post_fiscal_receipt,
+)
 from csf_tz.vfd_providers.doctype.simplify_vfd_settings.simplify_vfd_settings import (
 	get_payload as get_simplify_payload,
 )
@@ -32,6 +36,7 @@ VFD_PROVIDER_HANDLERS = {
 	"Total VFD Setting": (get_total_vfd_payload, total_vfd_post_fiscal_receipt),
 	"Simplify VFD Settings": (get_simplify_payload, simplify_vfd_post_fiscal_receipt),
 	"DIRM VFD Settings": (get_dirm_vfd_payload, dirm_vfd_post_fiscal_receipt),
+	"Pergamon VFD Settings": (get_pergamon_payload, pergamon_post_fiscal_receipt),
 }
 
 
