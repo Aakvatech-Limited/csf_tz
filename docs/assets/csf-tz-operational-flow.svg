@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1540" height="640" viewBox="0 0 1540 640" role="img" aria-labelledby="flow-title flow-desc">
+<title id="flow-title">CSF TZ operational flow</title>
+<desc id="flow-desc">Configure and authorize CSF TZ, use standard ERPNext or HRMS transactions, then run only applicable independent fiscal, banking, or regulatory capabilities and review their corresponding records and reports.</desc>
+<rect width="1540" height="640" rx="24" fill="#F7F9FC"/>
+<rect x="0" y="0" width="1540" height="12" rx="6" fill="#0D1D38"/>
+<rect x="48" y="48" width="9" height="62" rx="4" fill="#BC2230"/>
+<text x="78" y="67" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#BC2230">CSF TZ</text>
+<text x="78" y="108" font-family="Arial, Helvetica, sans-serif" font-size="37" font-weight="700" fill="#0D1D38">Operational Flow</text>
+<text x="740" y="103" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#526077">Local capabilities extend existing ERPNext workflows only when applicable and configured.</text>
+<line x1="48" y1="134" x2="1490" y2="134" stroke="#DCE3EB" stroke-width="2"/>
+
+<!-- Configure -->
+<rect x="46" y="176" width="274" height="305" rx="20" fill="#FFFFFF" stroke="#CCD9EB" stroke-width="2"/>
+<rect x="46" y="176" width="274" height="10" rx="5" fill="#4B68AE"/>
+<rect x="70" y="206" width="44" height="44" rx="12" fill="#E9EEF9"/>
+<path d="M84 224h16M84 231h16M84 238h10" fill="none" stroke="#4B68AE" stroke-width="3.5" stroke-linecap="round"/>
+<text x="126" y="224" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#4B68AE">01 · SET UP</text>
+<text x="70" y="284" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#0D1D38">Configuration</text>
+<text x="70" y="317" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Company settings</text>
+<text x="70" y="350" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Roles and permissions</text>
+<text x="70" y="383" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Provider credentials</text>
+<text x="70" y="440" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#758397">Set up required services first</text>
+
+<!-- ERPNext source -->
+<rect x="366" y="176" width="306" height="305" rx="20" fill="#FFFFFF" stroke="#CCD9EB" stroke-width="2"/>
+<rect x="366" y="176" width="306" height="10" rx="5" fill="#5695D0"/>
+<rect x="391" y="206" width="44" height="44" rx="12" fill="#E9F4FC"/>
+<rect x="403" y="216" width="21" height="25" rx="3" fill="none" stroke="#2776B0" stroke-width="3"/>
+<path d="M408 224h11M408 231h11" fill="none" stroke="#2776B0" stroke-width="2" stroke-linecap="round"/>
+<text x="447" y="224" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#2776B0">02 · WORK</text>
+<text x="391" y="284" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#0D1D38">ERPNext / HRMS</text>
+<text x="391" y="317" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Sales and purchases</text>
+<text x="391" y="350" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Payroll and advances</text>
+<text x="391" y="383" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#526077">Banking and operations</text>
+<text x="391" y="440" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#758397">Standard transactions remain core</text>
+
+<!-- Module lanes -->
+<text x="746" y="163" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="1.5" fill="#586A81">INDEPENDENT CAPABILITIES</text>
+<rect x="744" y="182" width="376" height="91" rx="17" fill="#ECF8F1" stroke="#C7EBD5" stroke-width="2"/>
+<circle cx="782" cy="227" r="18" fill="#168858"/>
+<path d="M772 227l7 7 13-15" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="815" y="220" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#0D1D38">Tax &amp; VFD</text>
+<text x="815" y="248" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#526077">Fiscalization, TRA checks, statutory tax</text>
+
+<rect x="744" y="291" width="376" height="91" rx="17" fill="#EDF4FC" stroke="#CADCF2" stroke-width="2"/>
+<circle cx="782" cy="336" r="18" fill="#4B68AE"/>
+<path d="M772 331h20M772 338h20M776 344h12" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+<text x="815" y="329" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#0D1D38">Banking</text>
+<text x="815" y="357" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#526077">Stanbic and KCB payment workflows</text>
+
+<rect x="744" y="400" width="376" height="91" rx="17" fill="#FFF7EC" stroke="#F2D9B6" stroke-width="2"/>
+<circle cx="782" cy="445" r="18" fill="#C0873A"/>
+<path d="M782 434v12M775 445l7 7 7-7" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="815" y="438" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#0D1D38">Regulatory checks</text>
+<text x="815" y="466" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#526077">LATRA, TIRA and traffic-fine records</text>
+
+<!-- Results -->
+<rect x="1222" y="176" width="272" height="305" rx="20" fill="#FFFFFF" stroke="#E7CDD1" stroke-width="2"/>
+<rect x="1222" y="176" width="272" height="10" rx="5" fill="#BC2230"/>
+<rect x="1247" y="206" width="44" height="44" rx="12" fill="#FCEEF0"/>
+<path d="M1257 236h8l6-11 6 6 5-15" fill="none" stroke="#BC2230" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1303" y="224" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#BC2230">03 · REVIEW</text>
+<text x="1247" y="283" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#0D1D38">Records &amp;</text>
+<text x="1247" y="313" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#0D1D38">reporting</text>
+<text x="1247" y="351" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#526077">Fiscal status</text>
+<text x="1247" y="380" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#526077">Payment status</text>
+<text x="1247" y="409" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#526077">Compliance records</text>
+<text x="1247" y="440" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#758397">Per applicable workflow</text>
+
+<!-- Arrows -->
+<g fill="none" stroke="#7B8CA4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M322 329h35"/><path d="M348 322l9 7-9 7"/>
+  <path d="M674 329h37M711 227v218"/>
+  <path d="M711 227h24M727 220l8 7-8 7"/>
+  <path d="M711 336h24M727 329l8 7-8 7"/>
+  <path d="M711 445h24M727 438l8 7-8 7"/>
+  <path d="M1121 227h68M1121 336h68M1121 445h68"/>
+  <path d="M1189 227v218M1189 336h23M1204 329l8 7-8 7"/>
+</g>
+<!-- End note -->
+<rect x="47" y="534" width="1447" height="64" rx="14" fill="#E9EEF5"/>
+<rect x="47" y="534" width="8" height="64" rx="4" fill="#BC2230"/>
+<text x="75" y="561" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" fill="#0D1D38">Important:</text>
+<text x="172" y="561" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#34445A">Only enabled and relevant integrations execute; unrelated transactions keep their standard ERPNext / HRMS flow.</text>
+<text x="75" y="583" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6B7D91">Connections to external authorities and banks depend on configuration, credentials, permissions and service availability.</text>
+</svg>
