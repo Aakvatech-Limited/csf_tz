@@ -28,6 +28,7 @@
       <stop offset="1" stop-color="#FDFEFF"/>
     </linearGradient>
   </defs>
+  <g transform="translate(256 249) scale(1.2 1.06) translate(-256 -249)">
   <!-- No background rectangle: everything outside the icon is transparent. -->
   <g clip-path="url(#board-shape)">
     <rect x="60" y="76" width="392" height="408" fill="url(#tz-green)"/>
@@ -55,5 +56,6 @@
     <path d="M1 19 L12 1 Q12.5 0 14 0 H25 L13.5 19 Q13 20 11 20 H2 Q0 20 1 19Z" fill="#5695D0"/>
     <path d="M19 13 L26 1 Q27 0 28 2 L37 18 Q38 20 36 20 H27 Q26 20 25 19Z" fill="#BC2230"/>
     <circle cx="20" cy="19" r="3.5" fill="#AAAAB9"/>
+  </g>
   </g>
 </svg>
