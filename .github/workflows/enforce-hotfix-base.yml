@@ -2,7 +2,7 @@ name: Enforce PR Base Branch
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -29,6 +29,32 @@ jobs:
             if (!disallowed.includes(base)) {
               core.info(`PR base branch '${base}' is allowed.`);
               return;
+            }
+
+            // Only a maintainer-labeled, same-repo manual backport of a merged
+            // hotfix PR may target a stable branch. Normal PRs remain blocked.
+            const pr = context.payload.pull_request;
+            const match = pr.head.ref.match(/^backport-(\d+)-to-(version-(?:15|16))-manual$/);
+            const approved = (pr.labels || []).some(
+              label => label.name === 'manual-backport-approved'
+            );
+            const sameRepo = pr.head.repo?.full_name === context.payload.repository.full_name;
+            if (match && match[2] === base && approved && sameRepo) {
+              const { owner, repo } = context.repo;
+              const source = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: Number(match[1]),
+              });
+              const mergedHotfixPR = source.data.merged === true
+                && source.data.base.ref === base + '-hotfix';
+              const backportRequested = (source.data.labels || []).some(
+                label => label.name === 'backport-to-' + base
+              );
+              if (mergedHotfixPR && backportRequested) {
+                core.info('Approved manual backport of merged hotfix PR #' + match[1]);
+                return;
+              }
             }
 
             const issue_number = context.payload.pull_request.number;
