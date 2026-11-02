@@ -1,147 +1,94 @@
+<div align="center">
+
+<img src="csf_tz/public/images/csf-tz-desk.svg" alt="CSF TZ application icon" width="78" />
+
 # CSF TZ
 
-**Country Specific Functionality Tanzania** extends ERPNext for businesses operating in Tanzania. It adds statutory and tax compliance, VFD fiscalisation, regulatory integrations, payroll extensions, bank payment integrations, and localised accounting and stock tools, while keeping standard ERPNext behaviour and upgradeability intact.
+**Country-Specific Functionality for Tanzania**
 
-This README describes the `version-16` line (Frappe / ERPNext v16).
+*Tanzania-focused compliance, fiscal, banking and operational extensions for ERPNext.*
 
-![Tanzania Workspace](csf_tz/public/images/tanzania-workspace.png)
+[![Frappe v16](https://img.shields.io/badge/Frappe-v16-4B68AE)](https://frappeframework.com/)
+[![ERPNext v16](https://img.shields.io/badge/ERPNext-v16-5695D0)](https://erpnext.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0D1D38)](license.txt)
 
-## Requirements
+</div>
 
-- Frappe Framework v16 and ERPNext v16 (the app navigation described below needs Frappe 16.50+)
-- HRMS, for the payroll, attendance, leave and employee advance features
-- Python 3.10+
+<div align="center">
+<p><strong>TRA &amp; VFD Compliance</strong> &nbsp;&nbsp;·&nbsp;&nbsp; <strong>Tax &amp; Accounting</strong> &nbsp;&nbsp;·&nbsp;&nbsp; <strong>HR &amp; Payroll</strong></p>
+<p><strong>Banking Integrations</strong> &nbsp;&nbsp;·&nbsp;&nbsp; <strong>Regulatory Verification</strong> &nbsp;&nbsp;·&nbsp;&nbsp; <strong>Operations &amp; Reports</strong></p>
+</div>
+
+<p align="right"><sub>by <a href="https://www.aakvatech.com">Aakvatech</a></sub></p>
+
+## About CSF TZ
+
+**CSF TZ** extends the Frappe Framework and ERPNext with country-specific functionality for organizations operating in Tanzania. It helps teams handle tax and fiscal compliance, selected regulatory checks, bank integrations and locally relevant finance, HR and operational processes within familiar ERPNext workflows.
+
+Modules are used according to an organization's needs and configuration. External integrations require the applicable service access and permissions; CSF TZ does not replace standard ERPNext accounting or transaction controls.
+
+## Key Features
+
+- **VFD fiscalization and provider integrations:** Configure supported VFD providers for invoice fiscalization, submission checks and scheduled retries. Provider credentials and company-specific settings govern whether fiscalization is available.
+
+- **Tanzania statutory tax reporting:** Generate supported VAT input and output analyses, withholding tax statements, SDL-related outputs and selected excise reports from the relevant ERPNext accounting and transaction records.
+
+- **TRA verification and localized accounting:** Use supported TRA invoice verification workflows and Tanzania-specific finance extensions, including withholding-tax ledger processing on applicable submitted invoices, while retaining ERPNext's accounting foundation.
+
+- **HR, payroll and employee advances:** Extend employee and payroll processes with supported local workflows such as travel requests and employee advances. HRMS-dependent functions require a compatible HRMS installation.
+
+- **Regulatory and vehicle compliance:** Maintain traffic-fine records and perform supported LATRA and TIRA checks for licensing, offences and insurance cover notes, subject to external authority availability and user permissions.
+
+- **Banking integrations:** Support configured Stanbic payment initiation and SFTP status processing, alongside KCB bank payment files with encryption, where the respective bank arrangements are enabled.
+
+- **Purchasing, sales and stock tools:** Use app-specific workspaces and reports to support purchasing and stock administration, order or shipment tracking, and selected sales and marketing processes without duplicating core ERPNext transactions.
+
+- **Workspace and reporting access:** Organize Tanzanian functions across dedicated Desk workspaces, sidebar navigation and operational or compliance reports, with access controlled by the underlying DocType and report permissions.
+
+## Operational Flow
+
+CSF TZ adds **independent, configurable capabilities** alongside standard ERPNext and HRMS activity. Fiscal, banking and regulatory checks are not mandatory steps of one transaction, and results are recorded against the applicable business workflow.
+
+![CSF TZ operational flow](docs/assets/csf-tz-operational-flow.svg)
+
+## ERPNext & Optional Integrations
+
+| Component | Role | Dependency |
+| --- | --- | --- |
+| **Frappe Framework v16** | Framework, permissions and Desk | Core |
+| **ERPNext v16** | Accounting, selling, buying and stock workflows | Core |
+| **Frappe HR / HRMS** | Employee, payroll, leave and advance extensions | Needed for HRMS-related features |
+| **VFD providers** | Fiscalization services including TotalVFD, VFDPlus, Simplify and DIRM | Provider access and configuration required |
+| **Stanbic / KCB** | Bank-specific payment and status workflows | Bank setup and authorization required |
+| **TRA / LATRA / TIRA** | Supported statutory and regulatory verification | External service availability may apply |
+
+**Note:** Listed integrations describe supported connection points; they do not mean each external service is enabled automatically or that every organization needs every module.
 
 ## Installation
 
+Use the public **`version-16`** branch for Frappe / ERPNext v16 deployments. The technical app name is **`csf_tz`**.
+
+**Prerequisites:** A compatible Frappe v16 and ERPNext v16 bench. The newer Frappe v16 Desk app navigation described by this repository requires **Frappe 16.50+**. Install a compatible HRMS app where HRMS-based functionality is required.
+
 ```bash
 bench get-app https://github.com/Aakvatech-Limited/csf_tz.git --branch version-16
-bench --site <your-site> install-app csf_tz
-bench --site <your-site> migrate
+bench --site your-site install-app csf_tz
+bench --site your-site migrate
+bench build --app csf_tz
 bench restart
 ```
 
-Installing the app creates its custom fields and property setters on standard ERPNext and HRMS DocTypes. They are re-applied on every `migrate`.
+After installation, open **CSF TZ** in Desk and configure only the company, tax, service-provider and banking features that apply to your organization. Users need the relevant roles and permissions to see and operate each module.
 
-## Modules
+## Support & Contributions
 
-| Module | What it covers |
-|---|---|
-| CSF TZ | Tax, statutory returns, TRA/VFD, regulatory integrations, finance, payroll extensions, Tanzanian geographic masters |
-| VFD Providers | Connectors for VFD providers (TotalVFD, VFDPlus, Simplify, DIRM) |
-| VFD Settings | Per-company VFD provider assignment |
-| Stanbic | Stanbic bank payment initiation and SFTP status sync |
-| KCB | KCB bank payment initiation with PGP-encrypted files |
-| Purchase And Stock Management | Bin setup, order and shipment tracking, purchasing reports |
-| Sales And Marketing | Customer interests, past sales, payment plans, sales reports |
-| Meal Count | Biometric devices, users, meal types and meal logs |
+- **Issues and feature requests:** [CSF TZ GitHub Issues](https://github.com/Aakvatech-Limited/csf_tz/issues)
+- **Implementation and support:** [Aakvatech Limited](https://www.aakvatech.com) · info@aakvatech.com
 
-## Features
+Contributions should follow Frappe/ERPNext conventions, avoid unrelated changes to standard ERPNext transactions, respect existing permission controls, and include appropriate tests for business rules and integrations.
 
-### Tax and fiscal compliance
+## Credits & License
 
-- **VFD integration**: posts Sales Invoices to the configured VFD provider, either automatically on submit or through a scheduled retry. It validates VFD rules before submit and cancel, and cleans customer TIN/VRN details.
-- **Electronic Fiscal Devices**: EFD and EFD Z Report records for reconciliation.
-- **TRA invoice verification**: verifies invoices against the TRA verification portal through TRA Tax Inv.
-- **Withholding tax**: automatic GL entries on submit of Sales and Purchase Invoices.
-- **Statutory reports**:
-  - VAT e-filing returns, TRA input VAT returns and output VAT reconciliation
-  - Exempt purchases
-  - Excise duty reports
-  - Withholding tax reports
-  - SDL (ITX 215.03.E) and withholding tax statements (ITX 219/230)
+Developed and maintained by **[Aakvatech Limited](https://www.aakvatech.com)** for Tanzania-specific ERPNext requirements.
 
-### Regulatory and fleet compliance
-
-- **Traffic fines**: Vehicle Fine Record checks Tanzania Police Force TMS for offences.
-- **LATRA**: LATRA licence and offence tracking, synced from the LATRA RRIMS portal.
-- **TIRA**: insurance cover notes verified against TIRAMIS.
-- **Vehicle sync**: queued background syncing of vehicles. Authority notifications for LATRA, TIRA and vehicle fines can be configured per role, on new records or on status changes.
-
-### Accounting and finance
-
-- **Foreign Import Transaction**: tracks exchange differences across Purchase Invoices, Payment Entries and Landed Cost Vouchers for imports.
-- **Bank charges**: patterns and automatic bank-charge journals from Payment Entries.
-- **Budget checks**: optional checks on Purchase Orders, Purchase Invoices, Material Requests and Journal Entries.
-- **Write-off journals**: optional write-off Journal Entries for Sales Invoices, Purchase Invoices and Payment Entries.
-- **Reports**:
-  - Multi-currency receivables and ledgers
-  - General Ledger Pro, Gross Profit Pro and trial balance in USD
-  - Bank reports and reconciliation aids
-  - Monthly sales and purchase summaries
-
-### Payroll and HR (requires HRMS)
-
-- **Salary Slip, Additional Salary and Leave Encashment overrides**, including fixed working days per month and custom salary slip email messages.
-- **Payroll approval** and payroll entry controls.
-- **Overtime**: calculation from Attendance.
-- **Additional salary**: scheduled generation and journal posting.
-- **Employee Advance**: payment and expense automation.
-- **Statutory reports**:
-  - PAYE
-  - NSSF
-  - WCF
-  - HESLB
-  - SDL
-  - Several salary register variants
-  - Payroll for mobile payment
-
-### Banking integrations
-
-- **Stanbic**: payment initiation from Payment Entries and Payroll Entries. Bank status files are synced over SFTP.
-- **KCB**: payment initiation from supplier Payment Entries and Payroll Entries, with PGP-encrypted payment files and batch summary PDFs.
-
-### Sales, stock and purchasing
-
-- **Delivery notes**: optional automatic Delivery Note creation from Sales Invoices, plus scheduled auto-close of Delivery Notes.
-- **Sales Invoice controls**: batch splitting, net-rate and grand-total validation, and price reduction.
-- **Stock tools**:
-  - Auto-close of Material Requests
-  - Stock reconciliation from Material Requests
-  - Stock Entry import from BOM
-  - Item revaluation for incorrect balance quantities
-- **Reports**: stock balance and ledger reports, warehouse-wise balances and reorder reports.
-
-### Localisation and utilities
-
-- **Tanzanian geographic data**: regions, districts, wards, villages and postcodes. They can be populated from CSF TZ Settings.
-- **QR codes**: a QR code generator available in print formats. Employee contact QR codes.
-- **Meal Count**: a QR scanner page that records biometric meal logs.
-- **Job Cards page**: for the Manufacturing domain.
-- **CSF API Response Log**: for troubleshooting integrations.
-
-## Configuration
-
-Most behaviour is controlled from **CSF TZ Settings**, which is organised into four tabs:
-
-- **Sales & Purchase**: Sales Invoice, tax and Purchase Order / Material Request options
-- **Stock & Accounting**: stock options, write-offs and budget checks
-- **HR & Payroll**: payroll overrides, payroll approval and overtime
-- **System & Data**: Tanzanian regions data, vehicle sync and authority notifications
-
-Integrations each have their own settings DocTypes: VFD provider settings, Company VFD Provider, Stanbic Setting, KCB Settings, LATRA Settings and Foreign Import Settings.
-
-## App navigation (Frappe 16.50+)
-
-Open **CSF TZ** from the Apps screen to reach the **Tanzania** workspace (`/desk/tanzania`). The app dock links to every module's landing workspace. Finance, payroll and administration have their own workspaces in the CSF TZ sidebar.
-
-Navigation does not grant any permissions. Users see only what their roles allow, and several setup and banking workspaces are restricted to System Manager.
-
-See [docs/app-navigation.md](docs/app-navigation.md) for the full coverage matrix and validation checklist.
-
-## Contributing
-
-1. Fork the repository and create a branch from the relevant version branch.
-2. Install the pre-commit hooks: `pre-commit install`.
-3. Use [Conventional Commits](https://www.conventionalcommits.org/), for example `fix: correct VFD retry on cancel`.
-4. Open a pull request against the version branch.
-
-[SPEC.md](SPEC.md) describes the architecture principles for CSF TZ: where code belongs, how to use hooks and overrides, and how integrations are kept isolated.
-
-## Support
-
-Please raise a [GitHub issue](https://github.com/Aakvatech-Limited/csf_tz/issues).
-
-## Licence
-
-GNU General Public License v3. See [license.txt](license.txt).
+The repository's [license.txt](license.txt) declares the **MIT License**. The app metadata currently lists GPLv3; this inconsistency should be resolved separately before making any licensing changes.
