@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">CSF TZ Desk Icon</title>
+  <desc id="desc">Checklist clipboard in Tanzanian flag colors with a small Aakvatech logo on the clip.</desc>
+  <defs>
+    <clipPath id="board-shape">
+      <rect x="60" y="76" width="392" height="408" rx="50"/>
+    </clipPath>
+    <filter id="soft-shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3.5" result="blur"/>
+      <feOffset dy="3" result="offset"/>
+      <feComponentTransfer in="offset" result="fade"><feFuncA type="linear" slope="0.15"/></feComponentTransfer>
+      <feMerge><feMergeNode in="fade"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="clip-color" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1F2FA"/>
+      <stop offset="1" stop-color="#DDE2EF"/>
+    </linearGradient>
+    <linearGradient id="tz-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00A6E5"/>
+      <stop offset="1" stop-color="#078DCE"/>
+    </linearGradient>
+    <linearGradient id="tz-green" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#00A72F"/>
+      <stop offset="1" stop-color="#00A126"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FDFEFF"/>
+    </linearGradient>
+  </defs>
+  <!-- No background rectangle: everything outside the icon is transparent. -->
+  <g clip-path="url(#board-shape)">
+    <rect x="60" y="76" width="392" height="408" fill="url(#tz-green)"/>
+    <path d="M60 451 L452 233 V484 H60Z" fill="url(#tz-blue)"/>
+    <path d="M60 296 L452 76 V105 L60 325Z" fill="#FCDD09"/>
+    <path d="M60 325 L452 105 V205 L60 425Z" fill="#111111"/>
+    <path d="M60 425 L452 205 V234 L60 454Z" fill="#FCDD09"/>
+  </g>
+  <!-- White checklist panel. -->
+  <rect x="112" y="141" width="288" height="306" rx="29" fill="url(#paper)" filter="url(#soft-shadow)"/>
+  <!-- Tanzania-green confirmation seal and gold check. -->
+  <circle cx="256" cy="226" r="58" fill="#00A52C"/>
+  <path d="M230 227 L247 244 L286 203" fill="none" stroke="#FCDD09" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Black bullets and Tanzania-blue text rules. -->
+  <g fill="#111111"><circle cx="164" cy="317" r="10"/><circle cx="164" cy="355" r="10"/><circle cx="164" cy="393" r="10"/></g>
+  <g fill="none" stroke="#00A6E5" stroke-width="17" stroke-linecap="round"><path d="M190 317 H353"/><path d="M190 355 H353"/><path d="M190 393 H353"/></g>
+  <!-- Top clip with a deliberately very small Aakvatech monogram. -->
+  <g filter="url(#soft-shadow)" fill="url(#clip-color)">
+    <circle cx="256" cy="43" r="29"/>
+    <rect x="187" y="45" width="138" height="60" rx="18"/>
+  </g>
+  <circle cx="256" cy="34" r="8" fill="#9DA7B7"/>
+  <!-- Aakvatech three-part monogram, intentionally tiny on the clip. -->
+  <g transform="translate(246 72) scale(0.65)">
+    <path d="M1 19 L12 1 Q12.5 0 14 0 H25 L13.5 19 Q13 20 11 20 H2 Q0 20 1 19Z" fill="#5695D0"/>
+    <path d="M19 13 L26 1 Q27 0 28 2 L37 18 Q38 20 36 20 H27 Q26 20 25 19Z" fill="#BC2230"/>
+    <circle cx="20" cy="19" r="3.5" fill="#AAAAB9"/>
+  </g>
+</svg>
