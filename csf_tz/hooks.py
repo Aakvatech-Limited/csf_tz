@@ -11,7 +11,7 @@ required_apps = ["frappe/erpnext"]
 add_to_apps_screen = [
 	{
 		"name": app_name,
-		"logo": "/assets/csf_tz/images/tanzania-workspace.png",
+		"logo": "/assets/csf_tz/images/csf-tz-desk.svg",
 		"title": app_title,
 		"route": "/desk/tanzania",
 	}
