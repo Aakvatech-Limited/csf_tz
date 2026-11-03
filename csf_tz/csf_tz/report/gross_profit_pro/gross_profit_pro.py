@@ -6,6 +6,7 @@ from erpnext.controllers.queries import get_match_cond
 from erpnext.stock.utils import get_incoming_rate
 from frappe import _, scrub
 from frappe.utils import cint, flt
+from pypika import Order
 
 from csf_tz import console
 
@@ -422,24 +423,22 @@ class GrossProfitGenerator:
 		return self.average_buying_rate[item_code]
 
 	def get_last_purchase_rate(self, item_code, row):
-		condition = ""
-		if row.project:
-			condition += f" AND a.project={frappe.db.escape(row.project)}"
-		elif row.cost_center:
-			condition += f" AND a.cost_center={frappe.db.escape(row.cost_center)}"
-		if self.filters.to_date:
-			condition += f" AND modified='{self.filters.to_date}'"
-
-		last_purchase_rate = frappe.db.sql(
-			f"""
-		select (a.base_rate / a.conversion_factor)
-		from `tabPurchase Invoice Item` a
-		where a.item_code = %s and a.docstatus=1
-		{condition}
-		order by a.modified desc limit 1""",
-			item_code,
+		purchase_item = frappe.qb.DocType("Purchase Invoice Item")
+		query = (
+			frappe.qb.from_(purchase_item)
+			.select(purchase_item.base_rate / purchase_item.conversion_factor)
+			.where(purchase_item.item_code == item_code)
+			.where(purchase_item.docstatus == 1)
+			.orderby(purchase_item.modified, order=Order.desc)
+			.limit(1)
 		)
-
+		if row.project:
+			query = query.where(purchase_item.project == row.project)
+		elif row.cost_center:
+			query = query.where(purchase_item.cost_center == row.cost_center)
+		if self.filters.to_date:
+			query = query.where(purchase_item.modified == self.filters.to_date)
+		last_purchase_rate = query.run()
 		return flt(last_purchase_rate[0][0]) if last_purchase_rate else 0
 
 	def load_invoice_items(self):
@@ -464,8 +463,8 @@ class GrossProfitGenerator:
 		if self.filters.get("item_code"):
 			conditions += " and `tabSales Invoice Item`.item_code = %(item_code)s"
 
-		self.si_list = frappe.db.sql(
-			"""
+		# Fragments originate from fixed clauses and Frappe permission match conditions.
+		query = """
 			select
 				`tabSales Invoice Item`.parenttype, `tabSales Invoice Item`.parent,
 				`tabSales Invoice`.posting_date, `tabSales Invoice`.posting_time,
@@ -488,14 +487,12 @@ class GrossProfitGenerator:
 				`tabSales Invoice`.docstatus=1 and `tabSales Invoice`.is_opening!='Yes' {conditions} {match_cond}
 			order by
 				`tabSales Invoice`.posting_date desc, `tabSales Invoice`.posting_time desc""".format(
-				conditions=conditions,
-				sales_person_cols=sales_person_cols,
-				sales_team_table=sales_team_table,
-				match_cond=get_match_cond("Sales Invoice"),
-			),
-			self.filters,
-			as_dict=1,
+			conditions=conditions,
+			sales_person_cols=sales_person_cols,
+			sales_team_table=sales_team_table,
+			match_cond=get_match_cond("Sales Invoice"),
 		)
+		self.si_list = frappe.db.sql(query, self.filters, as_dict=1)
 
 	def load_stock_ledger_entries(self):
 		res = frappe.db.sql(

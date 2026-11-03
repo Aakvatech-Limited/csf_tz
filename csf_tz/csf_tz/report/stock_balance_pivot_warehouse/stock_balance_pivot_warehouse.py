@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
 
@@ -38,15 +39,15 @@ def get_columns(stock_ledger_entry):
 
 	warehouses = {_("Warehouse"): []}
 
-	for warehouse in frappe.db.sql(
-		"""select distinct sle.warehouse
-		from `tabStock Ledger Entry` sle
-		where sle.actual_qty != 0 and sle.item_code in ({})""".format(
-			", ".join(["%s"] * len(stock_ledger_entry))
-		),
-		tuple([d.item_code for d in stock_ledger_entry]),
-		as_dict=1,
-	):
+	stock_ledger = frappe.qb.DocType("Stock Ledger Entry")
+	warehouses_found = (
+		frappe.qb.from_(stock_ledger)
+		.select(stock_ledger.warehouse)
+		.distinct()
+		.where(stock_ledger.actual_qty != 0)
+		.where(stock_ledger.item_code.isin([d.item_code for d in stock_ledger_entry]))
+	).run(as_dict=True)
+	for warehouse in warehouses_found:
 		warehouses[_("Warehouse")].append(warehouse.warehouse)
 
 	columns = (
@@ -61,16 +62,34 @@ def get_columns(stock_ledger_entry):
 def get_stock_ledger_entries(filters):
 	filters.update({"from_date": filters.get("from_date"), "to_date": filters.get("to_date")})
 	conditions, filters = get_conditions(filters)
-	stock_ledger_entry = frappe.db.sql(
-		f"""select sle.item_code, i.item_name, i.brand, i.item_group, sle.warehouse, sum(sle.actual_qty)
-		from `tabStock Ledger Entry` sle
-		inner join `tabItem` i on sle.item_code = i.item_code
-		where {conditions}
-		group by i.item_name, i.brand, i.item_group, sle.warehouse
-		order by i.brand, i.item_group, sle.item_code""",
-		filters,
-		as_dict=1,
+	stock_ledger = frappe.qb.DocType("Stock Ledger Entry")
+	item = frappe.qb.DocType("Item")
+	query = (
+		frappe.qb.from_(stock_ledger)
+		.join(item)
+		.on(stock_ledger.item_code == item.item_code)
+		.select(
+			stock_ledger.item_code,
+			item.item_name,
+			item.brand,
+			item.item_group,
+			stock_ledger.warehouse,
+			Sum(stock_ledger.actual_qty).as_("actual_qty"),
+		)
+		.groupby(stock_ledger.item_code, item.item_name, item.brand, item.item_group, stock_ledger.warehouse)
+		.orderby(item.brand, item.item_group, stock_ledger.item_code)
 	)
+	if filters.get("from_date"):
+		query = query.where(stock_ledger.posting_date >= filters["from_date"])
+	if filters.get("to_date"):
+		query = query.where(stock_ledger.posting_date <= filters["to_date"])
+	if filters.get("item_group"):
+		query = query.where(item.item_group == filters["item_group"])
+	if filters.get("brand"):
+		query = query.where(item.brand == filters["brand"])
+	if filters.get("warehouse"):
+		query = query.where(stock_ledger.warehouse == filters["warehouse"])
+	stock_ledger_entry = query.run(as_dict=True)
 
 	return stock_ledger_entry or []
 
@@ -93,17 +112,20 @@ def get_conditions(filters):
 
 
 def get_sle_warehouse_map(stock_ledger_entry):
-	sle_warehouses = frappe.db.sql(
-		"""select sle.item_code, sle.warehouse, sum(actual_qty)
-		from `tabStock Ledger Entry` sle
-		inner join `tabItem` i on sle.item_code = i.item_code
-		where sle.item_code in ({})
-		group by i.item_name, i.brand, i.item_group, sle.warehouse""".format(
-			", ".join(["%s"] * len(stock_ledger_entry))
-		),
-		tuple([d.item_code for d in stock_ledger_entry]),
-		as_dict=1,
-	)
+	stock_ledger = frappe.qb.DocType("Stock Ledger Entry")
+	item = frappe.qb.DocType("Item")
+	sle_warehouses = (
+		frappe.qb.from_(stock_ledger)
+		.join(item)
+		.on(stock_ledger.item_code == item.item_code)
+		.select(
+			stock_ledger.item_code,
+			stock_ledger.warehouse,
+			Sum(stock_ledger.actual_qty).as_("actual_qty"),
+		)
+		.where(stock_ledger.item_code.isin([d.item_code for d in stock_ledger_entry]))
+		.groupby(stock_ledger.item_code, stock_ledger.warehouse)
+	).run(as_dict=True)
 
 	sle_warehouse_map = {}
 	for d in sle_warehouses:

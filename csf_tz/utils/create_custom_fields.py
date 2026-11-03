@@ -8,12 +8,15 @@ folder = "../patches/custom_fields/custom_fields_json"
 
 
 def load_json(file):
-	CURR_DIR = os.path.abspath(os.path.dirname(__file__))
-	json_file_path = os.path.join(CURR_DIR, folder, file)
-	# TODO do not load the file if already applied
-	with open(json_file_path) as file:
-		data = json.load(file)
-	return data
+	# These maintenance helpers only load bundled JSON fixtures.
+	if not isinstance(file, str) or not file.endswith(".json") or os.path.basename(file) != file:
+		raise ValueError("Expected a JSON filename from the bundled fixtures directory")
+	base_directory = os.path.realpath(os.path.join(os.path.dirname(__file__), folder))
+	json_file_path = os.path.realpath(os.path.join(base_directory, file))
+	if os.path.commonpath([base_directory, json_file_path]) != base_directory:
+		raise ValueError("Fixture path escapes its directory")
+	with open(json_file_path, encoding="utf-8") as source:
+		return json.load(source)
 
 
 def create_fields_from_json(custom_fields_obj):
