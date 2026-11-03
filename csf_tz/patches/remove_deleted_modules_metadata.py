@@ -96,6 +96,11 @@ def remove_doctypes(module_names, owners=None):
 
 
 def get_reason_to_keep(doctype, owners):
+	# Still used by csf_tz's landed-cost hooks. Protect legacy module metadata too,
+	# even when the table is empty or missing and has not yet been synchronized.
+	if doctype == "Import File":
+		return "still shipped by csf_tz for landed-cost tracking"
+
 	owner_app = owners.get(frappe.scrub(doctype))
 	if owner_app:
 		return f"shipped by {owner_app}"

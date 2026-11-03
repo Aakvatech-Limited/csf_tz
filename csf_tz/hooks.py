@@ -110,6 +110,7 @@ doctype_list_js = {
 
 # before_install = "csf_tz.install.before_install"
 after_install = [
+	"csf_tz.patches.restore_import_file.execute",
 	"csf_tz.patches.custom_fields.custom_fields_for_removed_edu_fields_in_csf_tz.execute",
 	"csf_tz.patches.remove_stock_entry_qty_field.execute",
 	"csf_tz.patches.add_custom_fields_for_sales_invoice_item_and_purchase_invoice_item.execute",
