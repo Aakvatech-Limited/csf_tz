@@ -222,6 +222,54 @@
    "link_to": "CSF TZ Administration",
    "child": 1,
    "icon": "layout-dashboard"
+  },
+  {
+   "type": "Section Break",
+   "label": "Income Tax",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Transaction Review",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Transaction Review",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Account Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Account Mapping",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Category",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Category",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Source Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Source Mapping",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Review Register",
+   "link_type": "Report",
+   "link_to": "TZ Tax Review Register",
+   "child": 1,
+   "icon": "table"
   }
  ]
 }
