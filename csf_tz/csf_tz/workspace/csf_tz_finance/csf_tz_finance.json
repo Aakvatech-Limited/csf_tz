@@ -226,6 +226,54 @@
    "link_to": "Bank Charges Pattern",
    "hidden": 0,
    "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Income Tax - Phase 1",
+   "link_count": 5,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Transaction Review",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Transaction Review",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Account Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Account Mapping",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Category",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Category",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Source Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Source Mapping",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Review Register",
+   "link_type": "Report",
+   "link_to": "TZ Tax Review Register",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "TZ Tax Transaction Review"
   }
  ],
  "shortcuts": [
@@ -243,5 +291,5 @@
    "color": "Blue"
   }
  ],
- "content": "[{\"id\":\"csf_tz_finance_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ Finance</b></span>\",\"col\":12}},{\"id\":\"csf_tz_finance_shortcuts\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Foreign Import Transaction\",\"col\":4}},{\"id\":\"csf_tz_finance_shortcut1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bank Transaction Summary\",\"col\":4}},{\"id\":\"csf_tz_finance0\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"csf_tz_finance1\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables and Ledgers\",\"col\":4}},{\"id\":\"csf_tz_finance2\",\"type\":\"card\",\"data\":{\"card_name\":\"Bank Reconciliation\",\"col\":4}},{\"id\":\"csf_tz_finance3\",\"type\":\"card\",\"data\":{\"card_name\":\"Foreign Imports\",\"col\":4}},{\"id\":\"csf_tz_finance4\",\"type\":\"card\",\"data\":{\"card_name\":\"Bank Charge Setup\",\"col\":4}}]"
+ "content": "[{\"id\":\"csf_tz_finance_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CSF TZ Finance</b></span>\",\"col\":12}},{\"id\":\"csf_tz_finance_shortcuts\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Foreign Import Transaction\",\"col\":4}},{\"id\":\"csf_tz_finance_shortcut1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bank Transaction Summary\",\"col\":4}},{\"id\":\"csf_tz_finance0\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"csf_tz_finance1\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables and Ledgers\",\"col\":4}},{\"id\":\"csf_tz_finance2\",\"type\":\"card\",\"data\":{\"card_name\":\"Bank Reconciliation\",\"col\":4}},{\"id\":\"csf_tz_finance3\",\"type\":\"card\",\"data\":{\"card_name\":\"Foreign Imports\",\"col\":4}},{\"id\":\"csf_tz_finance4\",\"type\":\"card\",\"data\":{\"card_name\":\"Bank Charge Setup\",\"col\":4}},{\"id\":\"tax_phase_1\",\"type\":\"card\",\"data\":{\"card_name\":\"Income Tax - Phase 1\",\"col\":12}}]"
 }

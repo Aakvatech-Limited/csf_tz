@@ -1,0 +1,104 @@
+{
+ "doctype": "DocType",
+ "name": "TZ Tax Category",
+ "module": "CSF TZ",
+ "engine": "InnoDB",
+ "field_order": [
+  "category_name",
+  "treatment",
+  "column_break",
+  "evidence_required",
+  "disabled",
+  "guidance_section",
+  "legal_reference",
+  "guidance"
+ ],
+ "fields": [
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "label": "Category Name",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "treatment",
+   "fieldtype": "Select",
+   "label": "Treatment",
+   "options": "Review Required\nOrdinary Income\nOrdinary Expense\nAdd Back\nDeduction\nRestricted Deduction\nExempt Income\nBalance Sheet",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break",
+   "fieldtype": "Column Break",
+   "label": "Column Break"
+  },
+  {
+   "fieldname": "evidence_required",
+   "fieldtype": "Check",
+   "label": "Evidence Required"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "guidance_section",
+   "fieldtype": "Section Break",
+   "label": "Guidance"
+  },
+  {
+   "fieldname": "legal_reference",
+   "fieldtype": "Small Text",
+   "label": "Legal Reference"
+  },
+  {
+   "fieldname": "guidance",
+   "fieldtype": "Text Editor",
+   "label": "Guidance"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0
+  },
+  {
+   "role": "Accounts User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "actions": [],
+ "links": [],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "autoname": "field:category_name",
+ "allow_rename": 0
+}
