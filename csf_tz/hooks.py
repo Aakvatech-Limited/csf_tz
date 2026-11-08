@@ -43,10 +43,11 @@ app_include_js = "csf_tz.bundle.js"
 
 # include js in doctype views
 doctype_js = {
-	"Payment Entry": "csf_tz/payment_entry.js",
+	"Payment Entry": ["csf_tz/payment_entry.js", "public/js/tz_tax_review.js"],
 	"Sales Invoice": [
 		"csf_tz/sales_invoice.js",
 		"vfd_support/sales_invoice.js",
+		"public/js/tz_tax_review.js",
 	],
 	"Sales Order": "csf_tz/sales_order.js",
 	"Delivery Note": "csf_tz/delivery_note.js",
@@ -59,7 +60,9 @@ doctype_js = {
 	"Warehouse": "csf_tz/warehouse.js",
 	"Company": "csf_tz/company.js",
 	"Stock Reconciliation": "csf_tz/stock_reconciliation.js",
-	"Purchase Invoice": "csf_tz/purchase_invoice.js",
+	"Purchase Invoice": ["csf_tz/purchase_invoice.js", "public/js/tz_tax_review.js"],
+	"Journal Entry": "public/js/tz_tax_review.js",
+	"GL Entry": "public/js/tz_tax_review.js",
 	"Quotation": "csf_tz/quotation.js",
 	"Purchase Receipt": "csf_tz/purchase_receipt.js",
 	"Purchase Order": "csf_tz/purchase_order.js",
@@ -161,6 +164,7 @@ after_migrate = [
 # Hook on document methods and events
 
 doc_events = {
+	"*": {"before_cancel": "csf_tz.income_tax.service.allow_source_cancellation"},
 	"Sales Invoice": {
 		"before_submit": [
 			"csf_tz.custom_api.validate_grand_total",
@@ -319,3 +323,8 @@ jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
 # ------------------------------
 #
 override_whitelisted_methods = {}
+
+# Separate tax review extensions; no custom fields on accounting sources.
+has_permission = {
+	"TZ Tax Transaction Review": "csf_tz.income_tax.permissions.review_permission",
+}

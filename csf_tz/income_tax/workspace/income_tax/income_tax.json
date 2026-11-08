@@ -1,0 +1,108 @@
+{
+ "doctype": "Workspace",
+ "name": "Income Tax",
+ "label": "Income Tax",
+ "title": "Income Tax",
+ "module": "Income Tax",
+ "app": "csf_tz",
+ "standard": 1,
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "hide_custom": 0,
+ "icon": "receipt",
+ "sequence_id": 9,
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "parent_page": "",
+ "links": [
+  {
+   "type": "Card Break",
+   "label": "Transactions",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Transaction Review",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Transaction Review",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Masters",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Category",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Category",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Card Break",
+   "label": "Reports",
+   "link_count": 1,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Review Register",
+   "link_type": "Report",
+   "link_to": "TZ Tax Review Register",
+   "hidden": 0,
+   "onboard": 0,
+   "is_query_report": 1,
+   "report_ref_doctype": "TZ Tax Transaction Review"
+  },
+  {
+   "type": "Card Break",
+   "label": "Settings",
+   "link_count": 2,
+   "hidden": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Account Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Account Mapping",
+   "hidden": 0,
+   "onboard": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Source Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Source Mapping",
+   "hidden": 0,
+   "onboard": 0
+  }
+ ],
+ "shortcuts": [
+  {
+   "type": "Report",
+   "link_to": "TZ Tax Review Register",
+   "label": "TZ Tax Review Register",
+   "color": "Blue"
+  }
+ ],
+ "content": "[{\"id\":\"income_tax_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Income Tax</b></span>\",\"col\":12}},{\"id\":\"income_tax_register\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"TZ Tax Review Register\",\"col\":4}},{\"id\":\"income_tax_transactions\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"income_tax_masters\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}},{\"id\":\"income_tax_reports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"income_tax_settings\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]"
+}
