@@ -2,7 +2,7 @@
  "doctype": "Report",
  "name": "TZ Tax Review Register",
  "report_name": "TZ Tax Review Register",
- "module": "CSF TZ",
+ "module": "Income Tax",
  "ref_doctype": "TZ Tax Transaction Review",
  "report_type": "Script Report",
  "is_standard": "Yes",

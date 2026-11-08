@@ -5,9 +5,9 @@ from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journ
 from erpnext.tests.utils import ERPNextTestSuite
 from frappe.utils import nowdate
 
-from csf_tz.csf_tz.report.tz_tax_review_register.tz_tax_review_register import execute
-from csf_tz.tax_computation.service import new_review
-from csf_tz.tax_computation.setup import setup_phase_one
+from csf_tz.income_tax.report.tz_tax_review_register.tz_tax_review_register import execute
+from csf_tz.income_tax.service import new_review
+from csf_tz.income_tax.setup import setup_phase_one
 
 
 class TestTaxComputationPhaseOne(ERPNextTestSuite):

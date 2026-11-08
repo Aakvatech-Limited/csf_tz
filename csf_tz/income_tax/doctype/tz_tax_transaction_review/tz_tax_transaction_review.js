@@ -6,7 +6,7 @@ frappe.ui.form.on("TZ Tax Transaction Review", {
 	gl_entry(frm) {
 		if (!frm.is_new() || !frm.doc.gl_entry) return;
 		frappe.call({
-			method: "csf_tz.tax_computation.service.new_review",
+			method: "csf_tz.income_tax.service.new_review",
 			args: { gl_entry: frm.doc.gl_entry },
 			callback: ({ message }) => {
 				if (!message.__islocal) {

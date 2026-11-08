@@ -2,8 +2,8 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 
-from csf_tz.tax_computation.rules import fingerprint, resolve_default, review_status
-from csf_tz.tax_computation.service import GL_FIELDS, evidence_issues
+from csf_tz.income_tax.rules import fingerprint, resolve_default, review_status
+from csf_tz.income_tax.service import GL_FIELDS, evidence_issues
 
 
 def execute(filters=None):

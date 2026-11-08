@@ -164,7 +164,7 @@ after_migrate = [
 # Hook on document methods and events
 
 doc_events = {
-	"*": {"before_cancel": "csf_tz.tax_computation.service.allow_source_cancellation"},
+	"*": {"before_cancel": "csf_tz.income_tax.service.allow_source_cancellation"},
 	"Sales Invoice": {
 		"before_submit": [
 			"csf_tz.custom_api.validate_grand_total",
@@ -326,5 +326,5 @@ override_whitelisted_methods = {}
 
 # Separate tax review extensions; no custom fields on accounting sources.
 has_permission = {
-	"TZ Tax Transaction Review": "csf_tz.tax_computation.permissions.review_permission",
+	"TZ Tax Transaction Review": "csf_tz.income_tax.permissions.review_permission",
 }

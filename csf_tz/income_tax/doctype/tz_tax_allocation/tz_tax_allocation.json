@@ -1,7 +1,7 @@
 {
  "doctype": "DocType",
  "name": "TZ Tax Allocation",
- "module": "CSF TZ",
+ "module": "Income Tax",
  "engine": "InnoDB",
  "field_order": [
   "tax_category",
