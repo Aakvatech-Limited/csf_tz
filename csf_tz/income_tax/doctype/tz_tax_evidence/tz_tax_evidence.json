@@ -1,0 +1,55 @@
+{
+ "doctype": "DocType",
+ "name": "TZ Tax Evidence",
+ "module": "Income Tax",
+ "engine": "InnoDB",
+ "field_order": [
+  "evidence_type",
+  "attachment",
+  "reference",
+  "valid_until",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "evidence_type",
+   "fieldtype": "Select",
+   "label": "Evidence Type",
+   "options": "Fiscal Receipt\nPayment Proof\nAcknowledgement\nAgreement\nCharitable Status Ruling\nStatutory Obligation\nCompletion Report\nOther",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "label": "Valid Until",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "permissions": [],
+ "actions": [],
+ "links": [],
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "istable": 1,
+ "editable_grid": 1
+}
