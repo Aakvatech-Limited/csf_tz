@@ -1,7 +1,7 @@
 {
  "doctype": "DocType",
  "name": "TZ Tax Category",
- "module": "CSF TZ",
+ "module": "Income Tax",
  "engine": "InnoDB",
  "field_order": [
   "category_name",

@@ -1,0 +1,91 @@
+{
+ "doctype": "Sidebar",
+ "name": "Income Tax",
+ "title": "Income Tax",
+ "module": "Income Tax",
+ "app": "csf_tz",
+ "standard": 1,
+ "header_icon": "receipt",
+ "items": [
+  {
+   "type": "Link",
+   "label": "Home",
+   "link_type": "Workspace",
+   "link_to": "Income Tax",
+   "icon": "house",
+   "child": 0
+  },
+  {
+   "type": "Section Break",
+   "label": "Transactions",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Transaction Review",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Transaction Review",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Masters",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Category",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Category",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Section Break",
+   "label": "Reports",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Review Register",
+   "link_type": "Report",
+   "link_to": "TZ Tax Review Register",
+   "child": 1,
+   "icon": "table"
+  },
+  {
+   "type": "Section Break",
+   "label": "Settings",
+   "collapsible": 1,
+   "keep_closed": 0,
+   "indent": 1,
+   "child": 0
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Account Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Account Mapping",
+   "child": 1,
+   "icon": "file-text"
+  },
+  {
+   "type": "Link",
+   "label": "TZ Tax Source Mapping",
+   "link_type": "DocType",
+   "link_to": "TZ Tax Source Mapping",
+   "child": 1,
+   "icon": "file-text"
+  }
+ ]
+}

@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[2]
-RULES_PATH = ROOT / "csf_tz/tax_computation/rules.py"
+RULES_PATH = ROOT / "csf_tz/income_tax/rules.py"
 spec = importlib.util.spec_from_file_location("tax_rules", RULES_PATH)
 rules = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rules)
@@ -88,12 +88,12 @@ class TaxServiceTests(unittest.TestCase):
 		utils.getdate = lambda value: date.fromisoformat(str(value))
 		utils.now_datetime.return_value = "NOW"
 		spec = importlib.util.spec_from_file_location(
-			"tax_service_test", ROOT / "csf_tz/tax_computation/service.py"
+			"tax_service_test", ROOT / "csf_tz/income_tax/service.py"
 		)
 		self.service = importlib.util.module_from_spec(spec)
 		with patch.dict(
 			"sys.modules",
-			{"frappe": self.frappe, "frappe.utils": utils, "csf_tz.tax_computation.rules": rules},
+			{"frappe": self.frappe, "frappe.utils": utils, "csf_tz.income_tax.rules": rules},
 		):
 			spec.loader.exec_module(self.service)
 
@@ -164,9 +164,12 @@ class TaxServiceTests(unittest.TestCase):
 
 class TaxMetadataTests(unittest.TestCase):
 	def test_all_new_doctypes_resolve_and_active_gl_key_is_unique(self):
-		folder = ROOT / "csf_tz/csf_tz/doctype"
-		for path in folder.glob("tz_tax_*/*.json"):
+		folder = ROOT / "csf_tz/income_tax/doctype"
+		paths = list(folder.glob("tz_tax_*/*.json"))
+		self.assertEqual(len(paths), 6)
+		for path in paths:
 			data = json.loads(path.read_text())
+			self.assertEqual(data["module"], "Income Tax")
 			self.assertEqual(set(data["field_order"]), {f["fieldname"] for f in data["fields"]})
 			self.assertTrue(path.with_suffix(".py").exists())
 			if data["name"] == "TZ Tax Transaction Review":
@@ -175,6 +178,27 @@ class TaxMetadataTests(unittest.TestCase):
 				)
 				user = next(p for p in data["permissions"] if p["role"] == "Accounts User")
 				self.assertFalse(user.get("submit"))
+		self.assertIn("Income Tax", (ROOT / "csf_tz/modules.txt").read_text().splitlines())
+		module = ROOT / "csf_tz/income_tax"
+		report = json.loads(
+			(module / "report/tz_tax_review_register/tz_tax_review_register.json").read_text()
+		)
+		self.assertEqual(report["module"], "Income Tax")
+		workspace = json.loads((module / "workspace/income_tax/income_tax.json").read_text())
+		sidebar = json.loads((module / "sidebar/income_tax/income_tax.json").read_text())
+		self.assertEqual(workspace["module"], "Income Tax")
+		self.assertEqual(sidebar["module"], "Income Tax")
+		expected = {
+			"TZ Tax Transaction Review",
+			"TZ Tax Category",
+			"TZ Tax Account Mapping",
+			"TZ Tax Source Mapping",
+			"TZ Tax Review Register",
+		}
+		self.assertEqual({item["link_to"] for item in workspace["links"] if item["type"] == "Link"}, expected)
+		self.assertEqual({item["link_to"] for item in sidebar["items"] if item.get("child")}, expected)
+		dock = json.loads((ROOT / "csf_tz/dock/csf_tz/csf_tz.json").read_text())
+		self.assertEqual(sum(item["link_to"] == "Income Tax" for item in dock["items"]), 1)
 
 
 if __name__ == "__main__":

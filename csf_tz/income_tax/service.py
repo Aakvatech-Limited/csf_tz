@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, now_datetime
 
-from csf_tz.tax_computation.rules import fingerprint, validate_allocations
+from csf_tz.income_tax.rules import fingerprint, validate_allocations
 
 GL_FIELDS = [
 	"name",

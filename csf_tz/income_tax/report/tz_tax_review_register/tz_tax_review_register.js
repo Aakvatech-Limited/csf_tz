@@ -15,7 +15,7 @@ frappe.query_reports["TZ Tax Review Register"] = {
 	onload(report) {
 		if (frappe.user.has_role("Accounts Manager") || frappe.user.has_role("System Manager")) {
 			report.page.add_inner_button(__("Set Up Tax Categories and Sources"), () => frappe.call({
-				method: "csf_tz.tax_computation.setup.setup_phase_one",
+				method: "csf_tz.income_tax.setup.setup_phase_one",
 				callback: ({ message }) => { frappe.msgprint(message); report.refresh(); },
 			}));
 		}
@@ -24,7 +24,7 @@ frappe.query_reports["TZ Tax Review Register"] = {
 				fields: [{ fieldname: "gl_entry", label: __("GL Entry"), fieldtype: "Link", options: "GL Entry", reqd: 1 }],
 				primary_action_label: __("Open"),
 				primary_action: ({ gl_entry }) => frappe.call({
-					method: "csf_tz.tax_computation.service.new_review", args: { gl_entry },
+					method: "csf_tz.income_tax.service.new_review", args: { gl_entry },
 					callback: ({ message }) => { dialog.hide(); const doc = frappe.model.sync(message)[0];
 						frappe.set_route("Form", doc.doctype, doc.name); },
 				}),

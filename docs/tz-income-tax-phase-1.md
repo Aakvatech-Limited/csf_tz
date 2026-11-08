@@ -22,14 +22,14 @@ The source mapping supports other submittable voucher DocTypes with Company and 
 ## Start using it
 
 1. Migrate the feature branch on an ERPNext v16 test site and rebuild assets.
-2. Open **CSF TZ → Income Tax → TZ Tax Review Register**, or the Income Tax card in **CSF TZ Finance**.
+2. Open **CSF TZ → Income Tax → TZ Tax Review Register**. Income Tax is a separate module in the CSF TZ app, with its own dock entry, sidebar and workspace.
 3. As Accounts Manager or System Manager, click **Set Up Tax Categories and Sources**. This explicitly seeds categories and mappings for Purchase Invoice, Sales Invoice, Journal Entry and Payment Entry without overwriting existing records. No account is automatically deemed deductible.
 4. Configure company-specific **TZ Tax Account Mapping** records. A mapping applies only to its exact ledger account, not its children.
 5. Open a submitted transaction's **Tax → Income Tax Review** button and select a GL entry. Alternatively use the report's GL-entry selector. Add or split classifications, record the reason and attach evidence.
 6. Accounts Users prepare drafts. Accounts Managers or System Managers submit/approve them. Cancellation and replacement preserve the prior record; draft and approved active reviews cannot be duplicated for one GL entry.
 7. Review exceptions before proceeding to the future annual computation.
 
-The transaction buttons are provided for the four default vouchers and GL Entry. Additional source types work through the register without changing their schema. The app's existing dock and other navigation are preserved.
+The transaction buttons are provided for the four default vouchers and GL Entry. Additional source types work through the register without changing their schema. The existing app navigation is preserved, with a separate Income Tax module entry added to the dock.
 
 ## Evidence and review status
 
@@ -63,11 +63,15 @@ Site acceptance checks (must run on a migrated development/test site):
 ```sh
 bench --site <test-site> migrate
 bench build --app csf_tz
-bench --site <test-site> run-tests --app csf_tz --module csf_tz.tests.test_tax_computation_phase_one
+bench --site <test-site> run-tests --app csf_tz --module csf_tz.income_tax.tests.test_tax_computation_phase_one
 ```
 
-Also verify Accounts User versus manager approval, company User Permissions, restricted source vouchers, invoice returns, private evidence uploads, simultaneous duplicate creation, cancellation/reposting, missing attachments and the Finance workspace/Sidebar. The standalone suite cannot establish database migration, permissions integration or browser behavior.
+Also verify Accounts User versus manager approval, company User Permissions, restricted source vouchers, invoice returns, private evidence uploads, simultaneous duplicate creation, cancellation/reposting, missing attachments and the Income Tax workspace/sidebar/dock entry. The standalone suite cannot establish database migration, permissions integration or browser behavior.
 
 ## Navigation coverage
 
-The Finance workspace and existing CSF TZ sidebar expose the Review Register, Transaction Review, Account Mapping, Category and Source Mapping. Allocation and Evidence are child tables and deliberately have no standalone menu entries. No new charts, dashboards, number cards or dock modules are introduced.
+The Income Tax workspace and sidebar expose the Review Register, Transaction Review, Account Mapping, Category and Source Mapping. Allocation and Evidence are child tables and deliberately have no standalone menu entries. No new charts, dashboards or number cards are introduced.
+
+## Module layout
+
+All six tax DocTypes, the review register, domain services, permissions, setup and site integration tests live under `csf_tz/income_tax`. Their Frappe module is **Income Tax**, registered in `modules.txt`. Shared transaction buttons remain in the app public assets, with hooks and API calls pointing to the new module. The default CSF TZ module no longer owns tax records or tax navigation. Existing DocType and report names are preserved; run migration and rebuild assets to sync module ownership and client calls.

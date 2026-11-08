@@ -1,7 +1,7 @@
 {
  "doctype": "DocType",
  "name": "TZ Tax Evidence",
- "module": "CSF TZ",
+ "module": "Income Tax",
  "engine": "InnoDB",
  "field_order": [
   "evidence_type",

@@ -68,6 +68,14 @@
    "icon": "settings",
    "added": 0,
    "hidden": 0
+  },
+  {
+   "link_type": "Sidebar",
+   "link_to": "Income Tax",
+   "title": "Income Tax",
+   "icon": "receipt",
+   "added": 0,
+   "hidden": 0
   }
  ]
 }
