@@ -27,8 +27,10 @@ from erpnext.accounts.utils import get_account_currency
 import csf_tz
 from csf_tz import console
 import json
-from frappe.query_builder import DocType
-from frappe.query_builder.functions import Sum
+from frappe.query_builder import AliasedQuery, Criterion, DocType, Field, Order
+from frappe.query_builder.functions import Coalesce, Date, IfNull, Max, Sum
+from pypika.analytics import RowNumber
+from pypika.terms import ExistsCriterion
 from frappe.utils.background_jobs import enqueue
 
 
@@ -213,27 +215,46 @@ def print_out(message, alert=False, add_traceback=False, to_error_log=False):
 
 
 def get_stock_ledger_entries(item_code):
-    if get_version() == 12:
-        conditions = " and sle.item_code = '%s'" % item_code
-    else:
-        conditions = " and sle.is_cancelled = 0 and sle.item_code = '%s'" % item_code
-    return frappe.db.sql(
-        """
-        select sle.batch_no, sle.item_code, sle.warehouse, sle.qty_after_transaction as actual_qty
-            from `tabStock Ledger Entry` sle
-            inner join (
-            SELECT IF(batch_no IS NULL, '', batch_no) as batch_no, item_code, warehouse, max(posting_datetime) as posting_datetime
-                from `tabStock Ledger Entry`
-                group by IF(batch_no IS NULL, '', batch_no), item_code, warehouse) as sle_max
-            on if(sle.batch_no IS NULL, '', sle.batch_no) = sle_max.batch_no
-                and sle.item_code = sle_max.item_code
-                and sle.warehouse = sle_max.warehouse
-                and sle.posting_datetime = sle_max.posting_datetime
-        where sle.docstatus = 1 %s
-        order by sle.warehouse, sle.item_code, sle.batch_no"""
-        % conditions,
-        as_dict=1,
+    stock_ledger_entry = DocType("Stock Ledger Entry")
+    latest_entry = DocType("Stock Ledger Entry")
+    latest_entry_batch_no = IfNull(latest_entry.batch_no, "")
+    latest_entries = (
+        frappe.qb.from_(latest_entry)
+        .select(
+            latest_entry_batch_no.as_("batch_no"),
+            latest_entry.item_code,
+            latest_entry.warehouse,
+            Max(latest_entry.posting_datetime).as_("posting_datetime"),
+        )
+        .groupby(latest_entry_batch_no, latest_entry.item_code, latest_entry.warehouse)
+    ).as_("sle_max")
+
+    query = (
+        frappe.qb.from_(stock_ledger_entry)
+        .inner_join(latest_entries)
+        .on(
+            (IfNull(stock_ledger_entry.batch_no, "") == latest_entries.batch_no)
+            & (stock_ledger_entry.item_code == latest_entries.item_code)
+            & (stock_ledger_entry.warehouse == latest_entries.warehouse)
+            & (stock_ledger_entry.posting_datetime == latest_entries.posting_datetime)
+        )
+        .select(
+            stock_ledger_entry.batch_no,
+            stock_ledger_entry.item_code,
+            stock_ledger_entry.warehouse,
+            stock_ledger_entry.qty_after_transaction.as_("actual_qty"),
+        )
+        .where(stock_ledger_entry.docstatus == 1)
+        .where(stock_ledger_entry.item_code == item_code)
+        .orderby(
+            stock_ledger_entry.warehouse,
+            stock_ledger_entry.item_code,
+            stock_ledger_entry.batch_no,
+        )
     )
+    if get_version() != 12:
+        query = query.where(stock_ledger_entry.is_cancelled == 0)
+    return query.run(as_dict=True)
 
 
 def get_version():
@@ -299,37 +320,48 @@ def get_item_info(item_code):
     return iwd_list
 
 
+def get_invoice_item_rates_query(
+    invoice_doctype, party_field, item_code, currency, company, party=None, posting_date_filter=None
+):
+    """Submitted, non-return invoice rows of an item, newest first."""
+    invoice = DocType(invoice_doctype)
+    invoice_item = DocType(f"{invoice_doctype} Item")
+    query = (
+        frappe.qb.from_(invoice)
+        .inner_join(invoice_item)
+        .on(invoice_item.parent == invoice.name)
+        .select(
+            invoice.name,
+            invoice.posting_date,
+            invoice[party_field],
+            invoice_item.item_code,
+            invoice_item.qty,
+            invoice_item.rate,
+        )
+        .where(invoice_item.item_code == item_code)
+        .where(invoice.docstatus == 1)
+        .where(invoice.currency == currency)
+        .where(invoice.is_return != 1)
+        .where(invoice.company == company)
+        .orderby(invoice.posting_date, order=Order.desc)
+    )
+    if posting_date_filter is not None:
+        from_date, to_date = posting_date_filter[1][0], posting_date_filter[1][1]
+        query = query.where(Date(invoice.posting_date).between(from_date, to_date))
+    if party:
+        query = query.where(invoice[party_field] == party)
+    return query
+
+
 @frappe.whitelist()
 def get_item_prices(item_code, currency, customer=None, company=None):
-    item_code = "'{0}'".format(item_code)
-    currency = "'{0}'".format(currency)
     unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
     prices_list = []
     unique_price_list = []
     max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
-    if customer:
-        conditions = " and SI.customer = '%s'" % customer
-    else:
-        conditions = ""
-
-    query = """ SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty, SIT.rate
-            FROM `tabSales Invoice` AS SI 
-            INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-            WHERE 
-                SIT.item_code = {0} 
-                AND SIT.parent = SI.name
-                AND SI.docstatus=%s 
-                AND SI.currency = {2}
-                AND SI.is_return != 1
-                AND SI.company = '{3}'
-                {1}
-            ORDER by SI.posting_date DESC""".format(
-        item_code, conditions, currency, company
-    ) % (
-        1
-    )
-
-    items = frappe.db.sql(query, as_dict=True)
+    items = get_invoice_item_rates_query(
+        "Sales Invoice", "customer", item_code, currency, company, party=customer
+    ).run(as_dict=True)
     for item in items:
         item_dict = {
             "name": item.item_code,
@@ -366,39 +398,20 @@ def get_item_prices_custom(filters=None, start=0, limit=20):
     unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
     customer = filters.get("customer", "")
     company = filters.get("company", "")
-    item_code = "'{0}'".format(filters.get("item_code", ""))
-    currency = "'{0}'".format(filters.get("currency", ""))
+    item_code = filters.get("item_code", "")
+    currency = filters.get("currency", "")
     prices_list = []
     unique_price_list = []
     max_records = int(start) + int(limit)
-    conditions = ""
-    
-    if "posting_date" in filters:
-        posting_date = filters["posting_date"]
-        from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-        to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-        conditions += "AND DATE(SI.posting_date) BETWEEN {start} AND {end}".format(
-            start=from_date, end=to_date
-        )
-    if customer:
-        conditions += " AND SI.customer = '%s'" % customer
-
-    query = """ SELECT SI.name, SI.posting_date, SI.customer, SIT.item_code, SIT.qty,  SIT.rate
-                FROM `tabSales Invoice` AS SI 
-                INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-                WHERE 
-                    SIT.item_code = {0} 
-                    AND SIT.parent = SI.name
-                    AND SI.docstatus= 1
-                    AND SI.currency = {2}
-                    AND SI.is_return != 1
-                    AND SI.company = '{3}'
-                    {1}
-                ORDER by SI.posting_date DESC""".format(
-        item_code, conditions, currency, company
-    )
-
-    items = frappe.db.sql(query, as_dict=True)
+    items = get_invoice_item_rates_query(
+        "Sales Invoice",
+        "customer",
+        item_code,
+        currency,
+        company,
+        party=customer,
+        posting_date_filter=filters.get("posting_date"),
+    ).run(as_dict=True)
     for item in items:
         item_dict = {
             "name": item.item_code,
@@ -783,27 +796,29 @@ def delete_doc(doctype, docname):
 
 
 def get_pending_si_delivery_item_count(item_code, company, warehouse):
-    query = """SELECT SUM(SII.delivered_qty) as delivered_count ,SUM(SII.stock_qty) as sold_count
-            FROM `tabSales Invoice` AS SI 
-            INNER JOIN `tabSales Invoice Item` AS SII ON SI.name = SII.parent
-            WHERE
-                SII.item_code = '%s'
-                AND SII.parent = SI.name
-                AND SI.docstatus= 1
-                AND SI.company = '%s'
-                AND SII.warehouse = '%s'
-                AND SII.so_detail IS NULL
-                AND (SII.so_detail IS NOT NULL AND SII.delivery_note IS NOT NULL)
-                AND SI.update_stock = 0
-                AND SII.is_ignored_in_pending_qty != 1
-                AND SII.delivered_qty != SII.stock_qty
-            """ % (
-        item_code,
-        company,
-        warehouse,
-    )
-
-    counts = frappe.db.sql(query, as_dict=True)
+    sales_invoice = DocType("Sales Invoice")
+    sales_invoice_item = DocType("Sales Invoice Item")
+    counts = (
+        frappe.qb.from_(sales_invoice)
+        .inner_join(sales_invoice_item)
+        .on(sales_invoice.name == sales_invoice_item.parent)
+        .select(
+            Sum(sales_invoice_item.delivered_qty).as_("delivered_count"),
+            Sum(sales_invoice_item.stock_qty).as_("sold_count"),
+        )
+        .where(sales_invoice_item.item_code == item_code)
+        .where(sales_invoice.docstatus == 1)
+        .where(sales_invoice.company == company)
+        .where(sales_invoice_item.warehouse == warehouse)
+        .where(sales_invoice_item.so_detail.isnull())
+        .where(
+            sales_invoice_item.so_detail.isnotnull()
+            & sales_invoice_item.delivery_note.isnotnull()
+        )
+        .where(sales_invoice.update_stock == 0)
+        .where(sales_invoice_item.is_ignored_in_pending_qty != 1)
+        .where(sales_invoice_item.delivered_qty != sales_invoice_item.stock_qty)
+    ).run(as_dict=True)
     if len(counts) > 0:
         if not counts[0]["sold_count"]:
             counts[0]["sold_count"] = 0
@@ -813,23 +828,22 @@ def get_pending_si_delivery_item_count(item_code, company, warehouse):
 
 
 def get_pending_delivery_item_count(item_code, company, warehouse):
-    query = """ SELECT SUM(SOI.delivered_qty) as delivered_count ,SUM(SOI.stock_qty) as sold_count
-            FROM `tabSales Order` AS SO
-            INNER JOIN `tabSales Order Item` AS SOI ON SO.name = SOI.parent
-            WHERE 
-                SOI.item_code = '%s' 
-                AND SOI.parent = SO.name 
-                AND SO.docstatus= 1 
-                AND SO.company = '%s' 
-                AND SOI.warehouse = '%s' 
-                AND SO.status NOT IN ('Closed', 'On Hold', 'Cancelled', 'Completed')
-            """ % (
-        item_code,
-        company,
-        warehouse,
-    )
-
-    counts = frappe.db.sql(query, as_dict=True)
+    sales_order = DocType("Sales Order")
+    sales_order_item = DocType("Sales Order Item")
+    counts = (
+        frappe.qb.from_(sales_order)
+        .inner_join(sales_order_item)
+        .on(sales_order.name == sales_order_item.parent)
+        .select(
+            Sum(sales_order_item.delivered_qty).as_("delivered_count"),
+            Sum(sales_order_item.stock_qty).as_("sold_count"),
+        )
+        .where(sales_order_item.item_code == item_code)
+        .where(sales_order.docstatus == 1)
+        .where(sales_order.company == company)
+        .where(sales_order_item.warehouse == warehouse)
+        .where(sales_order.status.notin(["Closed", "On Hold", "Cancelled", "Completed"]))
+    ).run(as_dict=True)
     if len(counts) > 0:
         if not counts[0]["sold_count"]:
             counts[0]["sold_count"] = 0
@@ -845,29 +859,33 @@ def get_item_balance(item_code, company, warehouse=None):
         warehouse = frappe.get_all(
             "Warehouse", filters={"company": company, "lft": 1}, fields=["name"]
         )[0]["name"]
-    values, condition = [item_code], ""
+    stock_bin = DocType("Bin")
+    query = (
+        frappe.qb.from_(stock_bin)
+        .select(Sum(stock_bin.actual_qty))
+        .where(stock_bin.item_code == item_code)
+    )
     if warehouse:
         lft, rgt, is_group = frappe.db.get_value(
             "Warehouse", warehouse, ["lft", "rgt", "is_group"]
         )
 
         if is_group:
-            values.extend([lft, rgt])
-            condition += "and exists (\
-                select name from `tabWarehouse` wh where wh.name = tabBin.warehouse\
-                and wh.lft >= %s and wh.rgt <= %s)"
+            warehouse_table = DocType("Warehouse")
+            query = query.where(
+                ExistsCriterion(
+                    frappe.qb.from_(warehouse_table)
+                    .select(warehouse_table.name)
+                    .where(warehouse_table.name == stock_bin.warehouse)
+                    .where(warehouse_table.lft >= lft)
+                    .where(warehouse_table.rgt <= rgt)
+                )
+            )
 
         else:
-            values.append(warehouse)
-            condition += " AND warehouse = %s"
+            query = query.where(stock_bin.warehouse == warehouse)
 
-    actual_qty = frappe.db.sql(
-        """select sum(actual_qty) from tabBin
-        where item_code=%s {0}""".format(
-            condition
-        ),
-        values,
-    )[0][0]
+    actual_qty = query.run()[0][0]
 
     return actual_qty
 
@@ -1046,18 +1064,14 @@ def update_delivery_on_sales_invoice(doc, method):
 
 
 def get_delivery_note_item_count(item_row_name, sales_invoice):
-    query = """ SELECT SUM(stock_qty) as cont
-            FROM `tabDelivery Note Item` 
-            WHERE 
-                si_detail = '%s' 
-                AND docstatus != 2 
-                AND against_sales_invoice = '%s' 
-            """ % (
-        item_row_name,
-        sales_invoice,
-    )
-
-    counts = frappe.db.sql(query, as_dict=True)
+    delivery_note_item = DocType("Delivery Note Item")
+    counts = (
+        frappe.qb.from_(delivery_note_item)
+        .select(Sum(delivery_note_item.stock_qty).as_("cont"))
+        .where(delivery_note_item.si_detail == item_row_name)
+        .where(delivery_note_item.docstatus != 2)
+        .where(delivery_note_item.against_sales_invoice == sales_invoice)
+    ).run(as_dict=True)
     if len(counts) > 0 and counts[0]["cont"]:
         return float(counts[0]["cont"])
     else:
@@ -1069,98 +1083,94 @@ def get_pending_sales_invoice(*args):
     filters = args[5]
     start = cint(args[3])
     page_length = cint(args[4])
-    conditions = ""
+    sales_invoice = DocType("Sales Invoice")
+    sales_invoice_item = DocType("Sales Invoice Item")
+    criteria = [
+        sales_invoice.is_return == 0,
+        sales_invoice.status.notin(["Credit Note Issued", "Internal Transfer"]),
+    ]
     if args[1] != "":
-        conditions += " AND SI.name = '%s'" % args[1]
+        criteria.append(sales_invoice.name == args[1])
     if "posting_date" in filters:
         posting_date = filters["posting_date"]
-        from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-        to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-        conditions += "AND DATE(SI.posting_date) BETWEEN {start} AND {end}".format(
-            start=from_date, end=to_date
+        criteria.append(
+            Date(sales_invoice.posting_date).between(posting_date[1][0], posting_date[1][1])
         )
     if "customer" in filters:
-        conditions += " AND SI.customer = '%s'" % filters["customer"]
+        criteria.append(sales_invoice.customer == filters["customer"])
     if "company" in filters:
-        conditions += " AND SI.company = '%s'" % filters["company"]
+        criteria.append(sales_invoice.company == filters["company"])
     if "set_warehouse" in filters:
-        conditions += " AND SIT.warehouse = '%s'" % filters["set_warehouse"]
-    query = """ 
-            WITH CTE AS(
-                SELECT
-                    SIT.stock_qty, 
-                    SIT.delivered_qty, 
-                    SIT.warehouse AS set_warehouse, 
-                    COALESCE (SUM(DNI.stock_qty), 0) As DNI_sum_stock_qty,           
-                    SI.name AS name,                      
-                    SI.posting_date AS posting_date,                      
-                    SI.customer As customer,
-                    ROW_NUMBER()OVER(PARTITION BY SI.name ORDER BY SI.name) AS RN            
-                FROM `tabSales Invoice` AS SI              
-                    INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name 
-                    INNER JOIN `tabItem` AS IT ON IT.name = SIT.item_code and IT.is_stock_item = 1
-                    LEFT OUTER JOIN `tabDelivery Note Item` as DNI on DNI.si_detail = SIT.name AND DNI.docstatus < 2
-                WHERE                  
-                    SIT.parent = SI.name                  
-                    AND SI.docstatus= 1              
-                    AND SI.update_stock != 1 
-                    AND SI.is_return = 0
-                    AND SI.status NOT IN ("Credit Note Issued", "Internal Transfer")
-                    AND SIT.stock_qty != SIT.delivered_qty 
-                    %s    
-                GROUP BY SI.name, SIT.name
-                HAVING SIT.stock_qty > DNI_sum_stock_qty
-            )
-            SELECT * FROM `CTE` WHERE RN = 1
-            LIMIT %s
-            OFFSET %s
-            """ % (
-        conditions,
-        page_length,
-        start,
+        criteria.append(sales_invoice_item.warehouse == filters["set_warehouse"])
+
+    query = get_pending_delivery_invoices_query(
+        [sales_invoice_item.warehouse.as_("set_warehouse")], criteria
     )
-    data = frappe.db.sql(query, as_dict=True)
+    data = query.limit(page_length).offset(start).run(as_dict=True)
     return data
 
 
 def get_list_pending_sales_invoice(invoice_name=None, warehouse=None):
-    conditions = ""
+    sales_invoice = DocType("Sales Invoice")
+    sales_invoice_item = DocType("Sales Invoice Item")
+    criteria = [sales_invoice.enabled_auto_create_delivery_notes == 1]
     if invoice_name:
-        conditions += " AND SI.name = '%s'" % invoice_name
+        criteria.append(sales_invoice.name == invoice_name)
     if warehouse:
-        conditions += " AND SIT.warehouse = '%s'" % warehouse
-    query = """ 
-            WITH CTE AS(
-                SELECT
-                    SIT.stock_qty, 
-                    SIT.delivered_qty, 
-                    COALESCE (SUM(DNI.stock_qty), 0) As DNI_sum_stock_qty,           
-                    SI.name AS name,                      
-                    SI.posting_date AS posting_date,                      
-                    SI.customer As customer,
-                    SI.company As company, 
-                    SI.enabled_auto_create_delivery_notes as enabled_auto_create_delivery_notes,
-                    ROW_NUMBER()OVER(PARTITION BY SI.name ORDER BY SI.name) AS RN 
-                FROM `tabSales Invoice` AS SI 
-                    INNER JOIN `tabSales Invoice Item` AS SIT ON SIT.parent = SI.name
-                    INNER JOIN `tabItem` AS IT ON IT.name = SIT.item_code and IT.is_stock_item = 1
-                    LEFT OUTER JOIN `tabDelivery Note Item` as DNI on DNI.si_detail = SIT.name AND DNI.docstatus < 2
-                WHERE                  
-                    SIT.parent = SI.name                  
-                    AND SI.docstatus= 1              
-                    AND SI.update_stock != 1 
-                    AND SIT.stock_qty != SIT.delivered_qty 
-                    AND SI.enabled_auto_create_delivery_notes = 1
-                    %s 
-                GROUP BY SI.name, SIT.name
-                HAVING SIT.stock_qty > DNI_sum_stock_qty 
-            )
-            SELECT * FROM `CTE` WHERE RN = 1
-            """ % (
-        conditions
+        criteria.append(sales_invoice_item.warehouse == warehouse)
+
+    query = get_pending_delivery_invoices_query(
+        [sales_invoice.company, sales_invoice.enabled_auto_create_delivery_notes],
+        criteria,
     )
-    data = frappe.db.sql(query, as_dict=True)
+    data = query.run(as_dict=True)
     return data
+
+
+def get_pending_delivery_invoices_query(extra_fields, criteria):
+    """First not fully delivered stock item row of each submitted Sales Invoice."""
+    sales_invoice = DocType("Sales Invoice")
+    sales_invoice_item = DocType("Sales Invoice Item")
+    item = DocType("Item")
+    delivery_note_item = DocType("Delivery Note Item")
+    pending_items = (
+        frappe.qb.from_(sales_invoice)
+        .inner_join(sales_invoice_item)
+        .on(sales_invoice_item.parent == sales_invoice.name)
+        .inner_join(item)
+        .on((item.name == sales_invoice_item.item_code) & (item.is_stock_item == 1))
+        .left_join(delivery_note_item)
+        .on(
+            (delivery_note_item.si_detail == sales_invoice_item.name)
+            & (delivery_note_item.docstatus < 2)
+        )
+        .select(
+            sales_invoice_item.stock_qty,
+            sales_invoice_item.delivered_qty,
+            Coalesce(Sum(delivery_note_item.stock_qty), 0).as_("DNI_sum_stock_qty"),
+            sales_invoice.name,
+            sales_invoice.posting_date,
+            sales_invoice.customer,
+            *extra_fields,
+            RowNumber()
+            .over(sales_invoice.name)
+            .orderby(sales_invoice.name)
+            .as_("RN"),
+        )
+        .where(sales_invoice.docstatus == 1)
+        .where(sales_invoice.update_stock != 1)
+        .where(sales_invoice_item.stock_qty != sales_invoice_item.delivered_qty)
+        .where(Criterion.all(criteria))
+        .groupby(sales_invoice.name, sales_invoice_item.name)
+        .having(sales_invoice_item.stock_qty > Field("DNI_sum_stock_qty"))
+    )
+    pending_items_cte = AliasedQuery("CTE")
+    return (
+        frappe.qb.with_(pending_items, "CTE")
+        .from_(pending_items_cte)
+        .select("*")
+        .where(pending_items_cte.RN == 1)
+    )
 
 
 def create_delivery_note_for_all_pending_sales_invoice(doc=None, method=None):
@@ -1356,6 +1366,7 @@ def validate_net_rate(doc, method):
     if hasattr(doc, "is_return") and doc.is_return:
         return
 
+    stock_ledger_entry = DocType("Stock Ledger Entry")
     for it in doc.get("items"):
         if not it.item_code or it.allow_override_net_rate:
             continue
@@ -1374,14 +1385,17 @@ def validate_net_rate(doc, method):
                 "last purchase rate",
             )
 
-        last_valuation_rate = frappe.db.sql(
-            """
-            SELECT valuation_rate FROM `tabStock Ledger Entry` WHERE item_code = %s
-            AND warehouse = %s AND valuation_rate > 0
-            ORDER BY posting_date DESC, posting_time DESC, creation DESC LIMIT 1
-            """,
-            (it.item_code, it.warehouse),
-        )
+        last_valuation_rate = (
+            frappe.qb.from_(stock_ledger_entry)
+            .select(stock_ledger_entry.valuation_rate)
+            .where(stock_ledger_entry.item_code == it.item_code)
+            .where(stock_ledger_entry.warehouse == it.warehouse)
+            .where(stock_ledger_entry.valuation_rate > 0)
+            .orderby(stock_ledger_entry.posting_date, order=Order.desc)
+            .orderby(stock_ledger_entry.posting_time, order=Order.desc)
+            .orderby(stock_ledger_entry.creation, order=Order.desc)
+            .limit(1)
+        ).run()
         if last_valuation_rate:
             last_valuation_rate_in_sales_uom = last_valuation_rate[0][0] / (
                 it.conversion_factor or 1
@@ -1779,10 +1793,12 @@ def make_withholding_tax_gl_entries_for_sales(doc, method):
 # Email Salary Slip
 @frappe.whitelist()
 def get_payroll_employees(payroll_entry):
-    employees = frappe.db.sql(
-        f""" SELECT employee FROM `tabPayroll Employee Detail` WHERE parent='{payroll_entry}' """,
-        as_dict=True,
-    )
+    payroll_employee_detail = DocType("Payroll Employee Detail")
+    employees = (
+        frappe.qb.from_(payroll_employee_detail)
+        .select(payroll_employee_detail.employee)
+        .where(payroll_employee_detail.parent == payroll_entry)
+    ).run(as_dict=True)
     return employees
 
 
@@ -2804,39 +2820,20 @@ def get_item_prices_custom_po(filters=None, start=0, limit=20):
     unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
     customer = filters.get("customer", "")
     company = filters.get("company", "")
-    item_code = "'{0}'".format(filters.get("item_code", ""))
-    currency = "'{0}'".format(filters.get("currency", ""))
+    item_code = filters.get("item_code", "")
+    currency = filters.get("currency", "")
     prices_list = []
     unique_price_list = []
     max_records = int(start) + int(limit)
-    conditions = ""
-    
-    if "posting_date" in filters:
-        posting_date = filters["posting_date"]
-        from_date = "'{from_date}'".format(from_date=posting_date[1][0])
-        to_date = "'{to_date}'".format(to_date=posting_date[1][1])
-        conditions += "AND DATE(PI.posting_date) BETWEEN {start} AND {end}".format(
-            start=from_date, end=to_date
-        )
-    if customer:
-        conditions += " AND PI.supplier = '%s'" % customer
-
-    query = """ SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty,  PIT.rate
-                FROM `tabPurchase Invoice` AS PI 
-                INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
-                WHERE 
-                    PIT.item_code = {0} 
-                    AND PIT.parent = PI.name
-                    AND PI.docstatus= 1
-                    AND PI.currency = {2}
-                    AND PI.is_return != 1
-                    AND PI.company = '{3}'
-                    {1}
-                ORDER by PI.posting_date DESC""".format(
-        item_code, conditions, currency, company
-    )
-
-    items = frappe.db.sql(query, as_dict=True)
+    items = get_invoice_item_rates_query(
+        "Purchase Invoice",
+        "supplier",
+        item_code,
+        currency,
+        company,
+        party=customer,
+        posting_date_filter=filters.get("posting_date"),
+    ).run(as_dict=True)
     for item in items:
         item_dict = {
             "name": item.item_code,
@@ -2860,35 +2857,13 @@ def get_item_prices_custom_po(filters=None, start=0, limit=20):
 
 @frappe.whitelist()
 def get_item_prices_po(item_code, currency, customer=None, company=None):
-    item_code = "'{0}'".format(item_code)
-    currency = "'{0}'".format(currency)
     unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
     prices_list = []
     unique_price_list = []
     max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
-    if customer:
-        conditions = " and PI.supplier = '%s'" % customer
-    else:
-        conditions = ""
-
-    query = """ SELECT PI.name, PI.posting_date, PI.supplier, PIT.item_code, PIT.qty, PIT.rate
-            FROM `tabPurchase Invoice` AS PI 
-            INNER JOIN `tabPurchase Invoice Item` AS PIT ON PIT.parent = PI.name
-            WHERE 
-                PIT.item_code = {0} 
-                AND PIT.parent = PI.name
-                AND PI.docstatus=%s 
-                AND PI.currency = {2}
-                AND PI.is_return != 1
-                AND PI.company = '{3}'
-                {1}
-            ORDER by PI.posting_date DESC""".format(
-        item_code, conditions, currency, company
-    ) % (
-        1
-    )
-
-    items = frappe.db.sql(query, as_dict=True)
+    items = get_invoice_item_rates_query(
+        "Purchase Invoice", "supplier", item_code, currency, company, party=customer
+    ).run(as_dict=True)
     for item in items:
         item_dict = {
             "name": item.item_code,
