@@ -138,18 +138,18 @@ def scan():
     issues its COMMIT on that same cursor, breaking the connection mid-stream.
     """
     last_name = ""
+    version = frappe.qb.DocType("Version")
 
     while True:
-        batch = frappe.db.sql(
-            """select name, data from tabVersion
-            where ref_doctype = %s
-                and name > %s
-                and data like %s
-            order by name
-            limit %s""",
-            (DOCTYPE, last_name, DATA_LIKE, BATCH_SIZE),
-            as_dict=True,
-        )
+        batch = (
+            frappe.qb.from_(version)
+            .select(version.name, version.data)
+            .where(version.ref_doctype == DOCTYPE)
+            .where(version.name > last_name)
+            .where(version.data.like(DATA_LIKE))
+            .orderby(version.name)
+            .limit(BATCH_SIZE)
+        ).run(as_dict=True)
         if not batch:
             return
 
