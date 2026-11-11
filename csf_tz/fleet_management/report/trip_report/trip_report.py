@@ -10,6 +10,10 @@ from datetime import datetime
 from frappe.desk.reportview import export_query
 from frappe.desk.query_report import run
 from frappe.desk.query_report import get_columns_dict
+from frappe.query_builder import Case, Field
+from frappe.query_builder.custom import ConstantColumn
+from frappe.query_builder.functions import Concat
+from csf_tz.utils.query_builder import get_expenses_total_query
 from six import string_types
 import os, json
 import openpyxl
@@ -120,68 +124,55 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 		
-	where = ""
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date}
-	if filters.status:
-		where += 'AND status = %(status)s'
-		where_filter.update({"status": filters.status})
-	
-	data = frappe.db.sql('''SELECT * FROM
-				(SELECT
-					`tabVehicle Trip`.name AS reference,
-					'Main Trip' AS trip_type,
-					`tabVehicle Trip`.main_customer AS customer,
-					`tabVehicle Trip`.transporter_type,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo'
-						ELSE `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.main_cargo_category AS cargo,
-					CONCAT(`tabVehicle Trip`.main_loading_point, "-",`tabVehicle Trip`.main_cargo_location_city,"-",`tabVehicle Trip`.main_cargo_location_country) AS source_location,
-					CONCAT(`tabVehicle Trip`.main_offloading_point, "-",`tabVehicle Trip`.main_cargo_destination_city,"-",`tabVehicle Trip`.main_cargo_destination_country) AS destination_location,
-					`tabVehicle Trip`.main_eta AS eta,
-					`tabVehicle Trip`.status,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-						WHERE parenttype = 'Vehicle Trip' AND parent = `tabVehicle Trip`.name AND expense_currency = 'USD'
-						) AS trip_expenses_usd,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-						WHERE parenttype = 'Vehicle Trip' AND parent = `tabVehicle Trip`.name AND expense_currency = 'TZS'
-						) AS trip_expenses_tzs
-				FROM
-					`tabVehicle Trip`
-				WHERE 
-					reference_doctype IS NOT NULL AND reference_docname IS NOT NULL ''' + where + ''' AND start_date BETWEEN %(from_date)s AND %(to_date)s
-				UNION ALL
-				SELECT
-					`tabVehicle Trip`.name AS reference,
-					'Return Trip' AS trip_type,
-					`tabVehicle Trip`.return_customer AS customer,
-					`tabVehicle Trip`.transporter_type,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo'
-						ELSE `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.return_cargo_category AS cargo,
-					CONCAT(`tabVehicle Trip`.return_loading_point, "-",`tabVehicle Trip`.return_cargo_location_city,"-",`tabVehicle Trip`.return_cargo_location_country) AS source_location,
-					CONCAT(`tabVehicle Trip`.return_offloading_point, "-",`tabVehicle Trip`.return_cargo_destination_city,"-",`tabVehicle Trip`.return_cargo_destination_country) AS destination_location,
-					`tabVehicle Trip`.return_eta AS eta,
-					`tabVehicle Trip`.status,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-						WHERE parenttype = 'Vehicle Trip' AND parent = `tabVehicle Trip`.name AND expense_currency = 'USD'
-						) AS trip_expenses_usd,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-						WHERE parenttype = 'Vehicle Trip' AND parent = `tabVehicle Trip`.name AND expense_currency = 'TZS'
-						) AS trip_expenses_tzs
-				FROM
-					`tabVehicle Trip`
-				WHERE 
-					return_reference_doctype IS NOT NULL AND return_reference_docname IS NOT NULL ''' + where + ''' AND return_start_date BETWEEN %(from_date)s AND %(to_date)s
-				) a
-			ORDER BY reference''', where_filter, as_dict=1)
+	main_trips = get_trip_query(filters, "Main Trip", "main")
+	return_trips = get_trip_query(filters, "Return Trip", "return")
+	data = main_trips.union_all(return_trips).orderby(Field("reference")).run(as_dict=True)
 	return columns, data
+
+
+def get_trip_query(filters, trip_type, leg):
+	vehicle_trip = frappe.qb.DocType("Vehicle Trip")
+	reference_prefix = "return_" if leg == "return" else ""
+	transporter_name = (
+		Case()
+		.when(vehicle_trip.transporter_type == "Bravo", "Bravo")
+		.else_(vehicle_trip.sub_contractor)
+	)
+	source_location = Concat(
+		vehicle_trip[f"{leg}_loading_point"], "-",
+		vehicle_trip[f"{leg}_cargo_location_city"], "-",
+		vehicle_trip[f"{leg}_cargo_location_country"],
+	)
+	destination_location = Concat(
+		vehicle_trip[f"{leg}_offloading_point"], "-",
+		vehicle_trip[f"{leg}_cargo_destination_city"], "-",
+		vehicle_trip[f"{leg}_cargo_destination_country"],
+	)
+	query = (
+		frappe.qb.from_(vehicle_trip)
+		.select(
+			vehicle_trip.name.as_("reference"),
+			ConstantColumn(trip_type).as_("trip_type"),
+			vehicle_trip[f"{leg}_customer"].as_("customer"),
+			vehicle_trip.transporter_type,
+			transporter_name.as_("transporter_name"),
+			vehicle_trip.vehicle_plate_number,
+			vehicle_trip.trailer_plate_number,
+			vehicle_trip.driver_name,
+			vehicle_trip[f"{leg}_cargo_category"].as_("cargo"),
+			source_location.as_("source_location"),
+			destination_location.as_("destination_location"),
+			vehicle_trip[f"{leg}_eta"].as_("eta"),
+			vehicle_trip.status,
+			get_expenses_total_query(vehicle_trip.name, "Vehicle Trip", "USD").as_("trip_expenses_usd"),
+			get_expenses_total_query(vehicle_trip.name, "Vehicle Trip", "TZS").as_("trip_expenses_tzs"),
+		)
+		.where(
+			vehicle_trip[f"{reference_prefix}reference_doctype"].isnotnull()
+			& vehicle_trip[f"{reference_prefix}reference_docname"].isnotnull()
+			& vehicle_trip[f"{reference_prefix}start_date"].between(filters.from_date, filters.to_date)
+		)
+	)
+	if filters.status:
+		query = query.where(vehicle_trip.status == filters.status)
+	return query
