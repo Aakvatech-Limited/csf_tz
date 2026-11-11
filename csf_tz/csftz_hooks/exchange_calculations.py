@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import flt, getdate, nowdate, add_days
 from frappe import _
+from frappe.query_builder import Order
 import json
 
 def create_import_tracker(doc, method):
@@ -60,6 +61,7 @@ def link_lcv_to_import_tracker(doc, method):
     if not doc.purchase_receipts:
         return
     
+    purchase_invoice_item = frappe.qb.DocType("Purchase Invoice Item")
     for pr_row in doc.purchase_receipts:
         receipt_doc = pr_row.get("receipt_document") or pr_row.get("purchase_receipt")
         if not receipt_doc:
@@ -69,15 +71,12 @@ def link_lcv_to_import_tracker(doc, method):
         if pr_row.get("receipt_document_type") == "Purchase Invoice":
             pi_items = [{"purchase_invoice": receipt_doc}]
         else:
-            pi_items = frappe.db.sql(
-                """
-                SELECT DISTINCT pii.parent as purchase_invoice
-                FROM `tabPurchase Invoice Item` pii
-                WHERE pii.purchase_receipt = %s
-            """,
-                receipt_doc,
-                as_dict=True,
-            )
+            pi_items = (
+                frappe.qb.from_(purchase_invoice_item)
+                .select(purchase_invoice_item.parent.as_("purchase_invoice"))
+                .distinct()
+                .where(purchase_invoice_item.purchase_receipt == receipt_doc)
+            ).run(as_dict=True)
         
         for pi_item in pi_items:
             purchase_invoice = pi_item.get("purchase_invoice")
@@ -103,12 +102,16 @@ def link_lcv_to_import_tracker(doc, method):
 
 def unlink_lcv_from_import_tracker(doc, method):
     """Remove LCV from Foreign Import Transaction when cancelled"""
-    trackers = frappe.db.sql("""
-        SELECT DISTINCT fit.name
-        FROM `tabForeign Import Transaction` fit
-        JOIN `tabForeign Import LCV Details` lcv ON lcv.parent = fit.name
-        WHERE lcv.landed_cost_voucher = %s
-    """, doc.name, as_dict=True)
+    import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+    lcv_details = frappe.qb.DocType("Foreign Import LCV Details")
+    trackers = (
+        frappe.qb.from_(import_transaction)
+        .join(lcv_details)
+        .on(lcv_details.parent == import_transaction.name)
+        .select(import_transaction.name)
+        .distinct()
+        .where(lcv_details.landed_cost_voucher == doc.name)
+    ).run(as_dict=True)
     
     for tracker in trackers:
         try:
@@ -133,12 +136,21 @@ def link_payment_to_import_tracker(doc, method):
         return
     
     # Find active import trackers for this supplier
-    trackers = frappe.db.sql("""
-        SELECT name, purchase_invoice, currency, original_exchange_rate, invoice_amount_foreign
-        FROM `tabForeign Import Transaction`
-        WHERE supplier = %s AND status IN ('Active', 'Draft') AND docstatus = 1
-        ORDER BY transaction_date DESC
-    """, doc.party, as_dict=True)
+    import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+    trackers = (
+        frappe.qb.from_(import_transaction)
+        .select(
+            import_transaction.name,
+            import_transaction.purchase_invoice,
+            import_transaction.currency,
+            import_transaction.original_exchange_rate,
+            import_transaction.invoice_amount_foreign,
+        )
+        .where(import_transaction.supplier == doc.party)
+        .where(import_transaction.status.isin(["Active", "Draft"]))
+        .where(import_transaction.docstatus == 1)
+        .orderby(import_transaction.transaction_date, order=Order.desc)
+    ).run(as_dict=True)
     
     for tracker_data in trackers:
         # Check if payment currency matches tracker currency
@@ -386,10 +398,13 @@ def recalculate_import_differences(tracker_name):
 
 def update_pending_transactions():
     """Scheduled task to update pending import transactions"""
-    pending_trackers = frappe.db.sql("""
-        SELECT name FROM `tabForeign Import Transaction`
-        WHERE status = 'Active' AND docstatus = 1
-    """, as_dict=True)
+    import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+    pending_trackers = (
+        frappe.qb.from_(import_transaction)
+        .select(import_transaction.name)
+        .where(import_transaction.status == "Active")
+        .where(import_transaction.docstatus == 1)
+    ).run(as_dict=True)
     
     for tracker in pending_trackers:
         try:
@@ -470,13 +485,22 @@ def debug_payment_linking_issue(payment_entry_name):
 
         # Find potential trackers for this supplier
         if payment_doc.party_type == "Supplier":
-            trackers = frappe.db.sql("""
-                SELECT name, purchase_invoice, currency, original_exchange_rate,
-                       invoice_amount_foreign, status, docstatus, supplier
-                FROM `tabForeign Import Transaction`
-                WHERE supplier = %s
-                ORDER BY transaction_date DESC
-            """, payment_doc.party, as_dict=True)
+            import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+            trackers = (
+                frappe.qb.from_(import_transaction)
+                .select(
+                    import_transaction.name,
+                    import_transaction.purchase_invoice,
+                    import_transaction.currency,
+                    import_transaction.original_exchange_rate,
+                    import_transaction.invoice_amount_foreign,
+                    import_transaction.status,
+                    import_transaction.docstatus,
+                    import_transaction.supplier,
+                )
+                .where(import_transaction.supplier == payment_doc.party)
+                .orderby(import_transaction.transaction_date, order=Order.desc)
+            ).run(as_dict=True)
 
             for tracker in trackers:
                 tracker_info = {
@@ -517,13 +541,21 @@ def manually_link_payment_to_tracker(payment_entry_name, tracker_name=None):
 
         if not tracker_name:
             # Find the best matching tracker
-            trackers = frappe.db.sql("""
-                SELECT name, currency, status, docstatus
-                FROM `tabForeign Import Transaction`
-                WHERE supplier = %s AND status IN ('Active', 'Draft') AND docstatus = 1
-                ORDER BY transaction_date DESC
-                LIMIT 1
-            """, payment_doc.party, as_dict=True)
+            import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+            trackers = (
+                frappe.qb.from_(import_transaction)
+                .select(
+                    import_transaction.name,
+                    import_transaction.currency,
+                    import_transaction.status,
+                    import_transaction.docstatus,
+                )
+                .where(import_transaction.supplier == payment_doc.party)
+                .where(import_transaction.status.isin(["Active", "Draft"]))
+                .where(import_transaction.docstatus == 1)
+                .orderby(import_transaction.transaction_date, order=Order.desc)
+                .limit(1)
+            ).run(as_dict=True)
 
             if not trackers:
                 return {"error": "No active trackers found for this supplier"}
