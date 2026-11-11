@@ -26,8 +26,6 @@ def get_landed_cost_expenses(import_file=None):
         .where(journal_entry.docstatus == 1)
         .where(journal_entry_account.debit > 0)
     ).run(as_dict=True)
-    # frappe.db.sql("""update `tabSales Order Item` set delivered_qty = 0
-    # 			where parent = %s""", so.name)
     purchase_invoice = frappe.qb.DocType("Purchase Invoice")
     purchase_invoice_item = frappe.qb.DocType("Purchase Invoice Item")
     pinv_landed_cost = (
