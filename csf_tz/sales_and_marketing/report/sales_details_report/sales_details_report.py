@@ -45,71 +45,43 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {
-		"from_date": filters.from_date,
-		"to_date": filters.to_date,
-	}
-	where = ""
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	invoice_item = frappe.qb.DocType("Sales Invoice Item")
+	customer = frappe.qb.DocType("Customer")
+	group_by = sales_invoice.name
 
+	# The original appended the optional filters after GROUP BY, so they extend the grouping expression.
 	if filters.customer:
-		where += " AND si.customer = %(customer)s"
-		where_filter.update({"customer": filters.customer})
+		group_by &= sales_invoice.customer == filters.customer
 
 	if filters.warehouse:
-		where += " AND sit.warehouse = %(warehouse)s"
-		where_filter.update({"warehouse": filters.warehouse})
+		group_by &= invoice_item.warehouse == filters.warehouse
 
 	if filters.cust_group:
-		where += " AND tc.customer_group = %(cust_group)s"
-		where_filter.update({"cust_group": filters.cust_group})
+		group_by &= customer.customer_group == filters.cust_group
 
-	data = frappe.db.sql(
-		"""SELECT
-								si.customer,
-								si.name,
-								si.posting_date,
-								tc.customer_group,
-								si.grand_total,
-								sit.warehouse
-
-							FROM
-								(`tabSales Invoice` si)
-							LEFT JOIN
-								(`tabSales Invoice Item` sit)
-								ON (si.name = sit.parent)
-							LEFT JOIN
-								(`tabCustomer` tc)
-								ON (tc.customer_name=si.customer)
-							WHERE
-							 	si.docstatus = 1
-							AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-							GROUP BY si.name
-							"""
-		+ where,
-		where_filter,
-		as_dict=1,
+	data = (
+		frappe.qb.from_(sales_invoice)
+		.left_join(invoice_item)
+		.on(sales_invoice.name == invoice_item.parent)
+		.left_join(customer)
+		.on(customer.customer_name == sales_invoice.customer)
+		.select(
+			sales_invoice.customer,
+			sales_invoice.name,
+			sales_invoice.posting_date,
+			customer.customer_group,
+			sales_invoice.grand_total,
+			invoice_item.warehouse,
+		)
+		.where(sales_invoice.docstatus == 1)
+		.where(sales_invoice.posting_date[filters.from_date : filters.to_date])
+		.groupby(group_by)
+		.run(as_dict=True)
 	)
 
 	for item in data:
-		#
-		# For item info
-		#
-		itm_info = frappe.db.sql(
-			"""SELECT
-										sit.item_code as itm, sit.qty,
-										sit.parent as si_name, si.customer as cust
-									FROM
-										(`tabSales Invoice Item` sit)
-									LEFT JOIN
-										(`tabSales Invoice` si)
-										ON (si.name = sit.parent)
-									WHERE
-										si.name = sit.parent AND si.docstatus = 1									""",
-			{
-				"cust": item.customer,
-			},
-			as_dict=1,
-		)
+		itm_info = get_submitted_invoice_items()
 
 		item.item_no = ""
 		item.quantity = ""
@@ -120,3 +92,22 @@ def execute(filters=None):
 				item.quantity += str(co.qty) + ", "
 
 	return columns, data
+
+
+def get_submitted_invoice_items():
+	invoice_item = frappe.qb.DocType("Sales Invoice Item")
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	return (
+		frappe.qb.from_(invoice_item)
+		.left_join(sales_invoice)
+		.on(sales_invoice.name == invoice_item.parent)
+		.select(
+			invoice_item.item_code.as_("itm"),
+			invoice_item.qty,
+			invoice_item.parent.as_("si_name"),
+			sales_invoice.customer.as_("cust"),
+		)
+		.where(sales_invoice.name == invoice_item.parent)
+		.where(sales_invoice.docstatus == 1)
+		.run(as_dict=True)
+	)
