@@ -118,7 +118,12 @@ class FuelRequest(Document):
 			
 def set_status(doc):
 	parent_doc_name = frappe.db.get_value('Fuel Request Table', doc, 'parent')
-	fuel_requests = frappe.db.sql('''SELECT name, status FROM `tabFuel Request Table` WHERE parent = %(parent_name)s''', {'parent_name': parent_doc_name}, as_dict=1)
+	fuel_request_table = frappe.qb.DocType("Fuel Request Table")
+	fuel_requests = (
+		frappe.qb.from_(fuel_request_table)
+		.select(fuel_request_table.name, fuel_request_table.status)
+		.where(fuel_request_table.parent == parent_doc_name)
+	).run(as_dict=True)
 	
 	processed_requests = 0
 	status = 'Fully Processed'
