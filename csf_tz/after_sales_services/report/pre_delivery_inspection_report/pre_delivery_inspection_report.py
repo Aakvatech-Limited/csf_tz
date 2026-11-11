@@ -79,35 +79,32 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 		
-	where = ''
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date}
+	pre_delivery_inspection = frappe.qb.DocType("Pre Delivery Inspection")
+	sales_invoice_item = frappe.qb.DocType("Sales Invoice Item")
+	query = (
+		frappe.qb.from_(pre_delivery_inspection)
+		.left_join(sales_invoice_item)
+		.on(pre_delivery_inspection.sales_invoice == sales_invoice_item.parent)
+		.select(
+			pre_delivery_inspection.name.as_("reference"),
+			pre_delivery_inspection.report_date,
+			pre_delivery_inspection.customer,
+			pre_delivery_inspection.inspection_type,
+			pre_delivery_inspection.item_code,
+			pre_delivery_inspection.item_serial_no,
+			pre_delivery_inspection.inspected_by,
+			pre_delivery_inspection.verified_by,
+			pre_delivery_inspection.reference_name,
+			pre_delivery_inspection.remarks,
+			sales_invoice_item.warehouse,
+		)
+		.where(pre_delivery_inspection.docstatus != 2)
+		.where(pre_delivery_inspection.report_date[filters.from_date:filters.to_date])
+	)
 
 	if filters.branch:
-		where += ' AND sit.warehouse = %(branch)s'
-		where_filter.update({"branch": filters.branch})
-	
-	data = frappe.db.sql('''SELECT
-								`tabPre Delivery Inspection`.name AS reference,
-								`tabPre Delivery Inspection`.report_date,
-								`tabPre Delivery Inspection`.customer,
-								`tabPre Delivery Inspection`.inspection_type,
-								`tabPre Delivery Inspection`.item_code,
-								`tabPre Delivery Inspection`.item_serial_no,
-								`tabPre Delivery Inspection`.inspected_by,
-								`tabPre Delivery Inspection`.verified_by,
-								`tabPre Delivery Inspection`.reference_name,
-								`tabPre Delivery Inspection`.remarks,
-								sit.warehouse
+		query = query.where(sales_invoice_item.warehouse == filters.branch)
 
-							FROM
-								`tabPre Delivery Inspection`
-							LEFT JOIN
-								(`tabSales Invoice Item` sit)
-								ON (`tabPre Delivery Inspection`.sales_invoice = sit.parent)
-							WHERE 
-								`tabPre Delivery Inspection`.docstatus <> 2 \
-								AND `tabPre Delivery Inspection`.report_date BETWEEN %(from_date)s AND %(to_date)s
-						 '''+ where,
-							where_filter, as_dict=1)
+	data = query.run(as_dict=1)
 						 
 	return columns, data
