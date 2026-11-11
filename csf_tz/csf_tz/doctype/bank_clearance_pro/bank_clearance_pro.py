@@ -7,6 +7,9 @@ import frappe
 from frappe.utils import flt, getdate, nowdate, fmt_money
 from frappe import msgprint, _
 from frappe.model.document import Document
+from frappe.query_builder import Case, Order
+from frappe.query_builder.functions import IfNull, Sum
+from pypika.terms import ValueWrapper
 
 form_grid_templates = {
     "journal_entries": "templates/form_grid/bank_reconciliation_grid.html"
@@ -23,74 +26,13 @@ class BankClearancePro(Document):
         if not self.account:
             frappe.throw(_("Account is mandatory to get payment entries"))
 
-        condition = ""
-        if not self.include_reconciled_entries:
-            condition = "and (clearance_date IS NULL or clearance_date='0000-00-00')"
-
-        journal_entries = frappe.db.sql("""
-            select
-                "Journal Entry" as payment_document, t1.name as payment_entry,
-                t1.cheque_no as cheque_number, t1.cheque_date,
-                sum(t2.debit_in_account_currency) as debit, sum(t2.credit_in_account_currency) as credit,
-                t1.posting_date, t2.against_account, t1.clearance_date, t2.account_currency
-            from
-                `tabJournal Entry` t1, `tabJournal Entry Account` t2
-            where
-                t2.parent = t1.name and t2.account = %(account)s and t1.docstatus=1
-                and t1.posting_date >= %(from)s and t1.posting_date <= %(to)s
-                and ifnull(t1.is_opening, 'No') = 'No' {condition}
-            group by t2.account, t1.name
-            order by t1.posting_date ASC, t1.name DESC
-        """.format(condition=condition), {"account": self.account, "from": self.from_date, "to": self.to_date}, as_dict=1)
-
-        if self.bank_account:
-            condition += 'and bank_account = %(bank_account)s'
-
-        payment_entries = frappe.db.sql("""
-            select
-                "Payment Entry" as payment_document, name as payment_entry,
-                reference_no as cheque_number, reference_date as cheque_date,
-                if(paid_from=%(account)s, paid_amount, 0) as credit,
-                if(paid_from=%(account)s, 0, received_amount) as debit,
-                posting_date, ifnull(party_name,if(paid_from=%(account)s,paid_to,paid_from)) as against_account, clearance_date,
-                if(paid_to=%(account)s, paid_to_account_currency, paid_from_account_currency) as account_currency
-            from `tabPayment Entry`
-            where
-                (paid_from=%(account)s or paid_to=%(account)s) and docstatus=1
-                and posting_date >= %(from)s and posting_date <= %(to)s
-                {condition}
-            order by
-                posting_date ASC, name DESC
-        """.format(condition=condition), {"account": self.account, "from": self.from_date,
-                                    "to": self.to_date, "bank_account": self.bank_account}, as_dict=1)
+        journal_entries = self.get_journal_entries()
+        payment_entries = self.get_bank_payment_entries()
 
         pos_sales_invoices, pos_purchase_invoices = [], []
         if self.include_pos_transactions:
-            pos_sales_invoices = frappe.db.sql("""
-                select
-                    "Sales Invoice Payment" as payment_document, sip.name as payment_entry, sip.amount as debit,
-                    si.posting_date, si.customer as against_account, sip.clearance_date,
-                    account.account_currency, 0 as credit
-                from `tabSales Invoice Payment` sip, `tabSales Invoice` si, `tabAccount` account
-                where
-                    sip.account=%(account)s and si.docstatus=1 and sip.parent = si.name
-                    and account.name = sip.account and si.posting_date >= %(from)s and si.posting_date <= %(to)s
-                order by
-                    si.posting_date ASC, si.name DESC
-            """, {"account": self.account, "from": self.from_date, "to": self.to_date}, as_dict=1)
-
-            pos_purchase_invoices = frappe.db.sql("""
-                select
-                    "Purchase Invoice" as payment_document, pi.name as payment_entry, pi.paid_amount as credit,
-                    pi.posting_date, pi.supplier as against_account, pi.clearance_date,
-                    account.account_currency, 0 as debit
-                from `tabPurchase Invoice` pi, `tabAccount` account
-                where
-                    pi.cash_bank_account=%(account)s and pi.docstatus=1 and account.name = pi.cash_bank_account
-                    and pi.posting_date >= %(from)s and pi.posting_date <= %(to)s
-                order by
-                    pi.posting_date ASC, pi.name DESC
-            """, {"account": self.account, "from": self.from_date, "to": self.to_date}, as_dict=1)
+            pos_sales_invoices = self.get_pos_sales_invoices()
+            pos_purchase_invoices = self.get_pos_purchase_invoices()
 
         entries = sorted(list(payment_entries) + list(journal_entries + list(pos_sales_invoices) + list(pos_purchase_invoices)),
                         key=lambda k: k['posting_date'] or getdate(nowdate()))
@@ -114,6 +56,137 @@ class BankClearancePro(Document):
             d.pop("account_currency")
             row.update(d)
             self.total_amount += flt(amount)
+
+    def get_journal_entries(self):
+        journal_entry = frappe.qb.DocType("Journal Entry")
+        journal_entry_account = frappe.qb.DocType("Journal Entry Account")
+        conditions = (
+            (journal_entry_account.account == self.account)
+            & (journal_entry.docstatus == 1)
+            & (journal_entry.posting_date >= self.from_date)
+            & (journal_entry.posting_date <= self.to_date)
+            & (IfNull(journal_entry.is_opening, "No") == "No")
+        )
+        if not self.include_reconciled_entries:
+            conditions &= journal_entry.clearance_date.isnull() | (journal_entry.clearance_date == "0000-00-00")
+
+        return (
+            frappe.qb.from_(journal_entry)
+            .join(journal_entry_account)
+            .on(journal_entry_account.parent == journal_entry.name)
+            .select(
+                ValueWrapper("Journal Entry").as_("payment_document"),
+                journal_entry.name.as_("payment_entry"),
+                journal_entry.cheque_no.as_("cheque_number"),
+                journal_entry.cheque_date,
+                Sum(journal_entry_account.debit_in_account_currency).as_("debit"),
+                Sum(journal_entry_account.credit_in_account_currency).as_("credit"),
+                journal_entry.posting_date,
+                journal_entry_account.against_account,
+                journal_entry.clearance_date,
+                journal_entry_account.account_currency,
+            )
+            .where(conditions)
+            .groupby(journal_entry_account.account, journal_entry.name)
+            .orderby(journal_entry.posting_date)
+            .orderby(journal_entry.name, order=Order.desc)
+        ).run(as_dict=True)
+
+    def get_bank_payment_entries(self):
+        payment_entry = frappe.qb.DocType("Payment Entry")
+        is_paid_from_account = payment_entry.paid_from == self.account
+        conditions = (
+            (is_paid_from_account | (payment_entry.paid_to == self.account))
+            & (payment_entry.docstatus == 1)
+            & (payment_entry.posting_date >= self.from_date)
+            & (payment_entry.posting_date <= self.to_date)
+        )
+        if not self.include_reconciled_entries:
+            conditions &= payment_entry.clearance_date.isnull() | (payment_entry.clearance_date == "0000-00-00")
+        if self.bank_account:
+            conditions &= payment_entry.bank_account == self.bank_account
+
+        return (
+            frappe.qb.from_(payment_entry)
+            .select(
+                ValueWrapper("Payment Entry").as_("payment_document"),
+                payment_entry.name.as_("payment_entry"),
+                payment_entry.reference_no.as_("cheque_number"),
+                payment_entry.reference_date.as_("cheque_date"),
+                Case().when(is_paid_from_account, payment_entry.paid_amount).else_(0).as_("credit"),
+                Case().when(is_paid_from_account, 0).else_(payment_entry.received_amount).as_("debit"),
+                payment_entry.posting_date,
+                IfNull(
+                    payment_entry.party_name,
+                    Case().when(is_paid_from_account, payment_entry.paid_to).else_(payment_entry.paid_from),
+                ).as_("against_account"),
+                payment_entry.clearance_date,
+                Case()
+                .when(payment_entry.paid_to == self.account, payment_entry.paid_to_account_currency)
+                .else_(payment_entry.paid_from_account_currency)
+                .as_("account_currency"),
+            )
+            .where(conditions)
+            .orderby(payment_entry.posting_date)
+            .orderby(payment_entry.name, order=Order.desc)
+        ).run(as_dict=True)
+
+    def get_pos_sales_invoices(self):
+        sales_invoice = frappe.qb.DocType("Sales Invoice")
+        sales_invoice_payment = frappe.qb.DocType("Sales Invoice Payment")
+        account = frappe.qb.DocType("Account")
+        return (
+            frappe.qb.from_(sales_invoice_payment)
+            .join(sales_invoice)
+            .on(sales_invoice_payment.parent == sales_invoice.name)
+            .join(account)
+            .on(account.name == sales_invoice_payment.account)
+            .select(
+                ValueWrapper("Sales Invoice Payment").as_("payment_document"),
+                sales_invoice_payment.name.as_("payment_entry"),
+                sales_invoice_payment.amount.as_("debit"),
+                sales_invoice.posting_date,
+                sales_invoice.customer.as_("against_account"),
+                sales_invoice_payment.clearance_date,
+                account.account_currency,
+                ValueWrapper(0).as_("credit"),
+            )
+            .where(
+                (sales_invoice_payment.account == self.account)
+                & (sales_invoice.docstatus == 1)
+                & (sales_invoice.posting_date >= self.from_date)
+                & (sales_invoice.posting_date <= self.to_date)
+            )
+            .orderby(sales_invoice.posting_date)
+            .orderby(sales_invoice.name, order=Order.desc)
+        ).run(as_dict=True)
+
+    def get_pos_purchase_invoices(self):
+        purchase_invoice = frappe.qb.DocType("Purchase Invoice")
+        account = frappe.qb.DocType("Account")
+        return (
+            frappe.qb.from_(purchase_invoice)
+            .join(account)
+            .on(account.name == purchase_invoice.cash_bank_account)
+            .select(
+                ValueWrapper("Purchase Invoice").as_("payment_document"),
+                purchase_invoice.name.as_("payment_entry"),
+                purchase_invoice.paid_amount.as_("credit"),
+                purchase_invoice.posting_date,
+                purchase_invoice.supplier.as_("against_account"),
+                purchase_invoice.clearance_date,
+                account.account_currency,
+                ValueWrapper(0).as_("debit"),
+            )
+            .where(
+                (purchase_invoice.cash_bank_account == self.account)
+                & (purchase_invoice.docstatus == 1)
+                & (purchase_invoice.posting_date >= self.from_date)
+                & (purchase_invoice.posting_date <= self.to_date)
+            )
+            .orderby(purchase_invoice.posting_date)
+            .orderby(purchase_invoice.name, order=Order.desc)
+        ).run(as_dict=True)
 
     def update_clearance_date(self):
         clearance_date_updated = False
