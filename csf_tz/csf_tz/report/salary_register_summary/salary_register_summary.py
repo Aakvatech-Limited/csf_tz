@@ -6,7 +6,12 @@ import frappe
 import erpnext
 from frappe.utils import flt
 from frappe import _, msgprint
-from frappe.utils.nestedset import get_descendants_of
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import Sum
+from csf_tz.csf_tz.report.salary_slip_conditions import (
+    get_currency_and_department_conditions,
+    get_salary_component_totals_query,
+)
 
 
 def execute(filters=None):
@@ -88,84 +93,67 @@ def get_data(filters=None):
 def get_salary_slips(filters, company_currency):
     filters.update({"from_date": filters.get("from_date"),
                     "to_date": filters.get("to_date")})
-    conditions, filters = get_conditions(filters, company_currency)
-    salary_slips = frappe.db.sql("""select * from `tabSalary Slip` where %s
-        order by employee""" % conditions, filters, as_dict=1)
+    salary_slip = frappe.qb.DocType("Salary Slip")
+    salary_slips = (
+        frappe.qb.from_(salary_slip)
+        .select(salary_slip.star)
+        .where(Criterion.all(get_conditions(salary_slip, filters, company_currency)))
+        .orderby(salary_slip.employee)
+        .run(as_dict=True)
+    )
 
     return salary_slips or []
 
 
 def get_ss_basic_map(salary_slips, currency, company_currency):
-    ss_basic = frappe.db.sql("""
-        SELECT sd.salary_component, SUM(sd.amount) as total 
-        FROM `tabSalary Detail` sd, `tabSalary Slip` ss where sd.parent=ss.name 
-        AND sd.parent in (%s)
-        AND do_not_include_in_total = 0 
-        AND sd.parentfield = 'earnings' 
-        AND sd.salary_component = 'Basic'
-        GROUP BY sd.salary_component 
-        ORDER BY sd.salary_component ASC""" %
-                                (', '.join(['%s']*len(salary_slips))), tuple([d.name for d in salary_slips]), as_dict=1)
+    salary_detail = frappe.qb.DocType("Salary Detail")
+    ss_basic = (
+        get_salary_component_totals_query(salary_slips, "earnings")
+        .select(Sum(salary_detail.amount).as_("total"))
+        .where(salary_detail.salary_component == "Basic")
+        .run(as_dict=True)
+    )
 
     return ss_basic
 
 
 
 def get_ss_earning_map(salary_slips, currency, company_currency):
-    ss_earnings = frappe.db.sql("""
-        SELECT sd.salary_component, SUM(sd.amount) as total 
-        FROM `tabSalary Detail` sd, `tabSalary Slip` ss where sd.parent=ss.name 
-        AND sd.parent in (%s)
-        AND do_not_include_in_total = 0 
-        AND sd.parentfield = 'earnings' 
-        AND sd.salary_component != 'Basic'
-        GROUP BY sd.salary_component 
-        ORDER BY sd.salary_component ASC""" %
-                                (', '.join(['%s']*len(salary_slips))), tuple([d.name for d in salary_slips]), as_dict=1)
+    salary_detail = frappe.qb.DocType("Salary Detail")
+    ss_earnings = (
+        get_salary_component_totals_query(salary_slips, "earnings")
+        .select(Sum(salary_detail.amount).as_("total"))
+        .where(salary_detail.salary_component != "Basic")
+        .run(as_dict=True)
+    )
 
     return ss_earnings
 
 
 def get_ss_ded_map(salary_slips, currency, company_currency):
-    ss_deductions = frappe.db.sql("""
-        SELECT sd.salary_component, SUM(sd.amount) * -1 as total 
-        FROM `tabSalary Detail` sd, `tabSalary Slip` ss where sd.parent=ss.name AND sd.parent in (%s)
-        AND do_not_include_in_total = 0 
-        AND sd.parentfield = 'deductions' 
-        GROUP BY sd.salary_component 
-        ORDER BY sd.salary_component ASC""" %
-                                  (', '.join(['%s']*len(salary_slips))), tuple([d.name for d in salary_slips]), as_dict=1)
+    salary_detail = frappe.qb.DocType("Salary Detail")
+    ss_deductions = (
+        get_salary_component_totals_query(salary_slips, "deductions")
+        .select((Sum(salary_detail.amount) * -1).as_("total"))
+        .run(as_dict=True)
+    )
     return ss_deductions
 
 
-def get_conditions(filters, company_currency):
-    conditions = ""
+def get_conditions(salary_slip, filters, company_currency):
+    conditions = []
     doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
 
     if filters.get("docstatus"):
-        conditions += "docstatus = {0}".format(
-            doc_status[filters.get("docstatus")])
-
+        conditions.append(salary_slip.docstatus == doc_status[filters.get("docstatus")])
     if filters.get("from_date"):
-        conditions += " and start_date >= %(from_date)s"
+        conditions.append(salary_slip.start_date >= filters.get("from_date"))
     if filters.get("to_date"):
-        conditions += " and end_date <= %(to_date)s"
-    if filters.get("company"):
-        conditions += " and company = %(company)s"
-    if filters.get("employee"):
-        conditions += " and employee = %(employee)s"
-    if filters.get("currency") and filters.get("currency") != company_currency:
-        conditions += " and currency = %(currency)s"
-    if filters.get("department") and filters.get("company"):
-        department_list = get_departments(
-            filters.get("department"), filters.get("company"))
-        conditions += 'and department in (' + ','.join(
-            ("'"+n+"'" for n in department_list)) + ')'
+        conditions.append(salary_slip.end_date <= filters.get("to_date"))
+    for fieldname in ("company", "employee"):
+        if filters.get(fieldname):
+            conditions.append(salary_slip[fieldname] == filters.get(fieldname))
 
-    return conditions, filters
-
-
-def get_departments(department,company):
-    departments_list = get_descendants_of("Department", department)
-    departments_list.append(department)
-    return departments_list
+    return conditions + get_currency_and_department_conditions(
+        salary_slip, filters, company_currency
+    )
