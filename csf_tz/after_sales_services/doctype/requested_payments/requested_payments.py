@@ -191,7 +191,6 @@ def request_funds(**args):
 def recommend_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Recommended', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -205,7 +204,6 @@ def recommend_request(**args):
 def recommend_against_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Recommended', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -219,7 +217,6 @@ def recommend_against_request(**args):
 def approve_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Approved', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -232,7 +229,6 @@ def approve_request(**args):
 def reject_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Rejected', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return "OK"
 	#Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
