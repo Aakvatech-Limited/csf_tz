@@ -38,42 +38,39 @@ def get_items(filters):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ''
+	sales_invoice_item = frappe.qb.DocType("Sales Invoice Item")
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	item = frappe.qb.DocType("Item")
+	order_by = sales_invoice.posting_date
 
 	if filters.brand:
-		where += ' AND ti.brand = %(brand)s'
-		where_filter.update({"brand": filters.brand})
+		order_by &= (item.brand == filters.brand)
 
 	if filters.shop:
-		where += ' AND sit.warehouse = %(shop)s'
-		where_filter.update({"shop": filters.shop})
+		order_by &= (sales_invoice_item.warehouse == filters.shop)
 	
-	return frappe.db.sql('''SELECT 
-								si.customer,
-								si.name,
-								si.posting_date,
-								si.grand_total,
-								sit.warehouse,
-								sit.item_code as itm,
-								sit.item_name,
-								sit.qty as quantity,
-								sit.amount,
-								ti.brand as brand,
-								sit.parent as si_name, 
-								si.customer as cust
-							FROM
-								(`tabSales Invoice Item` sit)
-							LEFT JOIN
-								(`tabSales Invoice` si)
-								ON (si.name = sit.parent)
-							LEFT JOIN
-								(`tabItem` ti)
-								ON (ti.item_code = sit.item_code)
-							WHERE
-							 	si.docstatus = 1 AND ti.item_group = 'Spare Parts'
-							 	AND si.customer = 'Guest' AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-							ORDER BY si.posting_date
-							''' + where,
-							where_filter, as_dict=1
-							);
+	return (
+		frappe.qb.from_(sales_invoice_item)
+		.left_join(sales_invoice).on(sales_invoice.name == sales_invoice_item.parent)
+		.left_join(item).on(item.item_code == sales_invoice_item.item_code)
+		.select(
+			sales_invoice.customer,
+			sales_invoice.name,
+			sales_invoice.posting_date,
+			sales_invoice.grand_total,
+			sales_invoice_item.warehouse,
+			sales_invoice_item.item_code.as_("itm"),
+			sales_invoice_item.item_name,
+			sales_invoice_item.qty.as_("quantity"),
+			sales_invoice_item.amount,
+			item.brand.as_("brand"),
+			sales_invoice_item.parent.as_("si_name"),
+			sales_invoice.customer.as_("cust"),
+		)
+		.where(sales_invoice.docstatus == 1)
+		.where(item.item_group == 'Spare Parts')
+		.where(sales_invoice.customer == 'Guest')
+		.where(sales_invoice.posting_date[filters.from_date:filters.to_date])
+		.orderby(order_by)
+		.run(as_dict=True)
+	)
