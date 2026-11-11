@@ -78,10 +78,6 @@ def execute():
 
 	frappe.db.auto_commit_on_many_writes = 0
 
-def get_creation_time():
-	return frappe.db.sql(''' SELECT create_time FROM
-		INFORMATION_SCHEMA.TABLES where TABLE_NAME = "tabRepost Item Valuation" ''', as_list=1)[0][0]
-
 @frappe.whitelist()
 def enqueue_reposting_sle_gle():
 	sle_gle_reposting_start_date = frappe.get_value("CSF TZ Settings", "CSF TZ Settings", "sle_gle_reposting_start_date")
