@@ -1,6 +1,12 @@
 import frappe
 from erpnext.controllers.trends import get_columns, get_data
+from frappe.query_builder.functions import Concat, Sum
 from frappe.utils import flt
+from pypika.terms import CustomFunction
+from csf_tz.utils.query_builder import GroupConcatWithSeparator
+
+Format = CustomFunction("FORMAT", ["number", "decimals"])
+
 
 def execute(filters=None):
 	filters = filters or {}
@@ -16,14 +22,7 @@ def execute(filters=None):
 	# Fetch Bin summary with formatted qty
 	bin_map = {
 		d.item_code: [flt(d.total_qty, 2), d.warehouse_summary]
-		for d in frappe.db.sql("""
-			SELECT
-				item_code,
-				SUM(actual_qty) AS total_qty,
-				GROUP_CONCAT(CONCAT(warehouse, ": ", FORMAT(actual_qty, 2)) SEPARATOR ", ") AS warehouse_summary
-			FROM `tabBin`
-			GROUP BY item_code
-		""", as_dict=True)
+		for d in get_bin_summary()
 	}
 
 	# Add Bin info to each row
@@ -46,3 +45,19 @@ def execute(filters=None):
 	]
 
 	return columns, data
+
+
+def get_bin_summary():
+	stock_bin = frappe.qb.DocType("Bin")
+	return (
+		frappe.qb.from_(stock_bin)
+		.select(
+			stock_bin.item_code,
+			Sum(stock_bin.actual_qty).as_("total_qty"),
+			GroupConcatWithSeparator(
+				Concat(stock_bin.warehouse, ": ", Format(stock_bin.actual_qty, 2)), ", "
+			).as_("warehouse_summary"),
+		)
+		.groupby(stock_bin.item_code)
+		.run(as_dict=True)
+	)
