@@ -25,29 +25,26 @@ class EFDZReport(Document):
 	def get_sales_invoice(self):
 		cutoff = datetime.strptime(str(self.z_report_date_time), "%Y-%m-%d %H:%M:%S")
 		# Keep the original strict time boundary for invoices on the report date.
-		sales_invoices = frappe.db.sql(
-			"""
-			SELECT *
-			FROM `tabSales Invoice`
-			WHERE docstatus = 1
-				AND (efd_z_report = '' OR efd_z_report IS NULL)
-				AND status != 'Return'
-				AND (
-					posting_date < %(report_date)s
-					OR (posting_date = %(report_date)s AND posting_time < %(report_time)s)
+		report_date, report_time = cutoff.date(), cutoff.time()
+		invoice = frappe.qb.DocType("Sales Invoice")
+		sales_invoices = (
+			frappe.qb.from_(invoice)
+			.select("*")
+			.where(
+				(invoice.docstatus == 1)
+				& ((invoice.efd_z_report == "") | invoice.efd_z_report.isnull())
+				& (invoice.status != "Return")
+				& (
+					(invoice.posting_date < report_date)
+					| ((invoice.posting_date == report_date) & (invoice.posting_time < report_time))
 				)
-				AND (
-					electronic_fiscal_device = %(device)s
-					OR electronic_fiscal_device IS NULL
-					OR electronic_fiscal_device = ''
+				& (
+					(invoice.electronic_fiscal_device == self.electronic_fiscal_device)
+					| invoice.electronic_fiscal_device.isnull()
+					| (invoice.electronic_fiscal_device == "")
 				)
-			""",
-			{
-				"report_date": cutoff.date(),
-				"report_time": cutoff.time(),
-				"device": self.electronic_fiscal_device,
-			},
-			as_dict=True,
+			)
+			.run(as_dict=True)
 		)
 
 		if not sales_invoices:
