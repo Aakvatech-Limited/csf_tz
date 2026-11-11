@@ -6,6 +6,7 @@ import frappe
 
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder import Case, Field
 import ast
 import datetime
 from frappe.desk.reportview import export_query
@@ -18,6 +19,7 @@ from openpyxl.styles import Font
 from openpyxl import load_workbook
 from six import StringIO, string_types
 from frappe.utils.xlsxutils import handle_html
+from csf_tz.utils.query_builder import get_latest_reporting_status_query
 
 def execute(filters=None):
 	columns, data = [], []
@@ -225,11 +227,10 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 		
-	where = ""
-	where_filter = {'today': today, 'yesterday': yesterday, 'day_before': day_before}
+	import_doc = frappe.qb.DocType("Import")
+	order_by = Field("file_number")
 	if filters.customer:
-		where += 'AND tabImport.customer = %(customer)s'
-		where_filter.update({"customer": filters.customer})
+		order_by &= (import_doc.customer == filters.customer)
 	
 	
 	#where_filter.update({"where": where})
@@ -363,40 +364,39 @@ def execute(filters=None):
 				) a, where_filter, as_dict=1)'''
 				
 				
-	data = frappe.db.sql('''SELECT
-						tabImport.name AS file_number,
-						tabImport.customer,
-						CASE
-							WHEN tabImport.house_bill_of_lading IS NULL OR tabImport.house_bill_of_lading = '' THEN  tabImport.bl_number 
-							ELSE tabImport.house_bill_of_lading
-						END AS customer_ref,
-						tabImport.consignee,
-						tabImport.cargo_destination_city AS destination,
-						tabImport.documents_received_date AS doc_rec_date,
-						tabImport.cargo_description AS cargo,
-						`tabCargo Details`.name as cargo_reference,
-						`tabCargo Details`.container_number,
-						CASE
-							WHEN `tabCargo Details`.container_size IN ('40 FT GP', '40 OT', '40RF', '40 FT Heavy') THEN '40'
-							WHEN `tabCargo Details`.container_size IN ('20 FT GP', '20 OT', '20RF') THEN '20'
-						END AS container_size,
-						`tabCargo Details`.gross_weight AS weight,
-						tabImport.eta,
-						tabImport.ata,
-						tabImport.discharge AS discharge_date,
-						tabImport.loading_date,
-						(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` \
-								WHERE `tabReporting Status Table`.parenttype = 'Import' AND `tabReporting Status Table`.parent = `tabImport`.name \
-								ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1)
-						AS remarks
-					FROM
-						`tabCargo Details`
-					LEFT JOIN 
-						tabImport ON tabImport.name = `tabCargo Details`.parent
-					WHERE
-						`tabCargo Details`.parenttype = 'Import' AND  tabImport.status <> 'Closed'
-					ORDER BY file_number 
-				''' + where, where_filter, as_dict=1)
+	cargo = frappe.qb.DocType("Cargo Details")
+	data = (
+		frappe.qb.from_(cargo)
+		.left_join(import_doc).on(import_doc.name == cargo.parent)
+		.select(
+			import_doc.name.as_("file_number"),
+			import_doc.customer,
+			Case()
+			.when(import_doc.house_bill_of_lading.isnull() | (import_doc.house_bill_of_lading == ''), import_doc.bl_number)
+			.else_(import_doc.house_bill_of_lading)
+			.as_("customer_ref"),
+			import_doc.consignee,
+			import_doc.cargo_destination_city.as_("destination"),
+			import_doc.documents_received_date.as_("doc_rec_date"),
+			import_doc.cargo_description.as_("cargo"),
+			cargo.name.as_("cargo_reference"),
+			cargo.container_number,
+			Case()
+			.when(cargo.container_size.isin(['40 FT GP', '40 OT', '40RF', '40 FT Heavy']), '40')
+			.when(cargo.container_size.isin(['20 FT GP', '20 OT', '20RF']), '20')
+			.as_("container_size"),
+			cargo.gross_weight.as_("weight"),
+			import_doc.eta,
+			import_doc.ata,
+			import_doc.discharge.as_("discharge_date"),
+			import_doc.loading_date,
+			get_latest_reporting_status_query(import_doc.name, "Import").as_("remarks"),
+		)
+		.where(cargo.parenttype == 'Import')
+		.where(import_doc.status != 'Closed')
+		.orderby(order_by)
+		.run(as_dict=True)
+	)
 				
 	if data:
 		for importd in data:
