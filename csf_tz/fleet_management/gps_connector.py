@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import frappe
+from frappe.query_builder import Order
 import sys
 import psycopg2
 from datetime import datetime
@@ -22,8 +23,7 @@ def record_vehicle_position(vehicle_plate_no, gps_timestamp, location, longitude
 				{"vehicle_plate_number": vehicle_plate_no, "status": "En Route - Returning" })
 		if existing_main_trip:
 			trip = frappe.get_doc('Vehicle Trip', existing_main_trip)
-			last_location_date = frappe.db.sql('''SELECT timestamp FROM `tabVehicle Trip Location Update` WHERE parent = %(parent)s AND parenttype = %(parenttype)s AND parentfield='main_location_update' ORDER BY timestamp DESC LIMIT 1''', 
-									{"parent": trip.name, "parenttype": 'Vehicle Trip'}, as_dict=1)
+			last_location_date = get_last_location_update(trip.name, "main_location_update")
 			if not last_location_date:
 				trip.append('main_location_update', {"timestamp": gps_timestamp, 
 							 "location": location,
@@ -42,8 +42,7 @@ def record_vehicle_position(vehicle_plate_no, gps_timestamp, location, longitude
 				return "Trip location update is more current"
 		elif existing_return_trip:
 			trip = frappe.get_doc('Vehicle Trip', existing_return_trip)
-			last_location_date = frappe.db.sql('''SELECT timestamp FROM `tabVehicle Trip Location Update` WHERE parent = %(parent)s AND parenttype = %(parenttype)s AND parentfield='return_location_update' ORDER BY timestamp DESC LIMIT 1''', 
-									{"parent": trip.name, "parenttype": 'Vehicle Trip'}, as_dict=1)
+			last_location_date = get_last_location_update(trip.name, "return_location_update")
 			if not last_location_date:
 				trip.append('return_location_update', {"timestamp": gps_timestamp, 
 							 "location": location,
@@ -61,6 +60,22 @@ def record_vehicle_position(vehicle_plate_no, gps_timestamp, location, longitude
 			else:
 				return "Trip location update is more current"
 	
+
+def get_last_location_update(trip_name, parentfield):
+	location_update = frappe.qb.DocType("Vehicle Trip Location Update")
+	return (
+		frappe.qb.from_(location_update)
+		.select(location_update.timestamp)
+		.where(
+			(location_update.parent == trip_name)
+			& (location_update.parenttype == "Vehicle Trip")
+			& (location_update.parentfield == parentfield)
+		)
+		.orderby(location_update.timestamp, order=Order.desc)
+		.limit(1)
+		.run(as_dict=True)
+	)
+
   
 @frappe.whitelist(allow_guest=True)
 def get_last_location(vehicle_plate_no):
