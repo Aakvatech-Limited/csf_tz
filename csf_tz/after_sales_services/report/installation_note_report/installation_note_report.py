@@ -55,33 +55,29 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 	
-	where = ''
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date}
+	installation_note = frappe.qb.DocType("Installation Note")
+	delivery_note_item = frappe.qb.DocType("Delivery Note Item")
+	query = (
+		frappe.qb.from_(installation_note)
+		.left_join(delivery_note_item)
+		.on(delivery_note_item.parent == installation_note.delivery_note)
+		.select(
+			installation_note.name.as_("reference"),
+			installation_note.inst_date,
+			installation_note.customer,
+			installation_note.item_code,
+			installation_note.remarks,
+			installation_note.status,
+			installation_note.delivery_note,
+			delivery_note_item.warehouse,
+		)
+		.where(installation_note.docstatus != 2)
+		.where(installation_note.inst_date[filters.from_date:filters.to_date])
+	)
 
 	if filters.branch:
-		where += ' AND `tabDelivery Note Item`.warehouse = %(branch)s'
-		where_filter.update({"branch": filters.branch})
-	
-	data = frappe.db.sql('''SELECT
-								`tabInstallation Note`.name AS reference,
-								`tabInstallation Note`.inst_date AS inst_date,
-								`tabInstallation Note`.customer AS customer,
-								`tabInstallation Note`.item_code AS item_code,
-								`tabInstallation Note`.remarks AS remarks,
-								`tabInstallation Note`.status AS status,
-								`tabInstallation Note`.delivery_note,
-								`tabDelivery Note Item`.warehouse
+		query = query.where(delivery_note_item.warehouse == filters.branch)
 
-							FROM
-								`tabInstallation Note`
-							LEFT JOIN 
-								`tabDelivery Note Item`
-							ON 
-								(`tabDelivery Note Item`.parent = `tabInstallation Note`.delivery_note)
-							WHERE 
-								`tabInstallation Note`.docstatus <> 2 \
-								AND `tabInstallation Note`.inst_date BETWEEN %(from_date)s AND %(to_date)s
-						 '''+ where,
-							where_filter, as_dict=1,)
+	data = query.run(as_dict=1)
 						 
 	return columns, data
