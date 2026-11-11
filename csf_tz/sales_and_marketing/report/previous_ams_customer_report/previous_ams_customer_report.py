@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from csf_tz.sales_and_marketing.customer_address import get_address_details, get_customer_address_name
 
 
 def execute(filters=None):
@@ -73,55 +74,39 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ''
+	past_serial_no = frappe.qb.DocType("Past Serial No")
+	item = frappe.qb.DocType("Item")
+	query = (
+		frappe.qb.from_(past_serial_no)
+		.left_join(item).on(item.name == past_serial_no.item_code)
+		.select(
+			past_serial_no.customer,
+			past_serial_no.name,
+			past_serial_no.date_of_sale,
+			past_serial_no.amount,
+			past_serial_no.past_item_group,
+			past_serial_no.item_code.as_("itm"),
+			past_serial_no.past_item_group,
+			item.brand,
+		)
+		.where(past_serial_no.docstatus == 1)
+		.where(past_serial_no.date_of_sale[filters.from_date:filters.to_date])
+		.groupby(past_serial_no.name)
+		.orderby(past_serial_no.date_of_sale)
+	)
 
 	if filters.customer:
-		where += ' AND psn.customer = %(customer)s'
-		where_filter.update({"customer": filters.customer})
+		query = query.where(past_serial_no.customer == filters.customer)
 
 	if filters.brand:
-		where += ' AND `tabItem`.brand = %(brand)s'
-		where_filter.update({"brand": filters.brand})
+		query = query.where(item.brand == filters.brand)
 	
-	data = frappe.db.sql('''SELECT 
-								psn.customer,
-								psn.name,
-								psn.date_of_sale,
-								psn.amount,
-								psn.past_item_group,
-								psn.item_code as itm,
-								psn.past_item_group,
-								`tabItem`.brand					
-							FROM
-								(`tabPast Serial No` psn)
-							LEFT JOIN
-								`tabItem` ON `tabItem`.name = psn.item_code
-							WHERE
-							 	psn.docstatus = 1 AND psn.date_of_sale BETWEEN %(from_date)s AND %(to_date)s
-							''' + where + ''' GROUP BY psn.name
-							ORDER BY psn.date_of_sale''',
-							where_filter, as_dict=1
-							);
+	data = query.run(as_dict=True)
 	for customer in data:
 		address = []
-		address_name = frappe.db.sql("""SELECT 
-											dl.parent 
-										FROM 
-											(`tabDynamic Link` dl) 
-										WHERE 
-											dl.parenttype='Address' AND dl.link_doctype='Customer' AND dl.link_name= %(customer)s 
-										ORDER BY 
-											dl.creation 
-										LIMIT 1""", {"customer": customer.customer}, as_dict=1)
+		address_name = get_customer_address_name(customer.customer)
 		if address_name:
-			address = frappe.db.sql("""SELECT
-											CONCAT(ta.address_line1,",", ta.city,',', ta.country) AS customer_address,
-											ta.phone AS contact
-										FROM
-											(`tabAddress` ta) 
-										WHERE 
-											ta.name = %(address_name)s""", {"address_name": address_name[0].parent}, as_dict=1)
+			address = get_address_details(address_name[0].parent)
 		if address:
 			customer.update({
 				"customer_address": address[0].customer_address,
