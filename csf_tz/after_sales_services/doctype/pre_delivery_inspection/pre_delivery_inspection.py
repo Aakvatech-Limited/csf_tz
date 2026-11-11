@@ -16,25 +16,23 @@ class PreDeliveryInspection(Document):
 
 	def load_delivery_note(self):
 		delivery_note_links = []
-		delivery_note_links = frappe.db.sql("""
-			SELECT
-				tdni.item_code,
-				tdni.parent,
-				tdni.serial_no,
-				tdni.against_sales_invoice,
-				tip.name As installation
-			FROM 
-				(`tabDelivery Note Item` tdni)
-			LEFT JOIN
-				(`tabInstallation Note` tip)
-			ON tdni.parent = tip.delivery_note
-			where 
-				tdni.against_sales_invoice = %(inv)s
-			AND
-				tdni.item_code = %(item)s
-			AND
-				tdni.serial_no = %(serial)s		
-			""",{'inv':self.reference_name, 'item':self.item_code, 'serial':self.item_serial_no}, as_dict=True)
+		delivery_note_item = frappe.qb.DocType("Delivery Note Item")
+		installation_note = frappe.qb.DocType("Installation Note")
+		delivery_note_links = (
+			frappe.qb.from_(delivery_note_item)
+			.left_join(installation_note)
+			.on(delivery_note_item.parent == installation_note.delivery_note)
+			.select(
+				delivery_note_item.item_code,
+				delivery_note_item.parent,
+				delivery_note_item.serial_no,
+				delivery_note_item.against_sales_invoice,
+				installation_note.name.as_("installation"),
+			)
+			.where(delivery_note_item.against_sales_invoice == self.reference_name)
+			.where(delivery_note_item.item_code == self.item_code)
+			.where(delivery_note_item.serial_no == self.item_serial_no)
+		).run(as_dict=True)
 		self.set_onload("delivery_note_links", delivery_note_links)
 		#frappe.msgprint(_(json.dumps(delivery_note_links)))
 
