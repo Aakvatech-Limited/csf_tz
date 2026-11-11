@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Count
 from frappe.utils import flt
 from erpnext.stock.report.stock_balance.stock_balance import (get_item_details, get_item_warehouse_map, get_items, get_stock_ledger_entries)
 from erpnext.stock.report.stock_ageing.stock_ageing import get_fifo_queue, get_average_age
@@ -87,7 +88,8 @@ def get_columns(_filters):
 
 def validate_filters(filters):
 	if not (filters.get("item_code") or filters.get("warehouse")):
-		sle_count = flt(frappe.db.sql("""select count(name) from `tabStock Ledger Entry`""")[0][0])
+		sle = frappe.qb.DocType("Stock Ledger Entry")
+		sle_count = flt(frappe.qb.from_(sle).select(Count(sle.name)).run()[0][0])
 		if sle_count > 500000:
 			frappe.throw(_("Please set filter based on Item or Warehouse"))
 	if not filters.get("company"):
@@ -96,19 +98,15 @@ def validate_filters(filters):
 def get_warehouse_list(filters):
 	from frappe.core.doctype.user_permission.user_permission import get_permitted_documents
 
-	condition = ''
+	warehouse = frappe.qb.DocType("Warehouse")
+	query = frappe.qb.from_(warehouse).select(warehouse.name).where(warehouse.is_group == 0)
 	user_permitted_warehouse = get_permitted_documents('Warehouse')
-	value = ()
 	if user_permitted_warehouse:
-		condition = "and name in %s"
-		value = set(user_permitted_warehouse)
+		query = query.where(warehouse.name.isin(user_permitted_warehouse))
 	elif not user_permitted_warehouse and filters.get("warehouse"):
-		condition = "and name = %s"
-		value = filters.get("warehouse")
+		query = query.where(warehouse.name == filters.get("warehouse"))
 
-	return frappe.db.sql("""select name
-		from `tabWarehouse` where is_group = 0
-		{condition}""".format(condition=condition), value, as_dict=1)
+	return query.run(as_dict=True)
 
 def add_warehouse_column(columns, warehouse_list):
 	if len(warehouse_list) > 1:
