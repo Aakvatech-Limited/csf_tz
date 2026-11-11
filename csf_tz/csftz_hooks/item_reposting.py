@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.query_builder.functions import CombineDatetime
 from frappe.utils import getdate, get_time, today
 from erpnext.stock.stock_ledger import update_entries_after
 from erpnext.accounts.utils import update_gl_entries_after
@@ -26,16 +27,24 @@ def execute():
 
 	company_list = []
 
-	data = frappe.db.sql('''
-		SELECT
-			name, item_code, warehouse, voucher_type, voucher_no, posting_date, posting_time, company
-		FROM
-			`tabStock Ledger Entry`
-		WHERE
-			creation > %s
-			and is_cancelled = 0
-		ORDER BY timestamp(posting_date, posting_time) asc, creation asc
-	''', reposting_project_deployed_on, as_dict=1)
+	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
+	data = (
+		frappe.qb.from_(stock_ledger_entry)
+		.select(
+			stock_ledger_entry.name,
+			stock_ledger_entry.item_code,
+			stock_ledger_entry.warehouse,
+			stock_ledger_entry.voucher_type,
+			stock_ledger_entry.voucher_no,
+			stock_ledger_entry.posting_date,
+			stock_ledger_entry.posting_time,
+			stock_ledger_entry.company,
+		)
+		.where(stock_ledger_entry.creation > reposting_project_deployed_on)
+		.where(stock_ledger_entry.is_cancelled == 0)
+		.orderby(CombineDatetime(stock_ledger_entry.posting_date, stock_ledger_entry.posting_time))
+		.orderby(stock_ledger_entry.creation)
+	).run(as_dict=True)
 
 	frappe.db.auto_commit_on_many_writes = 1
 	print("Reposting Stock Ledger Entries...")
@@ -68,10 +77,6 @@ def execute():
 				update_gl_entries_after(posting_date, posting_time, company=row.name)
 
 	frappe.db.auto_commit_on_many_writes = 0
-
-def get_creation_time():
-	return frappe.db.sql(''' SELECT create_time FROM
-		INFORMATION_SCHEMA.TABLES where TABLE_NAME = "tabRepost Item Valuation" ''', as_list=1)[0][0]
 
 @frappe.whitelist()
 def enqueue_reposting_sle_gle():

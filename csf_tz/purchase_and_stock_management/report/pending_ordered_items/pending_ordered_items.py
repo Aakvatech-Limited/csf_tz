@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder.functions import IfNull
 
 
 def execute(filters=None):
@@ -104,50 +105,44 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ""
-	if filters.purchase_order:
-		where += '  AND tpo.name = %(purchase_order)s '
-		where_filter.update({"purchase_order": filters.purchase_order})
-	if filters.item_code:
-		where += '  AND tpoi.item_code = %(item_code)s '
-		where_filter.update({"item_code": filters.item_code})
-	if filters.warehouse:
-		where += '  AND tpoi.warehouse = %(warehouse)s '
-		where_filter.update({"warehouse": filters.warehouse})
-	if filters.supplier:
-		where += '  AND tpo.supplier = %(supplier)s '
-		where_filter.update({"supplier": filters.supplier})
+	purchase_order = frappe.qb.DocType("Purchase Order")
+	purchase_order_item = frappe.qb.DocType("Purchase Order Item")
+	query = (
+		frappe.qb.from_(purchase_order)
+		.join(purchase_order_item)
+		.on(purchase_order_item.parent == purchase_order.name)
+		.select(
+			purchase_order.name,
+			purchase_order.transaction_date,
+			purchase_order_item.schedule_date.as_("req_by"),
+			purchase_order.supplier,
+			purchase_order.supplier_name,
+			purchase_order_item.project,
+			purchase_order_item.item_code,
+			purchase_order_item.qty,
+			purchase_order_item.received_qty,
+			(purchase_order_item.qty - IfNull(purchase_order_item.received_qty, 0)).as_("qty_to_receive"),
+			purchase_order_item.warehouse,
+			purchase_order_item.item_name,
+			purchase_order_item.description,
+			purchase_order_item.brand,
+			purchase_order.company,
+		)
+		.where(purchase_order.docstatus == 1)
+		.where(purchase_order.status.notin(["Stopped", "Closed"]))
+		.where(IfNull(purchase_order_item.received_qty, 0) < IfNull(purchase_order_item.qty, 0))
+		.where(purchase_order.transaction_date[filters.from_date:filters.to_date])
+	)
 
-	data = frappe.db.sql('''SELECT 
-								tpo.name ,
-								tpo.transaction_date ,
-								tpoi.schedule_date AS req_by,
-								tpo.supplier,
-								tpo.supplier_name,
-								tpoi.project,
-								tpoi.item_code,
-								tpoi.qty ,
-								tpoi.received_qty, 
-								(tpoi.qty - ifnull(tpoi.received_qty, 0)) AS qty_to_receive,
-							    tpoi.warehouse,
-								tpoi.item_name,
-								tpoi.description,
-							    tpoi.brand,
-								tpo.company
-							FROM 
-								(`tabPurchase Order` tpo), (`tabPurchase Order Item` tpoi)
-							/*LEFT JOIN
-								(`tabPurchase Order Item` tpoi) ON (tpoi.parent = tpo.name)*/
-							WHERE
-								tpoi.parent = tpo.name
-							and tpo.docstatus = 1
-							and tpo.status not in ("Stopped", "Closed")
-							and ifnull(tpoi.received_qty, 0) < ifnull(tpoi.qty, 0)
-							AND tpo.transaction_date BETWEEN %(from_date)s AND %(to_date)s						
-/*							ORDER BY tpo.transaction_date 
-*/							'''+ where,
-								where_filter, as_dict=1,as_list=1
-							);
+	if filters.purchase_order:
+		query = query.where(purchase_order.name == filters.purchase_order)
+	if filters.item_code:
+		query = query.where(purchase_order_item.item_code == filters.item_code)
+	if filters.warehouse:
+		query = query.where(purchase_order_item.warehouse == filters.warehouse)
+	if filters.supplier:
+		query = query.where(purchase_order.supplier == filters.supplier)
+
+	data = query.run(as_dict=1)
 
 	return columns, data

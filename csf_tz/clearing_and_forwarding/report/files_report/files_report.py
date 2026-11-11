@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder import Case, Criterion
+from frappe.query_builder.functions import Sum
 import ast
 from datetime import datetime
 
@@ -86,49 +88,82 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 	
-	data = frappe.db.sql('''SELECT
-			tabFiles.name as file_no,
-			CASE
-				WHEN tabFiles.import_transit = 1 THEN 'Importation - Transit'
-				WHEN tabFiles.import_local = 1 THEN 'Importation - Local'
-				WHEN tabFiles.export_transit = 1 THEN 'Export - Transit'
-				WHEN tabFiles.export_local = 1 THEN 'Export Local'
-				WHEN tabFiles.transport_transit = 1 THEN 'Transport - Transit'
-				WHEN tabFiles.transport_local = 1 THEN 'Transport - Local'
-				WHEN tabFiles.border_clearance = 1 THEN 'Border Clearance'
-			END AS file_type,
-			tabFiles.documents_received_date,
-			tabFiles.customer,
-			tabFiles.location,
-			(SELECT SUM(expense_amount) FROM `tabExpenses` WHERE expense_currency = 'USD' AND (
-				(parenttype = 'Import' AND parent IN (SELECT name FROM `tabImport` WHERE reference_file_number = tabFiles.name )) OR
-				(parenttype = 'Export' AND parent IN (SELECT name FROM `tabExport` WHERE file_number = tabFiles.name )) OR
-				(parenttype = 'Vehicle Trip' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE main_file_number = tabFiles.name )) OR
-				(parenttype = 'Vehicle Trip' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE return_file_number = tabFiles.name )) OR
-				(parenttype = 'Border Clearance' AND parent IN (SELECT name FROM `tabBorder Clearance` WHERE file_number = tabFiles.name )) OR
-				(parenttype = 'Files' AND parent = tabFiles.name))
-			) AS expenses_usd,
-			(SELECT SUM(expense_amount) FROM `tabExpenses` WHERE expense_currency = 'TZS' AND (
-				(parenttype = 'Import' AND parent IN (SELECT name FROM `tabImport` WHERE reference_file_number = tabFiles.name )) OR
-				(parenttype = 'Export' AND parent IN (SELECT name FROM `tabExport` WHERE file_number = tabFiles.name )) OR
-				(parenttype = 'Vehicle Trip' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE main_file_number = tabFiles.name )) OR
-				(parenttype = 'Vehicle Trip' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE return_file_number = tabFiles.name )) OR
-				(parenttype = 'Border Clearance' AND parent IN (SELECT name FROM `tabBorder Clearance` WHERE file_number = tabFiles.name )) OR
-				(parenttype = 'Files' AND parent = tabFiles.name))
-			) AS expenses_tzs,
-			(SELECT SUM(grand_total) FROM `tabSales Invoice` WHERE currency = 'USD' AND reference_doctype = 'Files' AND reference_docname = tabFiles.name) 
-				AS invoiced_amount_usd,
-			(SELECT SUM(grand_total) FROM `tabSales Invoice` WHERE currency = 'TZS' AND reference_doctype = 'Files' AND reference_docname = tabFiles.name) 
-				AS invoiced_amount_tzs,
-			(SELECT credit_in_account_currency FROM `tabGL Entry` WHERE credit_in_account_currency > 0 AND account_currency = 'USD' 
-				AND against_voucher_type = 'Sales Invoice' AND against_voucher 
-					IN (SELECT name FROM `tabSales Invoice` where reference_doctype = 'Files' AND reference_docname = tabFiles.name))
-				AS paid_amount_usd,
-			(SELECT credit_in_account_currency FROM `tabGL Entry` WHERE credit_in_account_currency > 0 AND account_currency = 'TZS' 
-				AND against_voucher_type = 'Sales Invoice' AND against_voucher 
-					IN (SELECT name FROM `tabSales Invoice` where reference_doctype = 'Files' AND reference_docname = tabFiles.name))
-				AS paid_amount_tzs			
-		FROM tabFiles
-		WHERE
-			tabFiles.documents_received_date BETWEEN  %(from_date)s AND %(to_date)s''', {"from_date": filters.from_date, "to_date": filters.to_date}, as_dict=1)
+	files = frappe.qb.DocType("Files")
+	data = (
+		frappe.qb.from_(files)
+		.select(
+			files.name.as_("file_no"),
+			Case()
+			.when(files.import_transit == 1, 'Importation - Transit')
+			.when(files.import_local == 1, 'Importation - Local')
+			.when(files.export_transit == 1, 'Export - Transit')
+			.when(files.export_local == 1, 'Export Local')
+			.when(files.transport_transit == 1, 'Transport - Transit')
+			.when(files.transport_local == 1, 'Transport - Local')
+			.when(files.border_clearance == 1, 'Border Clearance')
+			.as_("file_type"),
+			files.documents_received_date,
+			files.customer,
+			files.location,
+			get_expenses_total(files, 'USD').as_("expenses_usd"),
+			get_expenses_total(files, 'TZS').as_("expenses_tzs"),
+			get_invoiced_total(files, 'USD').as_("invoiced_amount_usd"),
+			get_invoiced_total(files, 'TZS').as_("invoiced_amount_tzs"),
+			get_paid_amount(files, 'USD').as_("paid_amount_usd"),
+			get_paid_amount(files, 'TZS').as_("paid_amount_tzs"),
+		)
+		.where(files.documents_received_date[filters.from_date:filters.to_date])
+		.run(as_dict=True)
+	)
 	return columns, data
+
+
+def get_expenses_total(files, currency):
+	expenses = frappe.qb.DocType("Expenses")
+	belongs_to_file = Criterion.any([
+		get_linked_parent_condition(expenses, "Import", "reference_file_number", files),
+		get_linked_parent_condition(expenses, "Export", "file_number", files),
+		get_linked_parent_condition(expenses, "Vehicle Trip", "main_file_number", files),
+		get_linked_parent_condition(expenses, "Vehicle Trip", "return_file_number", files),
+		get_linked_parent_condition(expenses, "Border Clearance", "file_number", files),
+		(expenses.parenttype == 'Files') & (expenses.parent == files.name),
+	])
+	return (
+		frappe.qb.from_(expenses)
+		.select(Sum(expenses.expense_amount))
+		.where(expenses.expense_currency == currency)
+		.where(belongs_to_file)
+	)
+
+
+def get_linked_parent_condition(expenses, parenttype, file_number_field, files):
+	parent = frappe.qb.DocType(parenttype)
+	linked_parents = frappe.qb.from_(parent).select(parent.name).where(parent[file_number_field] == files.name)
+	return (expenses.parenttype == parenttype) & expenses.parent.isin(linked_parents)
+
+
+def get_file_invoices(files):
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	return (
+		frappe.qb.from_(sales_invoice)
+		.where(sales_invoice.reference_doctype == 'Files')
+		.where(sales_invoice.reference_docname == files.name)
+	)
+
+
+def get_invoiced_total(files, currency):
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	return get_file_invoices(files).select(Sum(sales_invoice.grand_total)).where(sales_invoice.currency == currency)
+
+
+def get_paid_amount(files, currency):
+	gl_entry = frappe.qb.DocType("GL Entry")
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	return (
+		frappe.qb.from_(gl_entry)
+		.select(gl_entry.credit_in_account_currency)
+		.where(gl_entry.credit_in_account_currency > 0)
+		.where(gl_entry.account_currency == currency)
+		.where(gl_entry.against_voucher_type == 'Sales Invoice')
+		.where(gl_entry.against_voucher.isin(get_file_invoices(files).select(sales_invoice.name)))
+	)

@@ -6,7 +6,11 @@ import frappe, erpnext
 from frappe import _, scrub
 from frappe.utils import getdate, nowdate, flt, cint, formatdate, cstr, now, time_diff_in_seconds
 from collections import OrderedDict
+from frappe.query_builder import Criterion, Order
+from frappe.query_builder.functions import Date, IfNull
+from pypika.terms import ExistsCriterion
 from erpnext.accounts.utils import get_currency_precision
+from csf_tz.csf_tz.report.customer_conditions import get_customers_in_tree
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
 
 #  This report gives a summary of all Outstanding Invoices considering the following
@@ -281,21 +285,24 @@ class ReceivablePayableReport(object):
 			self.delivery_notes = frappe._dict()
 
 			# delivery note link inside sales invoice
-			si_against_dn = frappe.db.sql("""
-				select parent, delivery_note
-				from `tabSales Invoice Item`
-				where docstatus=1 and parent in (%s)
-			""" % (','.join(['%s'] * len(self.invoices))), tuple(self.invoices), as_dict=1)
+			sales_invoice_item = frappe.qb.DocType("Sales Invoice Item")
+			si_against_dn = (
+				frappe.qb.from_(sales_invoice_item)
+				.select(sales_invoice_item.parent, sales_invoice_item.delivery_note)
+				.where((sales_invoice_item.docstatus == 1) & sales_invoice_item.parent.isin(self.invoices))
+			).run(as_dict=True)
 
 			for d in si_against_dn:
 				if d.delivery_note:
 					self.delivery_notes.setdefault(d.parent, set()).add(d.delivery_note)
 
-			dn_against_si = frappe.db.sql("""
-				select distinct parent, against_sales_invoice
-				from `tabDelivery Note Item`
-				where against_sales_invoice in (%s)
-			""" % (','.join(['%s'] * len(self.invoices))), tuple(self.invoices) , as_dict=1)
+			delivery_note_item = frappe.qb.DocType("Delivery Note Item")
+			dn_against_si = (
+				frappe.qb.from_(delivery_note_item)
+				.select(delivery_note_item.parent, delivery_note_item.against_sales_invoice)
+				.distinct()
+				.where(delivery_note_item.against_sales_invoice.isin(self.invoices))
+			).run(as_dict=True)
 
 			for d in dn_against_si:
 				self.delivery_notes.setdefault(d.against_sales_invoice, set()).add(d.parent)
@@ -303,40 +310,51 @@ class ReceivablePayableReport(object):
 	def get_invoice_details(self):
 		self.invoice_details = frappe._dict()
 		if self.party_type == "Customer":
-			si_list = frappe.db.sql("""
-				select name, due_date, po_no
-				from `tabSales Invoice`
-				where posting_date <= %s
-			""",self.filters.report_date, as_dict=1)
+			sales_invoice = frappe.qb.DocType("Sales Invoice")
+			si_list = (
+				frappe.qb.from_(sales_invoice)
+				.select(sales_invoice.name, sales_invoice.due_date, sales_invoice.po_no)
+				.where(sales_invoice.posting_date <= self.filters.report_date)
+			).run(as_dict=True)
 			for d in si_list:
 				self.invoice_details.setdefault(d.name, d)
 
 			# Get Sales Team
 			if self.filters.show_sales_person:
-				sales_team = frappe.db.sql("""
-					select parent, sales_person
-					from `tabSales Team`
-					where parenttype = 'Sales Invoice'
-				""", as_dict=1)
+				sales_team_table = frappe.qb.DocType("Sales Team")
+				sales_team = (
+					frappe.qb.from_(sales_team_table)
+					.select(sales_team_table.parent, sales_team_table.sales_person)
+					.where(sales_team_table.parenttype == "Sales Invoice")
+				).run(as_dict=True)
 				for d in sales_team:
 					self.invoice_details.setdefault(d.parent, {})\
 						.setdefault('sales_team', []).append(d.sales_person)
 
 		if self.party_type == "Supplier":
-			for pi in frappe.db.sql("""
-				select name, due_date, bill_no, bill_date
-				from `tabPurchase Invoice`
-				where posting_date <= %s
-			""", self.filters.report_date, as_dict=1):
+			purchase_invoice = frappe.qb.DocType("Purchase Invoice")
+			for pi in (
+				frappe.qb.from_(purchase_invoice)
+				.select(
+					purchase_invoice.name,
+					purchase_invoice.due_date,
+					purchase_invoice.bill_no,
+					purchase_invoice.bill_date,
+				)
+				.where(purchase_invoice.posting_date <= self.filters.report_date)
+			).run(as_dict=True):
 				self.invoice_details.setdefault(pi.name, pi)
 
 		# Invoices booked via Journal Entries
-		journal_entries = frappe.db.sql("""
-			select name, due_date, bill_no, bill_date
-			from `tabJournal Entry`
-			where posting_date <= %s
-				and voucher_type != "Exchange Rate Revaluation"
-		""", self.filters.report_date, as_dict=1)
+		journal_entry = frappe.qb.DocType("Journal Entry")
+		journal_entries = (
+			frappe.qb.from_(journal_entry)
+			.select(journal_entry.name, journal_entry.due_date, journal_entry.bill_no, journal_entry.bill_date)
+			.where(
+				(journal_entry.posting_date <= self.filters.report_date)
+				& (journal_entry.voucher_type != "Exchange Rate Revaluation")
+			)
+		).run(as_dict=True)
 
 		for je in journal_entries:
 			if je.bill_no:
@@ -367,16 +385,26 @@ class ReceivablePayableReport(object):
 
 	def get_payment_terms(self, row):
 		# build payment_terms for row
-		payment_terms_details = frappe.db.sql("""
-			select
-				si.name, si.party_account_currency, si.currency, si.conversion_rate,
-				ps.due_date, ps.payment_amount, ps.description, ps.paid_amount
-			from `tab{0}` si, `tabPayment Schedule` ps
-			where
-				si.name = ps.parent and
-				si.name = %s
-			order by ps.paid_amount desc, due_date
-		""".format(row.voucher_type), row.voucher_no, as_dict = 1)
+		invoice = frappe.qb.DocType(row.voucher_type)
+		payment_schedule = frappe.qb.DocType("Payment Schedule")
+		payment_terms_details = (
+			frappe.qb.from_(invoice)
+			.join(payment_schedule)
+			.on(invoice.name == payment_schedule.parent)
+			.select(
+				invoice.name,
+				invoice.party_account_currency,
+				invoice.currency,
+				invoice.conversion_rate,
+				payment_schedule.due_date,
+				payment_schedule.payment_amount,
+				payment_schedule.description,
+				payment_schedule.paid_amount,
+			)
+			.where(invoice.name == row.voucher_no)
+			.orderby(payment_schedule.paid_amount, order=Order.desc)
+			.orderby(payment_schedule.due_date)
+		).run(as_dict=True)
 
 
 		original_row = frappe._dict(row)
@@ -444,23 +472,26 @@ class ReceivablePayableReport(object):
 						self.future_payments.setdefault((d.invoice_no, d.party), []).append(d)
 
 	def get_future_payments_from_payment_entry(self):
-		return frappe.db.sql("""
-			select
-				ref.reference_name as invoice_no,
+		payment_entry = frappe.qb.DocType("Payment Entry")
+		reference = frappe.qb.DocType("Payment Entry Reference")
+		return (
+			frappe.qb.from_(payment_entry)
+			.inner_join(reference)
+			.on(reference.parent == payment_entry.name)
+			.select(
+				reference.reference_name.as_("invoice_no"),
 				payment_entry.party,
 				payment_entry.party_type,
-				payment_entry.posting_date as future_date,
-				ref.allocated_amount as future_amount,
-				payment_entry.reference_no as future_ref
-			from
-				`tabPayment Entry` as payment_entry inner join `tabPayment Entry Reference` as ref
-			on
-				(ref.parent = payment_entry.name)
-			where
-				payment_entry.docstatus < 2
-				and payment_entry.posting_date > %s
-				and payment_entry.party_type = %s
-			""", (self.filters.report_date, self.party_type), as_dict=1)
+				payment_entry.posting_date.as_("future_date"),
+				reference.allocated_amount.as_("future_amount"),
+				payment_entry.reference_no.as_("future_ref"),
+			)
+			.where(
+				(payment_entry.docstatus < 2)
+				& (payment_entry.posting_date > self.filters.report_date)
+				& (payment_entry.party_type == self.party_type)
+			)
+		).run(as_dict=True)
 
 	def get_future_payments_from_journal_entry(self):
 		if self.filters.get('party'):
@@ -566,129 +597,157 @@ class ReceivablePayableReport(object):
 
 	def get_gl_entries(self):
 		# get all the GL entries filtered by the given filters
+		gl_entry = frappe.qb.DocType("GL Entry")
 
-		conditions, values = self.prepare_conditions()
-		order_by = self.get_order_by_condition()
-
+		date_condition = gl_entry.posting_date <= self.filters.report_date
 		if self.filters.show_future_payments:
-			values.insert(2, self.filters.report_date)
-
-			date_condition = """AND (posting_date <= %s
-				OR (against_voucher IS NULL AND DATE(creation) <= %s))"""
-		else:
-			date_condition = "AND posting_date <=%s"
+			date_condition |= gl_entry.against_voucher.isnull() & (Date(gl_entry.creation) <= self.filters.report_date)
 
 		if self.filters.get(scrub(self.party_type)):
-			select_fields = "debit_in_account_currency as debit, credit_in_account_currency as credit"
+			amount_fields = [
+				gl_entry.debit_in_account_currency.as_("debit"),
+				gl_entry.credit_in_account_currency.as_("credit"),
+			]
 		else:
-			select_fields = "debit, credit"
+			amount_fields = [gl_entry.debit, gl_entry.credit]
 
-		self.gl_entries = frappe.db.sql("""
-			select
-				name, posting_date, account, party_type, party, voucher_type, voucher_no, debit_in_account_currency, credit_in_account_currency, 
-				against_voucher_type, against_voucher, account_currency, remarks, {0}
-			from
-				`tabGL Entry`
-			where
-				docstatus < 2
-				and (against_voucher_type IS NULL OR against_voucher_type != "Exchange Rate Revaluation")
-				and party_type=%s
-				and (party is not null and party != '')
-				{1} {2} {3}"""
-			.format(select_fields, date_condition, conditions, order_by), values, as_dict=True)
+		query = (
+			frappe.qb.from_(gl_entry)
+			.select(
+				gl_entry.name,
+				gl_entry.posting_date,
+				gl_entry.account,
+				gl_entry.party_type,
+				gl_entry.party,
+				gl_entry.voucher_type,
+				gl_entry.voucher_no,
+				gl_entry.debit_in_account_currency,
+				gl_entry.credit_in_account_currency,
+				gl_entry.against_voucher_type,
+				gl_entry.against_voucher,
+				gl_entry.account_currency,
+				gl_entry.remarks,
+				*amount_fields,
+			)
+			.where(
+				(gl_entry.docstatus < 2)
+				& (
+					gl_entry.against_voucher_type.isnull()
+					| (gl_entry.against_voucher_type != "Exchange Rate Revaluation")
+				)
+				& (gl_entry.party_type == self.party_type)
+				& (gl_entry.party.isnotnull() & (gl_entry.party != ""))
+				& date_condition
+			)
+			.orderby(*self.get_order_by_fields(gl_entry))
+		)
+		self.gl_entries = query.where(Criterion.all(self.prepare_conditions(gl_entry))).run(as_dict=True)
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
 			lft, rgt = frappe.db.get_value("Sales Person",
 				self.filters.get("sales_person"), ["lft", "rgt"])
 
-			records = frappe.db.sql("""
-				select distinct parent, parenttype
-				from `tabSales Team` steam
-				where parenttype in ('Customer', 'Sales Invoice')
-					and exists(select name from `tabSales Person` where lft >= %s and rgt <= %s and name = steam.sales_person)
-			""", (lft, rgt), as_dict=1)
+			sales_team = frappe.qb.DocType("Sales Team")
+			sales_person = frappe.qb.DocType("Sales Person")
+			records = (
+				frappe.qb.from_(sales_team)
+				.select(sales_team.parent, sales_team.parenttype)
+				.distinct()
+				.where(
+					sales_team.parenttype.isin(["Customer", "Sales Invoice"])
+					& ExistsCriterion(
+						frappe.qb.from_(sales_person)
+						.select(sales_person.name)
+						.where(
+							(sales_person.lft >= lft)
+							& (sales_person.rgt <= rgt)
+							& (sales_person.name == sales_team.sales_person)
+						)
+					)
+				)
+			).run(as_dict=True)
 
 			self.sales_person_records = frappe._dict()
 			for d in records:
 				self.sales_person_records.setdefault(d.parenttype, set()).add(d.parent)
 
-	def prepare_conditions(self):
-		conditions = [""]
-		values = [self.party_type, self.filters.report_date]
+	def prepare_conditions(self, gl_entry):
+		conditions = []
 		party_type_field = scrub(self.party_type)
 
-		self.add_common_filters(conditions, values, party_type_field)
+		self.add_common_filters(conditions, gl_entry, party_type_field)
 
 		if party_type_field=="customer":
-			self.add_customer_filters(conditions, values)
+			self.add_customer_filters(conditions, gl_entry)
 
 		elif party_type_field=="supplier":
-			self.add_supplier_filters(conditions, values)
+			self.add_supplier_filters(conditions, gl_entry)
 
-		self.add_accounting_dimensions_filters(conditions, values)
-		return " and ".join(conditions), values
+		self.add_accounting_dimensions_filters(conditions, gl_entry)
+		return conditions
 
-	def get_order_by_condition(self):
+	def get_order_by_fields(self, gl_entry):
 		if self.filters.get('group_by_party'):
-			return "order by party, posting_date"
+			return [gl_entry.party, gl_entry.posting_date]
 		else:
-			return "order by posting_date, party"
+			return [gl_entry.posting_date, gl_entry.party]
 
-	def add_common_filters(self, conditions, values, party_type_field):
+	def add_common_filters(self, conditions, gl_entry, party_type_field):
 		if self.filters.company:
-			conditions.append("company=%s")
-			values.append(self.filters.company)
+			conditions.append(gl_entry.company == self.filters.company)
 
 		if self.filters.finance_book:
-			conditions.append("ifnull(finance_book, '') in (%s, '')")
-			values.append(self.filters.finance_book)
+			conditions.append(IfNull(gl_entry.finance_book, "").isin([self.filters.finance_book, ""]))
 
 		if self.filters.get(party_type_field):
-			conditions.append("party=%s")
-			values.append(self.filters.get(party_type_field))
+			conditions.append(gl_entry.party == self.filters.get(party_type_field))
 
 		# get GL with "receivable" or "payable" account_type
 		account_type = "Receivable" if self.party_type == "Customer" else "Payable"
 		accounts = [d.name for d in frappe.get_all("Account",
 			filters={"account_type": account_type, "company": self.filters.company})]
-		conditions.append("account in (%s)" % ','.join(['%s'] *len(accounts)))
-		values += accounts
+		conditions.append(gl_entry.account.isin(accounts))
 
-	def add_customer_filters(self, conditions, values):
+	def add_customer_filters(self, conditions, gl_entry):
+		customer = frappe.qb.DocType("Customer")
 		if self.filters.get("customer_group"):
-			conditions.append(self.get_hierarchical_filters('Customer Group', 'customer_group'))
+			conditions.append(gl_entry.party.isin(get_customers_in_tree(self.filters, 'Customer Group', 'customer_group')))
 
 		if self.filters.get("territory"):
-			conditions.append(self.get_hierarchical_filters('Territory', 'territory'))
+			conditions.append(gl_entry.party.isin(get_customers_in_tree(self.filters, 'Territory', 'territory')))
 
 		if self.filters.get("payment_terms_template"):
-			conditions.append("party in (select name from tabCustomer where payment_terms=%s)")
-			values.append(self.filters.get("payment_terms_template"))
+			conditions.append(gl_entry.party.isin(
+				frappe.qb.from_(customer)
+				.select(customer.name)
+				.where(customer.payment_terms == self.filters.get("payment_terms_template"))
+			))
 
 		if self.filters.get("sales_partner"):
-			conditions.append("party in (select name from tabCustomer where default_sales_partner=%s)")
-			values.append(self.filters.get("sales_partner"))
+			conditions.append(gl_entry.party.isin(
+				frappe.qb.from_(customer)
+				.select(customer.name)
+				.where(customer.default_sales_partner == self.filters.get("sales_partner"))
+			))
 
-	def add_supplier_filters(self, conditions, values):
+	def add_supplier_filters(self, conditions, gl_entry):
+		supplier = frappe.qb.DocType("Supplier")
 		if self.filters.get("supplier_group"):
-			conditions.append("""party in (select name from tabSupplier
-				where supplier_group=%s)""")
-			values.append(self.filters.get("supplier_group"))
+			conditions.append(gl_entry.party.isin(
+				frappe.qb.from_(supplier)
+				.select(supplier.name)
+				.where(supplier.supplier_group == self.filters.get("supplier_group"))
+			))
 
 		if self.filters.get("payment_terms_template"):
-			conditions.append("party in (select name from tabSupplier where payment_terms=%s)")
-			values.append(self.filters.get("payment_terms_template"))
+			conditions.append(gl_entry.party.isin(
+				frappe.qb.from_(supplier)
+				.select(supplier.name)
+				.where(supplier.payment_terms == self.filters.get("payment_terms_template"))
+			))
 
-	def get_hierarchical_filters(self, doctype, key):
-		lft, rgt = frappe.db.get_value(doctype, self.filters.get(key), ["lft", "rgt"])
-
-		return """party in (select name from tabCustomer
-			where exists(select name from `tab{doctype}` where lft >= {lft} and rgt <= {rgt}
-				and name=tabCustomer.{key}))""".format(
-					doctype=doctype, lft=lft, rgt=rgt, key=key)
-
-	def add_accounting_dimensions_filters(self, conditions, values):
+	def add_accounting_dimensions_filters(self, conditions, gl_entry):
 		accounting_dimensions = get_accounting_dimensions(as_list=False)
 
 		if accounting_dimensions:
@@ -697,8 +756,7 @@ class ReceivablePayableReport(object):
 					if frappe.get_cached_value('DocType', dimension.document_type, 'is_tree'):
 						self.filters[dimension.fieldname] = get_dimension_with_children(dimension.document_type,
 							self.filters.get(dimension.fieldname))
-					conditions.append("{0} in %s".format(dimension.fieldname))
-					values.append(tuple(self.filters.get(dimension.fieldname)))
+					conditions.append(gl_entry[dimension.fieldname].isin(tuple(self.filters.get(dimension.fieldname))))
 
 	def get_gle_balance(self, gle):
 		# get the balance of the GL (debit - credit) or reverse balance based on report type

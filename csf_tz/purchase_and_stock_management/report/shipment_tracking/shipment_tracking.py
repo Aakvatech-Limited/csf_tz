@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Order
+from frappe.query_builder.functions import Concat
 
 def execute(filters=None):
 	columns, data = [], []
@@ -100,66 +102,56 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ""
+	order_tracking = frappe.qb.DocType("Order Tracking")
+	order_progress = frappe.qb.DocType("Order Progress")
+	container = frappe.qb.DocType("Container")
+
+	latest_order_status = (
+		frappe.qb.from_(order_progress)
+		.select(Concat(order_progress.date, " : ", order_progress.current_location, ":", order_progress.status))
+		.where(order_tracking.name == order_progress.parent)
+		.orderby(order_progress.date, order=Order.desc)
+		.limit(1)
+	)
+
+	query = (
+		frappe.qb.from_(order_tracking)
+		.select(
+			order_tracking.name.as_("order_no"),
+			order_tracking.supplier,
+			order_tracking.project,
+			order_tracking.shipped_date,
+			order_tracking.expected_arrival_date,
+			order_tracking.mode_of_transport,
+			order_tracking.bl_number,
+			order_tracking.arrival_date,
+			order_tracking.clearing_completion_date,
+			order_tracking.delivered_date,
+			order_tracking.offloading_date,
+			latest_order_status.as_("order_status"),
+		)
+		.where(order_tracking.expected_arrival_date[filters.from_date:filters.to_date])
+	)
+
 	if filters.order:
-		where += '  AND tot.name = %(order)s '
-		where_filter.update({"order": filters.order})
+		query = query.where(order_tracking.name == filters.order)
 	
 	if filters.supplier:
-		where += '  AND tot.supplier = %(supplier)s '
-		where_filter.update({"supplier": filters.supplier})
+		query = query.where(order_tracking.supplier == filters.supplier)
 	
-	data = frappe.db.sql('''SELECT
-								tot.name AS order_no,
-								tot.supplier,
-								tot.project,
-								tot.shipped_date,
-								tot.expected_arrival_date,
-								tot.mode_of_transport,
-								tot.bl_number,
-								tot.arrival_date,
-								tot.clearing_completion_date,
-								tot.delivered_date,
-								tot.offloading_date,
-								/*tc.container_no,
-								tc.size,
-								tc.no_of_packages,*/
-
-								(SELECT 
-										CONCAT(op.date, " : ", op.current_location, ":", op.status) 
-									FROM 
-										`tabOrder Progress` AS op
-									WHERE
-										tot.name = op.parent
-									ORDER BY 
-										op.date DESC
-									LIMIT 0,1
-								) AS order_status
-							FROM
-								(`tabOrder Tracking` tot)
-							/*LEFT JOIN
-								(`tabContainer` tc)
-								ON (tot.name = tc.parent)*/
-							Where
-								tot.expected_arrival_date BETWEEN %(from_date)s AND %(to_date)s
-						 '''+ where,
-							where_filter, as_dict=1)
+	data = query.run(as_dict=1)
 
 	for order in data:
 		#
 		# For container info
 		#
-		container_info = frappe.db.sql('''SELECT 
-										container_no, size,no_of_packages
-									FROM 
-										(`tabContainer` tc) 
-									LEFT JOIN
-										(`tabOrder Tracking` tot)
-										ON (tot.name = tc.parent)
-									WHERE 
-										tot.name = %(parent)s ''', 
-									{"parent": order.order_no,}, as_dict=1)
+		container_info = (
+			frappe.qb.from_(container)
+			.left_join(order_tracking)
+			.on(order_tracking.name == container.parent)
+			.select(container.container_no, container.size, container.no_of_packages)
+			.where(order_tracking.name == order.order_no)
+		).run(as_dict=1)
 		order.container_no = ''
 		order.container_size=''
 		order.no_of_packages=''

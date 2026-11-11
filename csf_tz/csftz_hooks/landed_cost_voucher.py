@@ -11,21 +11,35 @@ def get_landed_cost_expenses(import_file=None):
     if not import_file:
         return
 
-    je_landed_cost = frappe.db.sql("""SELECT jea.account as 'expense_account', je.title as 'description', jea.debit as 'amount'
-                     FROM `tabJournal Entry` je
-                     INNER JOIN `tabJournal Entry Account` jea
-                         ON jea.parent = je.name
-                     WHERE je.import_file = %s
-                       AND je.docstatus = 1
-                       AND jea.debit > 0""", import_file, as_dict=1)
-    # frappe.db.sql("""update `tabSales Order Item` set delivered_qty = 0
-    # 			where parent = %s""", so.name)
-    pinv_landed_cost = frappe.db.sql("""SELECT pii.expense_account as 'expense_account', pi.title as 'description', pii.base_net_amount as 'amount'
-                     FROM `tabPurchase Invoice` pi
-                     INNER JOIN `tabPurchase Invoice Item` pii
-                         ON pii.parent = pi.name
-                     WHERE pi.import_file = %s
-                       AND pi.docstatus = 1;""", import_file, as_dict=1)
+    journal_entry = frappe.qb.DocType("Journal Entry")
+    journal_entry_account = frappe.qb.DocType("Journal Entry Account")
+    je_landed_cost = (
+        frappe.qb.from_(journal_entry)
+        .inner_join(journal_entry_account)
+        .on(journal_entry_account.parent == journal_entry.name)
+        .select(
+            journal_entry_account.account.as_("expense_account"),
+            journal_entry.title.as_("description"),
+            journal_entry_account.debit.as_("amount"),
+        )
+        .where(journal_entry.import_file == import_file)
+        .where(journal_entry.docstatus == 1)
+        .where(journal_entry_account.debit > 0)
+    ).run(as_dict=True)
+    purchase_invoice = frappe.qb.DocType("Purchase Invoice")
+    purchase_invoice_item = frappe.qb.DocType("Purchase Invoice Item")
+    pinv_landed_cost = (
+        frappe.qb.from_(purchase_invoice)
+        .inner_join(purchase_invoice_item)
+        .on(purchase_invoice_item.parent == purchase_invoice.name)
+        .select(
+            purchase_invoice_item.expense_account,
+            purchase_invoice.title.as_("description"),
+            purchase_invoice_item.base_net_amount.as_("amount"),
+        )
+        .where(purchase_invoice.import_file == import_file)
+        .where(purchase_invoice.docstatus == 1)
+    ).run(as_dict=True)
     return je_landed_cost + pinv_landed_cost
 
 

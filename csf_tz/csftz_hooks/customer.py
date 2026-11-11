@@ -1,24 +1,26 @@
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 
 @frappe.whitelist()
 def get_customer_total_unpaid_amount(customer, company=None):
     if not customer:
         return 0
-    company_condition = ""
-    if company:
-        company_condition = " and company = '{0}'".format(company)
-    company_wise_total_unpaid = frappe._dict(
-        frappe.db.sql(
-            """
-        select company, sum(debit_in_account_currency) - sum(credit_in_account_currency)
-        from `tabGL Entry`
-        where party_type = %s and party=%s
-        and is_cancelled = 0 {0}
-        group by company""".format(company_condition),
-            ("Customer", customer),
+    gl_entry = frappe.qb.DocType("GL Entry")
+    query = (
+        frappe.qb.from_(gl_entry)
+        .select(
+            gl_entry.company,
+            Sum(gl_entry.debit_in_account_currency) - Sum(gl_entry.credit_in_account_currency),
         )
+        .where(gl_entry.party_type == "Customer")
+        .where(gl_entry.party == customer)
+        .where(gl_entry.is_cancelled == 0)
+        .groupby(gl_entry.company)
     )
+    if company:
+        query = query.where(gl_entry.company == company)
+    company_wise_total_unpaid = frappe._dict(query.run())
     total_unpaid = 0
     if company:
         total_unpaid = company_wise_total_unpaid.get(company, 0)

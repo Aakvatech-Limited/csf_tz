@@ -3,6 +3,7 @@ import frappe
 
 
 def execute():
-    frappe.db.sql(
-        "DELETE FROM `tabCustom DocPerm` WHERE name != 'a' AND parent in ('DocType', 'Patch Log', 'Module Def', 'Transaction Log')"
-    )
+    custom_docperm = frappe.qb.DocType("Custom DocPerm")
+    frappe.qb.from_(custom_docperm).delete().where(custom_docperm.name != "a").where(
+        custom_docperm.parent.isin(["DocType", "Patch Log", "Module Def", "Transaction Log"])
+    ).run()

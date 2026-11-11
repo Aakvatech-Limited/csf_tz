@@ -10,6 +10,8 @@ import json
 from frappe.model.document import Document
 from frappe.utils import flt, comma_or, nowdate
 from frappe import msgprint, _
+from frappe.query_builder import Case
+from frappe.query_builder.functions import IfNull, Sum
 from erpnext.accounts.general_ledger import process_gl_map, save_entries
 from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_account_currency
 from erpnext.controllers.accounts_controller import set_balance_in_account_currency
@@ -118,9 +120,16 @@ def get_outstanding_payments(self, account_currency):
 				if request.request_date < due_date:
 					due_date = request.request_date
 					
-	paid_amount = frappe.db.sql("""SELECT (CASE WHEN SUM(debit_in_account_currency) > 0 THEN SUM(debit_in_account_currency) ELSE 0 END) AS paid_amount 
-					FROM `tabGL Entry` WHERE debit_in_account_currency > 0 AND account_currency = %s 
-						AND voucher_type = 'Requested Payments' AND voucher = %s""", (account_currency, self.name), as_dict=True)
+	gl_entry = frappe.qb.DocType("GL Entry")
+	debit_total = Sum(gl_entry.debit_in_account_currency)
+	paid_amount = (
+		frappe.qb.from_(gl_entry)
+		.select(Case().when(debit_total > 0, debit_total).else_(0).as_("paid_amount"))
+		.where(gl_entry.debit_in_account_currency > 0)
+		.where(gl_entry.account_currency == account_currency)
+		.where(gl_entry.voucher_type == 'Requested Payments')
+		.where(gl_entry.voucher == self.name)
+	).run(as_dict=True)
 	#frappe.msgprint(paid_amount[0].paid_amount)
 	outstanding_amount = total_amount - float(paid_amount[0].paid_amount)
 	
@@ -182,7 +191,6 @@ def request_funds(**args):
 def recommend_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Recommended', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -196,7 +204,6 @@ def recommend_request(**args):
 def recommend_against_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Recommended', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -210,7 +217,6 @@ def recommend_against_request(**args):
 def approve_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Approved', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return args.request_docname
 	#Mark the request as open 
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -223,7 +229,6 @@ def approve_request(**args):
 def reject_request(**args):
 	args = frappe._dict(args)
 	
-	#frappe.db.sql("UPDATE `tabRequested Funds Details` SET request_status = 'Rejected', request_hidden_status = 0 WHERE name = %s", args.request_docname)
 	#return "OK"
 	#Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
@@ -301,34 +306,36 @@ def accounts_cancel(**args):
 
 		
 def get_paid_amount(dt, dn, party_type, party, account):
+	gl_entry = frappe.qb.DocType("GL Entry")
 	if party_type=="Customer":
-		dr_or_cr = "credit_in_account_currency - debit_in_account_currency"
+		dr_or_cr = gl_entry.credit_in_account_currency - gl_entry.debit_in_account_currency
 	else:
-		dr_or_cr = "debit_in_account_currency - credit_in_account_currency"
+		dr_or_cr = gl_entry.debit_in_account_currency - gl_entry.credit_in_account_currency
 
-	paid_amount = frappe.db.sql("""
-		select ifnull(sum({dr_or_cr}), 0) as paid_amount
-		from `tabGL Entry`
-		where against_voucher_type = %s
-			and against_voucher = %s
-			and party_type = %s
-			and party = %s
-			and account = %s
-			and {dr_or_cr} > 0
-	""".format(dr_or_cr=dr_or_cr), (dt, dn, party_type, party, account))
+	paid_amount = (
+		frappe.qb.from_(gl_entry)
+		.select(IfNull(Sum(dr_or_cr), 0).as_("paid_amount"))
+		.where(gl_entry.against_voucher_type == dt)
+		.where(gl_entry.against_voucher == dn)
+		.where(gl_entry.party_type == party_type)
+		.where(gl_entry.party == party)
+		.where(gl_entry.account == account)
+		.where(dr_or_cr > 0)
+	).run()
 
 	return paid_amount[0][0] if paid_amount else 0
 	
 def get_total_approved(dt, dn, party_type, party, account):
-	total_approved = frappe.db.sql("""
-		select ifnull(sum(credit_in_account_currency), 0) as total_approved
-		from `tabGL Entry`
-		where against_voucher_type = %s
-			and against_voucher = %s
-			and party_type = %s
-			and party = %s
-			and account = %s
-	""", (dt, dn, party_type, party, account))
+	gl_entry = frappe.qb.DocType("GL Entry")
+	total_approved = (
+		frappe.qb.from_(gl_entry)
+		.select(IfNull(Sum(gl_entry.credit_in_account_currency), 0).as_("total_approved"))
+		.where(gl_entry.against_voucher_type == dt)
+		.where(gl_entry.against_voucher == dn)
+		.where(gl_entry.party_type == party_type)
+		.where(gl_entry.party == party)
+		.where(gl_entry.account == account)
+	).run()
 
 	return total_approved[0][0] if total_approved else 0
 
@@ -433,19 +440,39 @@ def delete_gl_entries(gl_entries=None, voucher_type=None, voucher_no=None,
 	from erpnext.accounts.doctype.gl_entry.gl_entry import validate_balance_type, \
 		check_freezing_date, update_outstanding_amt, validate_frozen_account
 
+	gl_entry = frappe.qb.DocType("GL Entry")
 	if not gl_entries:
-		gl_entries = frappe.db.sql("""
-			select account, posting_date, party_type, party, cost_center, fiscal_year,voucher_type,
-			voucher_no, against_voucher_type, against_voucher, cost_center, company
-			from `tabGL Entry`
-			where voucher_type=%s and voucher_no=%s""", (voucher_type, voucher_no), as_dict=True)
+		gl_entries = (
+			frappe.qb.from_(gl_entry)
+			.select(
+				gl_entry.account,
+				gl_entry.posting_date,
+				gl_entry.party_type,
+				gl_entry.party,
+				gl_entry.cost_center,
+				gl_entry.fiscal_year,
+				gl_entry.voucher_type,
+				gl_entry.voucher_no,
+				gl_entry.against_voucher_type,
+				gl_entry.against_voucher,
+				gl_entry.cost_center,
+				gl_entry.company,
+			)
+			.where(gl_entry.voucher_type == voucher_type)
+			.where(gl_entry.voucher_no == voucher_no)
+		).run(as_dict=True)
 
 	if gl_entries:
 		check_freezing_date(gl_entries[0]["posting_date"], adv_adj)
 
 	for entry in gl_entries:
-		frappe.db.sql("""delete from `tabGL Entry` where voucher_type=%s and voucher_no=%s AND against=%s""",
-		(entry.voucher_type, entry.voucher_no, entry.against))
+		(
+			frappe.qb.from_(gl_entry)
+			.delete()
+			.where(gl_entry.voucher_type == entry.voucher_type)
+			.where(gl_entry.voucher_no == entry.voucher_no)
+			.where(gl_entry.against == entry.against)
+		).run()
 		
 		validate_frozen_account(entry["account"], adv_adj)
 		validate_balance_type(entry["account"], adv_adj)
@@ -458,16 +485,21 @@ def delete_gl_entries(gl_entries=None, voucher_type=None, voucher_no=None,
 				
 				
 def update_payment_status(doc):
-	paid_amount = frappe.db.sql("""select ifnull(sum(debit_in_account_currency), 0) as amt 
-		from `tabGL Entry` where against_voucher_type = 'Requested Payments' and against_voucher = %s AND voucher_type <> 'Requested Payments'""", 
-		(doc.name) ,as_dict=1)[0].amt
+	gl_entry = frappe.qb.DocType("GL Entry")
+	paid_amount = (
+		frappe.qb.from_(gl_entry)
+		.select(IfNull(Sum(gl_entry.debit_in_account_currency), 0).as_("amt"))
+		.where(gl_entry.against_voucher_type == 'Requested Payments')
+		.where(gl_entry.against_voucher == doc.name)
+		.where(gl_entry.voucher_type != 'Requested Payments')
+	).run(as_dict=1)[0].amt
 		
-	total_approved = frappe.db.sql("""
-		select ifnull(sum(credit_in_account_currency), 0) as total_approved
-		from `tabGL Entry`
-		where against_voucher_type = 'Requested Payments'
-			and against_voucher = %s
-	""", (doc.name), as_dict=1)[0].total_approved
+	total_approved = (
+		frappe.qb.from_(gl_entry)
+		.select(IfNull(Sum(gl_entry.credit_in_account_currency), 0).as_("total_approved"))
+		.where(gl_entry.against_voucher_type == 'Requested Payments')
+		.where(gl_entry.against_voucher == doc.name)
+	).run(as_dict=1)[0].total_approved
 	
 	if paid_amount >= total_approved:
 		frappe.db.set_value("Requested Payments", doc.name, "payment_status", "Paid")

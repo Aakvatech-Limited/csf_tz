@@ -32,32 +32,58 @@ class Files(Document):
 	
 	def load_expenses(self):
 		expenses_list = []
-		expenses_import = frappe.db.sql("""SELECT * FROM `tabExpenses` WHERE parenttype = 'Import' AND parent IN (SELECT name FROM `tabImport` WHERE reference_file_number = %s)""", self.name, as_dict=True)
-		expenses_export = frappe.db.sql("""SELECT * FROM `tabExpenses` WHERE parenttype = 'Export' AND parent IN (SELECT name FROM `tabExport` WHERE file_number = %s)""", self.name, as_dict=True)
-		expenses_trip_main = frappe.db.sql("""SELECT * FROM `tabExpenses` WHERE parenttype = 'Vehicle Trip' AND parentfield = 'main_expenses' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE main_file_number = %s)""", self.name, as_dict=True)
-		expenses_trip_return = frappe.db.sql("""SELECT * FROM `tabExpenses` WHERE parenttype = 'Vehicle Trip' AND parentfield = 'return_expenses' AND parent IN (SELECT name FROM `tabVehicle Trip` WHERE return_file_number = %s)""", self.name, as_dict=True)
-		expenses_border = frappe.db.sql("""SELECT * FROM `tabExpenses` WHERE parenttype = 'Border Clearance' AND parent IN (SELECT name FROM `tabBorder Clearance` WHERE file_number = %s)""", self.name, as_dict=True)
+		expenses_import = self.get_expenses("Import", "reference_file_number")
+		expenses_export = self.get_expenses("Export", "file_number")
+		expenses_trip_main = self.get_expenses("Vehicle Trip", "main_file_number", parentfield="main_expenses")
+		expenses_trip_return = self.get_expenses("Vehicle Trip", "return_file_number", parentfield="return_expenses")
+		expenses_border = self.get_expenses("Border Clearance", "file_number")
 		expenses_list = expenses_import + expenses_export + expenses_trip_main + expenses_trip_return + expenses_border
 		
 		self.set_onload("expenses_list", expenses_list)
 		return frappe.render_template("templates/file_expenses.html", {"expenses_list": expenses_list})
+
+	def get_expenses(self, parenttype, file_number_field, parentfield=None):
+		expenses = frappe.qb.DocType("Expenses")
+		parent = frappe.qb.DocType(parenttype)
+		parents_of_file = frappe.qb.from_(parent).select(parent.name).where(parent[file_number_field] == self.name)
+		query = frappe.qb.from_(expenses).select("*").where(expenses.parenttype == parenttype)
+		if parentfield:
+			query = query.where(expenses.parentfield == parentfield)
+		return query.where(expenses.parent.isin(parents_of_file)).run(as_dict=True)
 		
 	def load_invoices(self):
 		invoices_list = []
-		invoices_list = frappe.db.sql("""SELECT * FROM `tabSales Invoice` where files = %s""", self.name,as_dict=True)
+		sales_invoice = frappe.qb.DocType("Sales Invoice")
+		invoices_list = frappe.qb.from_(sales_invoice).select("*").where(sales_invoice.files == self.name).run(as_dict=True)
 		self.set_onload("invoices_list", invoices_list)
 		return frappe.render_template("templates/file_invoices.html", {"invoices_list": invoices_list})
 		
 	def load_purchase_invoices(self):
 		purchase_invoices_list = []
-		purchase_invoices_list = frappe.db.sql("""SELECT * FROM `tabPurchase Invoice` where reference_doctype = 'Files' AND reference_docname = %s""", self.name,as_dict=True)
+		purchase_invoice = frappe.qb.DocType("Purchase Invoice")
+		purchase_invoices_list = (
+			frappe.qb.from_(purchase_invoice)
+			.select("*")
+			.where(purchase_invoice.reference_doctype == "Files")
+			.where(purchase_invoice.reference_docname == self.name)
+			.run(as_dict=True)
+		)
 		self.set_onload("purchase_invoices_list", purchase_invoices_list)
 		return frappe.render_template("templates/file_purchase_invoices.html", {"purchase_invoices_list": purchase_invoices_list})
 		
 	def load_payments(self):
 		payments_list = []
-		payments_list = frappe.db.sql("""SELECT * FROM `tabGL Entry` WHERE credit_in_account_currency > 0 AND against_voucher_type = 'Sales Invoice' AND against_voucher IN (SELECT name 
-			FROM `tabSales Invoice` where files = %s)""", self.name, as_dict=True)
+		gl_entry = frappe.qb.DocType("GL Entry")
+		sales_invoice = frappe.qb.DocType("Sales Invoice")
+		invoices_of_file = frappe.qb.from_(sales_invoice).select(sales_invoice.name).where(sales_invoice.files == self.name)
+		payments_list = (
+			frappe.qb.from_(gl_entry)
+			.select("*")
+			.where(gl_entry.credit_in_account_currency > 0)
+			.where(gl_entry.against_voucher_type == "Sales Invoice")
+			.where(gl_entry.against_voucher.isin(invoices_of_file))
+			.run(as_dict=True)
+		)
 		self.set_onload("payments_list", payments_list)
 		return frappe.render_template("templates/file_payments.html", {"payments_list": payments_list})
 		

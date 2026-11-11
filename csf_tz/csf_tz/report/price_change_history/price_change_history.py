@@ -16,33 +16,37 @@ def execute(filters=None):
 	return columns, data
 
 def get_data(filters):
-	conditions = get_conditions(filters)
-
-	return frappe.db.sql("""
-		SELECT pr.posting_date as date, pi.item_code as item_code, pi.item_name as item_name,
-			pi.price_list as price_list, pi.old_price as old_price, pi.new_price as new_price
-		FROM `tabPrice Change Request` pr 
-		INNER JOIN `tabPrice Change Request Detail` pi ON pr.name = pi.parent
-		WHERE pr.docstatus = 1 {conditions}
-	""".format(conditions=conditions), filters, as_dict=1
+	price_change_request = frappe.qb.DocType("Price Change Request")
+	price_change_detail = frappe.qb.DocType("Price Change Request Detail")
+	query = (
+		frappe.qb.from_(price_change_request)
+		.inner_join(price_change_detail)
+		.on(price_change_request.name == price_change_detail.parent)
+		.select(
+			price_change_request.posting_date.as_("date"),
+			price_change_detail.item_code,
+			price_change_detail.item_name,
+			price_change_detail.price_list,
+			price_change_detail.old_price,
+			price_change_detail.new_price,
+		)
+		.where(price_change_request.docstatus == 1)
+		.where(price_change_request.company == filters.company)
 	)
-	
-def get_conditions(filters):
-	conditions = " AND pr.company = %(company)s "
 
 	if filters.item:
-		conditions += " AND pi.item_code = %(item)s "
+		query = query.where(price_change_detail.item_code == filters.item)
 
 	if filters.price_list:
-		conditions += " AND pi.price_list = %(price_list)s "
+		query = query.where(price_change_detail.price_list == filters.price_list)
 
 	if filters.from_date:
-		conditions += " AND pr.posting_date >= %(from_date)s "
-		
-	if filters.to_date:
-		conditions += " AND pr.posting_date <= %(to_date)s "
+		query = query.where(price_change_request.posting_date >= filters.from_date)
 
-	return conditions
+	if filters.to_date:
+		query = query.where(price_change_request.posting_date <= filters.to_date)
+
+	return query.run(as_dict=True)
 
 def get_columns(filters):
 	return [

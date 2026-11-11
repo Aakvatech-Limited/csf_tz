@@ -1,22 +1,12 @@
 import frappe
 import json
+from frappe.query_builder.functions import Concat_ws
 
 def get_json():
 
-    doc_list = frappe.db.sql(
-        """SELECT CONCAT_WS('.', "erpnext", dt.module, dt.name) as name, dt.name as doctype_name
-        FROM `tabDocType` dt
-        INNER JOIN `tabDocField` df ON dt.name = df.parent
-        WHERE df.options IS NOT NULL
-        AND df.fieldtype = "Link"
-        GROUP BY dt.module, dt.name
-        UNION ALL
-        SELECT CONCAT_WS('.', "erpnext", dt.module, dt.name) as name, dt.name as doctype_name
-        FROM `tabDocType` dt
-        INNER JOIN `tabCustom Field` df ON dt.name = df.parent
-        WHERE df.options IS NOT NULL
-        AND df.fieldtype = "Link"
-        GROUP BY dt.module, dt.name""", as_dict=1)
+    doc_list = (
+        get_link_doctypes_query("DocField").union_all(get_link_doctypes_query("Custom Field"))
+    ).run(as_dict=True)
     
     for doc in doc_list:
         docfield_list = frappe.get_all("DocField", filters={"parent": doc.doctype_name, "fieldtype": "Link"}, fields="options", group_by="options")
@@ -30,3 +20,21 @@ def get_json():
             doc["imports"].append(options_string)
 
     return json.dumps(doc_list)
+
+
+def get_link_doctypes_query(field_doctype):
+    """DocTypes that have a Link field in `field_doctype`."""
+    doctype = frappe.qb.DocType("DocType")
+    field = frappe.qb.DocType(field_doctype)
+    return (
+        frappe.qb.from_(doctype)
+        .inner_join(field)
+        .on(doctype.name == field.parent)
+        .select(
+            Concat_ws(".", "erpnext", doctype.module, doctype.name).as_("name"),
+            doctype.name.as_("doctype_name"),
+        )
+        .where(field.options.isnotnull())
+        .where(field.fieldtype == "Link")
+        .groupby(doctype.module, doctype.name)
+    )

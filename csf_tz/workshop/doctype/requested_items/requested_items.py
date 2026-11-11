@@ -8,6 +8,8 @@ import time
 import datetime
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Field
+from frappe.query_builder.functions import Sum
 
 class RequestedItems(Document):
 	def onload(self):
@@ -31,21 +33,27 @@ class RequestedItems(Document):
 		fully_issued = True
 		issued_qty = 0
 
-		children_approved = frappe.db.sql('''SELECT item, SUM(quantity) AS quantity FROM `tabRequested Items Table` WHERE \
-				parenttype = %(reference_doctype)s \
-				AND parent = %(reference_docname)s \
-				AND parentfield = 'requested_items' \
-				AND status = 'Approved' 
-				GROUP BY item''', {'reference_doctype': self.get('reference_doctype'), 'reference_docname': self.get('reference_docname')}, as_dict=True)
+		requested_items_table = frappe.qb.DocType("Requested Items Table")
+		children_approved = (
+			frappe.qb.from_(requested_items_table)
+			.select(requested_items_table.item, Sum(requested_items_table.quantity).as_("quantity"))
+			.where(requested_items_table.parenttype == self.get('reference_doctype'))
+			.where(requested_items_table.parent == self.get('reference_docname'))
+			.where(requested_items_table.parentfield == 'requested_items')
+			.where(requested_items_table.status == 'Approved')
+			.groupby(requested_items_table.item)
+		).run(as_dict=True)
 			
+		stock_entry_detail = frappe.qb.DocType("Stock Entry Detail")
+		stock_entries = self.get_stock_entries_query()
 		for row in children_approved:
-			issued = frappe.db.sql('''SELECT SUM(`tabStock Entry Detail`.qty) AS issued_qty FROM `tabStock Entry Detail` \
-				WHERE \
-				`tabStock Entry Detail`.item_code = %(item)s \
-				AND `tabStock Entry Detail`.parenttype = 'Stock Entry' \
-				AND `tabStock Entry Detail`.parent IN \
-				(SELECT name FROM `tabStock Entry` WHERE `tabStock Entry`.reference_doctype = 'Requested Items' AND `tabStock Entry`.reference_docname = %(docname)s)''', 
-				{'docname': self.name, 'item': row.item}, as_dict=True)
+			issued = (
+				frappe.qb.from_(stock_entry_detail)
+				.select(Sum(stock_entry_detail.qty).as_("issued_qty"))
+				.where(stock_entry_detail.item_code == row.item)
+				.where(stock_entry_detail.parenttype == 'Stock Entry')
+				.where(stock_entry_detail.parent.isin(stock_entries))
+			).run(as_dict=True)
 				
 			
 			if not issued[0].issued_qty:
@@ -63,6 +71,15 @@ class RequestedItems(Document):
 			frappe.db.commit()
 			
 		
+	def get_stock_entries_query(self):
+		stock_entry = frappe.qb.DocType("Stock Entry")
+		return (
+			frappe.qb.from_(stock_entry)
+			.select(stock_entry.name)
+			.where(stock_entry.reference_doctype == 'Requested Items')
+			.where(stock_entry.reference_docname == self.name)
+		)
+
 	def get_all_children(self, parenttype=None):
 		#For getting children
 		return []
@@ -129,25 +146,28 @@ class RequestedItems(Document):
 					self.set(df.fieldname, [])
 			elif df.fieldname == "issued_items":
 				#Load previously issued items
-				children = frappe.db.sql('''SELECT 
-												`tabStock Entry Detail`.item_code AS item, 
-												SUM(`tabRequested Items Table`.quantity) AS requested,
-												SUM(`tabStock Entry Detail`.qty) AS issued,
-												(SUM(`tabRequested Items Table`.quantity) - SUM(`tabStock Entry Detail`.qty)) AS difference,
-												`tabStock Entry Detail`.uom AS units
-											FROM \
-												`tabStock Entry Detail` \
-											LEFT JOIN \
-												`tabRequested Items Table` ON `tabRequested Items Table`.item = `tabStock Entry Detail`.item_code \
-												AND `tabRequested Items Table`.status = 'Approved'
-												AND `tabRequested Items Table`.parenttype = %(reference_doctype)s \
-												AND `tabRequested Items Table`.parent = %(reference_docname)s \
-											WHERE \
-												`tabStock Entry Detail`.parenttype = 'Stock Entry' \
-												AND `tabStock Entry Detail`.parent IN \
-													(SELECT name FROM `tabStock Entry` WHERE `tabStock Entry`.reference_doctype = 'Requested Items' AND `tabStock Entry`.reference_docname = %(docname)s)
-											GROUP BY
-												item, units''', {'docname': self.name, 'reference_docname': self.get('reference_docname'), 'reference_doctype': self.get('reference_doctype')} ,as_dict=1)
+				stock_entry_detail = frappe.qb.DocType("Stock Entry Detail")
+				requested_items_table = frappe.qb.DocType("Requested Items Table")
+				children = (
+					frappe.qb.from_(stock_entry_detail)
+					.left_join(requested_items_table)
+					.on(
+						(requested_items_table.item == stock_entry_detail.item_code)
+						& (requested_items_table.status == 'Approved')
+						& (requested_items_table.parenttype == self.get('reference_doctype'))
+						& (requested_items_table.parent == self.get('reference_docname'))
+					)
+					.select(
+						stock_entry_detail.item_code.as_("item"),
+						Sum(requested_items_table.quantity).as_("requested"),
+						Sum(stock_entry_detail.qty).as_("issued"),
+						(Sum(requested_items_table.quantity) - Sum(stock_entry_detail.qty)).as_("difference"),
+						stock_entry_detail.uom.as_("units"),
+					)
+					.where(stock_entry_detail.parenttype == 'Stock Entry')
+					.where(stock_entry_detail.parent.isin(self.get_stock_entries_query()))
+					.groupby(Field("item"), Field("units"))
+				).run(as_dict=True)
 				if children:
 					self.set(df.fieldname, children)
 				else:

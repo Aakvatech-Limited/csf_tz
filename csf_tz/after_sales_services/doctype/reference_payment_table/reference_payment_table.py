@@ -30,19 +30,29 @@ def update_child_table(self, fieldname, df=None):
 		# hack for docperm :(
 		return
 
+	child_table = frappe.qb.DocType(df.options)
 	if rows:
 		# select rows that do not match the ones in the document
-		deleted_rows = frappe.db.sql("""select name from `tab{0}` where parent=%s
-			and parenttype=%s and parentfield=%s
-			and name not in ({1})""".format(df.options, ','.join(['%s'] * len(rows))),
-				[self.name, self.doctype, fieldname] + rows)
+		deleted_rows = (
+			frappe.qb.from_(child_table)
+			.select(child_table.name)
+			.where(child_table.parent == self.name)
+			.where(child_table.parenttype == self.doctype)
+			.where(child_table.parentfield == fieldname)
+			.where(child_table.name.notin(rows))
+		).run()
 		if len(deleted_rows) > 0:
 			# delete rows that do not match the ones in the document
-			frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(df.options,
-				','.join(['%s'] * len(deleted_rows))), tuple(row[0] for row in deleted_rows))
+			frappe.qb.from_(child_table).delete().where(
+				child_table.name.isin([row[0] for row in deleted_rows])
+			).run()
 
 	else:
 		# no rows found, delete all rows
-		frappe.db.sql("""delete from `tab{0}` where parent=%s
-			and parenttype=%s and parentfield=%s""".format(df.options),
-			(self.name, self.doctype, fieldname))
+		(
+			frappe.qb.from_(child_table)
+			.delete()
+			.where(child_table.parent == self.name)
+			.where(child_table.parenttype == self.doctype)
+			.where(child_table.parentfield == fieldname)
+		).run()

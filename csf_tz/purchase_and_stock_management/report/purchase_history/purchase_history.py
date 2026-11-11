@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder.functions import IfNull
 
 
 def execute(filters=None):
@@ -106,46 +107,43 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ""
+	purchase_order = frappe.qb.DocType("Purchase Order")
+	purchase_order_item = frappe.qb.DocType("Purchase Order Item")
+	supplier = frappe.qb.DocType("Supplier")
+	query = (
+		frappe.qb.from_(purchase_order)
+		.join(purchase_order_item)
+		.on(purchase_order_item.parent == purchase_order.name)
+		.join(supplier)
+		.on(purchase_order.supplier == supplier.name)
+		.select(
+			purchase_order_item.item_code,
+			purchase_order_item.item_name,
+			purchase_order_item.item_group,
+			purchase_order_item.description,
+			purchase_order_item.qty,
+			purchase_order_item.uom,
+			purchase_order_item.base_rate,
+			purchase_order_item.base_amount,
+			purchase_order.name,
+			purchase_order.transaction_date,
+			purchase_order.supplier,
+			supplier.supplier_name,
+			purchase_order_item.project,
+			IfNull(purchase_order_item.received_qty, 0).as_("received_qty"),
+			purchase_order.company,
+		)
+		.where(purchase_order.transaction_date[filters.from_date:filters.to_date])
+		.where(purchase_order.docstatus == 1)
+	)
+
 	if filters.purchase_order:
-		where += '  AND tpo.name = %(purchase_order)s '
-		where_filter.update({"purchase_order": filters.purchase_order})
+		query = query.where(purchase_order.name == filters.purchase_order)
 	if filters.item_code:
-		where += '  AND po_item.item_code = %(item_code)s '
-		where_filter.update({"item_code": filters.item_code})
+		query = query.where(purchase_order_item.item_code == filters.item_code)
 	if filters.supplier:
-		where += '  AND tpo.supplier = %(supplier)s '
-		where_filter.update({"supplier": filters.supplier})
+		query = query.where(purchase_order.supplier == filters.supplier)
 
-	data = frappe.db.sql('''SELECT 
-								po_item.item_code,
-								po_item.item_name,
-								po_item.item_group,
-								po_item.description,
-								po_item.qty ,
-								po_item.uom,
-								po_item.base_rate,
-								po_item.base_amount, 
-
-								tpo.name ,
-								tpo.transaction_date ,
-								tpo.supplier,
-								sup.supplier_name,
-								po_item.project,
-								ifnull(po_item.received_qty, 0) AS received_qty,
-								tpo.company 
-								
-							FROM 
-								(`tabPurchase Order` tpo), (`tabPurchase Order Item` po_item), (`tabSupplier` sup)
-							/*LEFT JOIN
-								(`tabPurchase Order Item` po_item) ON (po_item.parent = tpo.name)*/
-							WHERE
-								po_item.parent = tpo.name
-							AND tpo.supplier = sup.name 
-							AND tpo.transaction_date BETWEEN %(from_date)s AND %(to_date)s
-							AND tpo.docstatus = 1 '''+ where,
-							where_filter, as_dict=1,as_list=1
-						);
+	data = query.run(as_dict=1)
 
 	return columns, data

@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, time, timedelta
 from frappe import msgprint, _
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import Count, Date, DateFormat, Max, Min
 from frappe.utils.nestedset import get_descendants_of
 from frappe.utils import cstr, cint, get_time, add_to_date, getdate
 
@@ -120,24 +122,22 @@ def get_columns(filters):
     return columns
 
 def get_conditions(filters):
-    conditions = ""
+    checkin = frappe.qb.DocType("Employee Checkin")
+    employee = frappe.qb.DocType("Employee")
+    conditions = []
     if filters.get("from_date"):
-        conditions += " AND DATE(chec.time) >= %(from_date)s"
+        conditions.append(Date(checkin.time) >= filters.get("from_date"))
     if filters.get("to_date"):
-        conditions += " AND DATE(chec.time) <= %(to_date)s"
+        conditions.append(Date(checkin.time) <= filters.get("to_date"))
     if filters.get("company"):
-        conditions += " AND emp.company = %(company)s"
+        conditions.append(employee.company == filters.get("company"))
     if filters.get("department") and filters.get("company"):
         department_list = get_department(
             filters.get("department"), filters.get("company")
         )
-        conditions += (
-            "AND emp.department in ("
-            + ", ".join(("'" + d + "'" for d in department_list))
-            + ")"
-        )
+        conditions.append(employee.department.isin(department_list))
     if filters.get("employee"):
-        conditions += " AND chec.employee = %(employee)s"
+        conditions.append(checkin.employee == filters.get("employee"))
     return conditions, filters
 
 def get_department(department, company):
@@ -276,61 +276,72 @@ def get_checkout_data(conditions, filters, chift_type_details):
     return checkout_data
 
 def get_checkin_details(conditions, filters):
-    data = frappe.db.sql("""
-        SELECT 
-            chec.employee AS employee,
-            chec.employee_name AS employee_name,
-            emp.department AS department,
-            emp.default_shift AS default_shift,
-            sha.shift_type AS shift_type,
-            DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            MIN(DATE_FORMAT(chec.time, '%%T')) AS checkin_time
-        FROM `tabEmployee Checkin` chec
-            INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
-            LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
-            AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
-        WHERE chec.log_type = "IN" {conditions}
-        GROUP BY chec.employee, DATE(chec.time)
-        ORDER BY DATE(chec.time) ASC, chec.employee ASC
-    """.format(conditions=conditions), filters, as_dict=1)
+    checkin = frappe.qb.DocType("Employee Checkin")
+    data = (
+        get_daily_checkin_query(conditions, filters, "IN")
+        .select(Min(DateFormat(checkin.time, "%T")).as_("checkin_time"))
+        .run(as_dict=True)
+    )
     return data
 
 
 def get_checkout_details(conditions, filters):
-    data = frappe.db.sql("""
-        SELECT 
-            chec.employee AS employee,
-            chec.employee_name AS employee_name,
-            emp.department AS department,
-            emp.default_shift AS default_shift,
-            sha.shift_type AS shift_type,
-            DATE_FORMAT(chec.time, '%%Y-%%m-%%d') AS date,
-            MAX(DATE_FORMAT(chec.time, '%%T')) AS checkout_time
-        FROM `tabEmployee Checkin` chec
-            INNER JOIN `tabEmployee` emp ON emp.name = chec.employee
-            LEFT JOIN `tabShift Assignment` sha ON chec.employee = sha.employee 
-            AND sha.start_date BETWEEN  %(from_date)s AND %(to_date)s
-            AND DATE(chec.time) BETWEEN sha.start_date AND sha.end_date
-        WHERE chec.log_type = "OUT" {conditions}
-        GROUP BY chec.employee, DATE(chec.time)
-        ORDER BY DATE(chec.time) ASC, chec.employee ASC
-    """.format(conditions=conditions), filters, as_dict=1)
+    checkin = frappe.qb.DocType("Employee Checkin")
+    data = (
+        get_daily_checkin_query(conditions, filters, "OUT")
+        .select(Max(DateFormat(checkin.time, "%T")).as_("checkout_time"))
+        .run(as_dict=True)
+    )
     return data
+
+
+def get_daily_checkin_query(conditions, filters, log_type):
+    checkin = frappe.qb.DocType("Employee Checkin")
+    employee = frappe.qb.DocType("Employee")
+    shift_assignment = frappe.qb.DocType("Shift Assignment")
+    return (
+        frappe.qb.from_(checkin)
+        .inner_join(employee)
+        .on(employee.name == checkin.employee)
+        .left_join(shift_assignment)
+        .on(
+            (checkin.employee == shift_assignment.employee)
+            & shift_assignment.start_date.between(filters["from_date"], filters["to_date"])
+            & Date(checkin.time).between(shift_assignment.start_date, shift_assignment.end_date)
+        )
+        .select(
+            checkin.employee,
+            checkin.employee_name,
+            employee.department,
+            employee.default_shift,
+            shift_assignment.shift_type,
+            DateFormat(checkin.time, "%Y-%m-%d").as_("date"),
+        )
+        .where(checkin.log_type == log_type)
+        .where(Criterion.all(conditions))
+        .groupby(checkin.employee, Date(checkin.time))
+        .orderby(Date(checkin.time))
+        .orderby(checkin.employee)
+    )
 
 def get_today_summary():
     today = frappe.utils.today()
-    in_count = frappe.db.sql(
-        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='IN' AND DATE(time)=%s", (today,)
-    )[0][0]
-    out_count = frappe.db.sql(
-        "SELECT COUNT(*) FROM `tabEmployee Checkin` WHERE log_type='OUT' AND DATE(time)=%s", (today,)
-    )[0][0]
+    in_count = get_checkin_count("IN", today)
+    out_count = get_checkin_count("OUT", today)
     return {
         "date": today,
         "in_count": in_count,
         "out_count": out_count
     }
+
+def get_checkin_count(log_type, date):
+    checkin = frappe.qb.DocType("Employee Checkin")
+    return (
+        frappe.qb.from_(checkin)
+        .select(Count("*"))
+        .where((checkin.log_type == log_type) & (Date(checkin.time) == date))
+        .run()[0][0]
+    )
 
 @frappe.whitelist()
 def get_employee_checkin_summary():

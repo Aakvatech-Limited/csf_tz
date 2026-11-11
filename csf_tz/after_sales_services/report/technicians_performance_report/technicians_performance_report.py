@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.query_report import add_total_row
+from frappe.query_builder import Criterion
+from csf_tz.utils.query_builder import get_match_criterion
 import datetime
 
 def execute(filters=None):
@@ -13,7 +15,7 @@ def execute(filters=None):
 def _execute(filters=None, additional_table_columns=None, additional_query_columns=None):
 	if not filters: filters = {}
 	columns = get_columns(additional_table_columns)
-	item_list = get_items(filters, additional_query_columns)
+	item_list = get_items(filters)
 
 	data = []
 	for d in item_list:
@@ -54,53 +56,56 @@ def get_columns(additional_table_columns):
 
 	return columns
 
-def get_conditions(filters):
-	conditions = ""
-
-	for opts in (("custm", " and `tabJob Card`.customer=%(custm)s"),
-		("workshop", " and `tabJob Card`.warehouse = %(workshop)s"),
-		("user", " and `tabMaintenance Services Table`.technician = %(user)s"),
-		("from_date", " and `tabMaintenance Services Table`.start_date>=%(from_date)s"),
-		("to_date", " and `tabMaintenance Services Table`.start_date<=%(to_date)s")):
-			if filters.get(opts[0]):
-				conditions += opts[1]
-
+def get_conditions(filters, job_card, maintenance_services_table):
+	conditions = []
+	if filters.get("custm"):
+		conditions.append(job_card.customer == filters.get("custm"))
+	if filters.get("workshop"):
+		conditions.append(job_card.warehouse == filters.get("workshop"))
+	if filters.get("user"):
+		conditions.append(maintenance_services_table.technician == filters.get("user"))
+	if filters.get("from_date"):
+		conditions.append(maintenance_services_table.start_date >= filters.get("from_date"))
+	if filters.get("to_date"):
+		conditions.append(maintenance_services_table.start_date <= filters.get("to_date"))
 	return conditions
 
-def get_items(filters, additional_query_columns):
-	conditions = get_conditions(filters)
-	match_conditions = frappe.build_match_conditions("Job Card")
-	
-	if match_conditions:
-		match_conditions = " and {0} ".format(match_conditions)
-	
-	if additional_query_columns:
-		additional_query_columns = ', ' + ', '.join(additional_query_columns)
+def get_items(filters):
+	job_card = frappe.qb.DocType("Job Card")
+	maintenance_services_table = frappe.qb.DocType("Maintenance Services Table")
+	employee = frappe.qb.DocType("Employee")
+	conditions = get_conditions(filters, job_card, maintenance_services_table)
+	match_criterion = get_match_criterion("Job Card")
 
-	return frappe.db.sql("""
-		select
-			`tabJob Card`.name,
-			`tabMaintenance Services Table`.start_date,
-			`tabMaintenance Services Table`.end_date, 
-			`tabMaintenance Services Table`.start_time,
-			`tabMaintenance Services Table`.end_time,
-			`tabJob Card`.name, 
-			`tabJob Card`.customer, 
-			`tabJob Card`.status,
-			`tabJob Card`.warehouse, 
-			`tabEmployee`.employee_name,
-			`tabMaintenance Services Table`.service, 
-			`tabMaintenance Services Table`.billable_hours,
-			`tabMaintenance Services Table`.standard_hours,
-			`tabMaintenance Services Table`.technician, 
-			`tabMaintenance Services Table`.standard_cost	
-		from 
-			`tabJob Card`, `tabMaintenance Services Table`
-		left join 
-			`tabEmployee` on `tabEmployee`.name = `tabMaintenance Services Table`.technician
-		where 
-			`tabJob Card`.name = `tabMaintenance Services Table`.parent and `tabJob Card`.docstatus = 1 %s %s
-		order by 
-			`tabMaintenance Services Table`.start_date
-		""".format(additional_query_columns or '') % (conditions, match_conditions), filters, as_dict=1)
+	query = (
+		frappe.qb.from_(job_card)
+		.from_(maintenance_services_table)
+		.left_join(employee)
+		.on(employee.name == maintenance_services_table.technician)
+		.select(
+			job_card.name,
+			maintenance_services_table.start_date,
+			maintenance_services_table.end_date,
+			maintenance_services_table.start_time,
+			maintenance_services_table.end_time,
+			job_card.name,
+			job_card.customer,
+			job_card.status,
+			job_card.warehouse,
+			employee.employee_name,
+			maintenance_services_table.service,
+			maintenance_services_table.billable_hours,
+			maintenance_services_table.standard_hours,
+			maintenance_services_table.technician,
+			maintenance_services_table.standard_cost,
+		)
+		.where(job_card.name == maintenance_services_table.parent)
+		.where(job_card.docstatus == 1)
+		.where(Criterion.all(conditions))
+		.orderby(maintenance_services_table.start_date)
+	)
 
+	if match_criterion:
+		query = query.where(match_criterion)
+
+	return query.run(as_dict=1)

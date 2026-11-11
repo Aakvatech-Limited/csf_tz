@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import IfNull, Max, Min, Sum
 from frappe.utils import flt, getdate, formatdate, cstr
 from erpnext.accounts.report.financial_statements \
 	import filter_accounts, set_gl_entries_by_account, filter_out_zero_value_rows
@@ -53,9 +55,22 @@ def validate_filters(filters):
 
 def get_data(filters):
 
-	accounts = frappe.db.sql("""select name, account_number, parent_account, account_name, root_type, report_type, lft, rgt
-
-		from `tabAccount` where company=%s order by lft""", filters.company, as_dict=True)
+	account = frappe.qb.DocType("Account")
+	accounts = (
+		frappe.qb.from_(account)
+		.select(
+			account.name,
+			account.account_number,
+			account.parent_account,
+			account.account_name,
+			account.root_type,
+			account.report_type,
+			account.lft,
+			account.rgt,
+		)
+		.where(account.company == filters.company)
+		.orderby(account.lft)
+	).run(as_dict=True)
 	company_currency = "USD"
 
 	if not accounts:
@@ -63,8 +78,11 @@ def get_data(filters):
 
 	accounts, accounts_by_name, parent_children_map = filter_accounts(accounts)
 
-	min_lft, max_rgt = frappe.db.sql("""select min(lft), max(rgt) from `tabAccount`
-		where company=%s""", (filters.company,))[0]
+	min_lft, max_rgt = (
+		frappe.qb.from_(account)
+		.select(Min(account.lft), Max(account.rgt))
+		.where(account.company == filters.company)
+	).run()[0]
 
 	gl_entries_by_account = {}
 
@@ -89,62 +107,66 @@ def get_opening_balances(filters):
 
 
 def get_rootwise_opening_balances(filters, report_type):
-	additional_conditions = ""
-	if not filters.show_unclosed_fy_pl_balances:
-		additional_conditions = " and posting_date >= %(year_start_date)s" \
-			if report_type == "Profit and Loss" else ""
+	gl_entry = frappe.qb.DocType("GL Entry")
+	account = frappe.qb.DocType("Account")
+	report_type_accounts = frappe.qb.from_(account).select(account.name).where(account.report_type == report_type)
 
-	if not flt(filters.with_period_closing_entry):
-		additional_conditions += " and ifnull(voucher_type, '')!='Period Closing Voucher'"
-
-	if filters.cost_center:
-		lft, rgt = frappe.db.get_value('Cost Center', filters.cost_center, ['lft', 'rgt'])
-		additional_conditions += """ and cost_center in (select name from `tabCost Center`
-			where lft >= %s and rgt <= %s)""" % (lft, rgt)
-
-	if filters.finance_book:
-		fb_conditions = " and finance_book = %(finance_book)s"
-		if filters.include_default_book_entries:
-			fb_conditions = " and (finance_book in (%(finance_book)s, %(company_fb)s))"
-
-		additional_conditions += fb_conditions
-
-	accounting_dimensions = get_accounting_dimensions()
-
-	query_filters = {
-		"company": filters.company,
-		"from_date": filters.from_date,
-		"report_type": report_type,
-		"year_start_date": filters.year_start_date,
-		"finance_book": filters.finance_book,
-		"company_fb": frappe.db.get_value("Company", filters.company, 'default_finance_book')
-	}
-
-	if accounting_dimensions:
-		for dimension in accounting_dimensions:
-			if filters.get(dimension):
-				additional_conditions += """ and {0} in (%({0})s) """.format(dimension)
-
-				query_filters.update({
-					dimension: filters.get(dimension)
-				})
-
-	gle = frappe.db.sql("""
-		select
-			account, sum(debit) as opening_debit, sum(credit) as opening_credit
-		from `tabGL Entry`
-		where
-			company=%(company)s
-			{additional_conditions}
-			and (posting_date < %(from_date)s or ifnull(is_opening, 'No') = 'Yes')
-			and account in (select name from `tabAccount` where report_type=%(report_type)s)
-		group by account""".format(additional_conditions=additional_conditions), query_filters , as_dict=True)
+	query = (
+		frappe.qb.from_(gl_entry)
+		.select(
+			gl_entry.account,
+			Sum(gl_entry.debit).as_("opening_debit"),
+			Sum(gl_entry.credit).as_("opening_credit"),
+		)
+		.where(
+			(gl_entry.company == filters.company)
+			& ((gl_entry.posting_date < filters.from_date) | (IfNull(gl_entry.is_opening, "No") == "Yes"))
+			& gl_entry.account.isin(report_type_accounts)
+		)
+		.groupby(gl_entry.account)
+	)
+	gle = query.where(Criterion.all(get_opening_balance_conditions(filters, report_type, gl_entry))).run(as_dict=True)
 
 	opening = frappe._dict()
 	for d in gle:
 		opening.setdefault(d.account, d)
 
 	return opening
+
+def get_opening_balance_conditions(filters, report_type, gl_entry):
+	conditions = []
+	if not filters.show_unclosed_fy_pl_balances and report_type == "Profit and Loss":
+		conditions.append(gl_entry.posting_date >= filters.year_start_date)
+
+	if not flt(filters.with_period_closing_entry):
+		conditions.append(IfNull(gl_entry.voucher_type, "") != "Period Closing Voucher")
+
+	if filters.cost_center:
+		lft, rgt = frappe.db.get_value('Cost Center', filters.cost_center, ['lft', 'rgt'])
+		cost_center = frappe.qb.DocType("Cost Center")
+		conditions.append(
+			gl_entry.cost_center.isin(
+				frappe.qb.from_(cost_center)
+				.select(cost_center.name)
+				.where((cost_center.lft >= lft) & (cost_center.rgt <= rgt))
+			)
+		)
+
+	if filters.finance_book:
+		if filters.include_default_book_entries:
+			company_finance_book = frappe.db.get_value("Company", filters.company, 'default_finance_book')
+			conditions.append(gl_entry.finance_book.isin([filters.finance_book, company_finance_book]))
+		else:
+			conditions.append(gl_entry.finance_book == filters.finance_book)
+
+	return conditions + get_dimension_conditions(filters, gl_entry)
+
+def get_dimension_conditions(filters, gl_entry):
+	return [
+		gl_entry[dimension] == filters.get(dimension)
+		for dimension in get_accounting_dimensions()
+		if filters.get(dimension)
+	]
 
 def calculate_values(accounts, gl_entries_by_account, opening_balances, _filters, company_currency):
 	init = {
