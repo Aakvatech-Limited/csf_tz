@@ -4,7 +4,10 @@
 
 import frappe
 from frappe import _, scrub
+from frappe.query_builder import Criterion, Tuple
+from frappe.query_builder.functions import IfNull
 from frappe.utils import getdate, nowdate
+from csf_tz.csf_tz.report.customer_conditions import get_customer_conditions
 
 
 class PartyLedgerSummaryReport(object):
@@ -155,79 +158,67 @@ class PartyLedgerSummaryReport(object):
 		return out
 
 	def get_gl_entries(self):
-		conditions = self.prepare_conditions()
-		join = join_field = ""
-		if self.filters.party_type == "Customer":
-			join_field = ", p.customer_name as party_name"
-			join = "left join `tabCustomer` p on gle.party = p.name"
-		elif self.filters.party_type == "Supplier":
-			join_field = ", p.supplier_name as party_name"
-			join = "left join `tabSupplier` p on gle.party = p.name"
+		gl_entry = frappe.qb.DocType("GL Entry")
+		fields = [
+			gl_entry.posting_date,
+			gl_entry.party,
+			gl_entry.voucher_type,
+			gl_entry.voucher_no,
+			gl_entry.against_voucher_type,
+			gl_entry.against_voucher,
+			gl_entry.debit,
+			gl_entry.credit,
+			gl_entry.is_opening,
+			gl_entry.debit_in_account_currency,
+			gl_entry.credit_in_account_currency,
+			gl_entry.account_currency,
+		]
+		query = frappe.qb.from_(gl_entry)
+		if self.filters.party_type in ("Customer", "Supplier"):
+			party = frappe.qb.DocType(self.filters.party_type)
+			party_name_field = "customer_name" if self.filters.party_type == "Customer" else "supplier_name"
+			query = query.left_join(party).on(gl_entry.party == party.name)
+			fields.append(party[party_name_field].as_("party_name"))
 
-		self.gl_entries = frappe.db.sql("""
-			select
-				gle.posting_date, gle.party, gle.voucher_type, gle.voucher_no, gle.against_voucher_type,
-				gle.against_voucher, gle.debit, gle.credit, gle.is_opening, gle.debit_in_account_currency,
-				gle.credit_in_account_currency, gle.account_currency {join_field}
-			from `tabGL Entry` gle
-			{join}
-			where
-				gle.docstatus < 2 and gle.is_cancelled = 0 and gle.party_type=%(party_type)s and
-				ifnull(gle.party, '') != '' and gle.posting_date <= %(to_date)s {conditions}
-			order by gle.posting_date
-		""".format(join=join, join_field=join_field, conditions=conditions), self.filters, as_dict=True)
+		query = (
+			query.select(*fields)
+			.where(
+				(gl_entry.docstatus < 2)
+				& (gl_entry.is_cancelled == 0)
+				& (gl_entry.party_type == self.filters.party_type)
+				& (IfNull(gl_entry.party, "") != "")
+				& (gl_entry.posting_date <= self.filters.to_date)
+			)
+			.orderby(gl_entry.posting_date)
+		)
+		self.gl_entries = query.where(Criterion.all(self.prepare_conditions(gl_entry))).run(as_dict=True)
 
-	def prepare_conditions(self):
-		conditions = [""]
+	def prepare_conditions(self, gl_entry):
+		conditions = []
 
 		if self.filters.company:
-			conditions.append("gle.company=%(company)s")
+			conditions.append(gl_entry.company == self.filters.company)
 
 		if self.filters.finance_book:
-			conditions.append("ifnull(finance_book,'') in (%(finance_book)s, '')")
+			conditions.append(IfNull(gl_entry.finance_book, "").isin([self.filters.finance_book, ""]))
 
 		if self.filters.get("party"):
-			conditions.append("party=%(party)s")
+			conditions.append(gl_entry.party == self.filters.get("party"))
 
 		if self.filters.party_type == "Customer":
-			if self.filters.get("customer_group"):
-				lft, rgt = frappe.db.get_value("Customer Group",
-					self.filters.get("customer_group"), ["lft", "rgt"])
+			conditions += get_customer_conditions(self.filters, gl_entry)
 
-				conditions.append("""party in (select name from tabCustomer
-					where exists(select name from `tabCustomer Group` where lft >= {0} and rgt <= {1}
-						and name=tabCustomer.customer_group))""".format(lft, rgt))
+		if self.filters.party_type == "Supplier" and self.filters.get("supplier_group"):
+			supplier = frappe.qb.DocType("Supplier")
+			conditions.append(
+				gl_entry.party.isin(
+					frappe.qb.from_(supplier)
+					.select(supplier.name)
+					.where(supplier.supplier_group == self.filters.get("supplier_group"))
+				)
+			)
 
-			if self.filters.get("territory"):
-				lft, rgt = frappe.db.get_value("Territory",
-					self.filters.get("territory"), ["lft", "rgt"])
-
-				conditions.append("""party in (select name from tabCustomer
-					where exists(select name from `tabTerritory` where lft >= {0} and rgt <= {1}
-						and name=tabCustomer.territory))""".format(lft, rgt))
-
-			if self.filters.get("payment_terms_template"):
-				conditions.append("party in (select name from tabCustomer where payment_terms=%(payment_terms_template)s)")
-
-			if self.filters.get("sales_partner"):
-				conditions.append("party in (select name from tabCustomer where default_sales_partner=%(sales_partner)s)")
-
-			if self.filters.get("sales_person"):
-				lft, rgt = frappe.db.get_value("Sales Person",
-					self.filters.get("sales_person"), ["lft", "rgt"])
-
-				conditions.append("""exists(select name from `tabSales Team` steam where
-					steam.sales_person in (select name from `tabSales Person` where lft >= {0} and rgt <= {1})
-					and ((steam.parent = voucher_no and steam.parenttype = voucher_type)
-						or (steam.parent = against_voucher and steam.parenttype = against_voucher_type)
-						or (steam.parent = party and steam.parenttype = 'Customer')))""".format(lft, rgt))
-
-		if self.filters.party_type == "Supplier":
-			if self.filters.get("supplier_group"):
-				conditions.append("""party in (select name from tabSupplier
-					where supplier_group=%(supplier_group)s)""")
-
-		return " and ".join(conditions)
+		return conditions
 
 	def get_return_invoices(self):
 		doctype = "Sales Invoice" if self.filters.party_type == "Customer" else "Purchase Invoice"
@@ -235,29 +226,57 @@ class PartyLedgerSummaryReport(object):
 			"posting_date": ["between", [self.filters.from_date, self.filters.to_date]]})]
 
 	def get_party_adjustment_amounts(self):
-		conditions = self.prepare_conditions()
 		income_or_expense = "Expense Account" if self.filters.party_type == "Customer" else "Income Account"
 		invoice_dr_or_cr = "debit_in_account_currency" if self.filters.party_type == "Customer" else "credit_in_account_currency"
 		reverse_dr_or_cr = "credit_in_account_currency" if self.filters.party_type == "Customer" else "debit_in_account_currency"
 		round_off_account = frappe.get_cached_value('Company', self.filters.company, "round_off_account")
 
-		gl_entries = frappe.db.sql("""
-			select
-				posting_date, account, party, voucher_type, voucher_no, debit_in_account_currency, credit_in_account_currency
-			from
-				`tabGL Entry`
-			where
-				docstatus < 2 and is_cancelled = 0
-				and (voucher_type, voucher_no) in (
-					select voucher_type, voucher_no from `tabGL Entry` gle, `tabAccount` acc
-					where acc.name = gle.account and acc.account_type = '{income_or_expense}'
-					and gle.posting_date between %(from_date)s and %(to_date)s and gle.docstatus < 2
-				) and (voucher_type, voucher_no) in (
-					select voucher_type, voucher_no from `tabGL Entry` gle
-					where gle.party_type=%(party_type)s and ifnull(party, '') != ''
-					and gle.posting_date between %(from_date)s and %(to_date)s and gle.docstatus < 2 {conditions}
-				)
-		""".format(conditions=conditions, income_or_expense=income_or_expense), self.filters, as_dict=True)
+		gl_entry = frappe.qb.DocType("GL Entry")
+		adjustment_gl_entry = frappe.qb.DocType("GL Entry", alias="adjustment_gle")
+		party_gl_entry = frappe.qb.DocType("GL Entry", alias="party_gle")
+		account = frappe.qb.DocType("Account")
+		adjustment_vouchers = (
+			frappe.qb.from_(adjustment_gl_entry)
+			.join(account)
+			.on(account.name == adjustment_gl_entry.account)
+			.select(adjustment_gl_entry.voucher_type, adjustment_gl_entry.voucher_no)
+			.where(
+				(account.account_type == income_or_expense)
+				& adjustment_gl_entry.posting_date.between(self.filters.from_date, self.filters.to_date)
+				& (adjustment_gl_entry.docstatus < 2)
+			)
+		)
+		party_vouchers = (
+			frappe.qb.from_(party_gl_entry)
+			.select(party_gl_entry.voucher_type, party_gl_entry.voucher_no)
+			.where(
+				(party_gl_entry.party_type == self.filters.party_type)
+				& (IfNull(party_gl_entry.party, "") != "")
+				& party_gl_entry.posting_date.between(self.filters.from_date, self.filters.to_date)
+				& (party_gl_entry.docstatus < 2)
+			)
+		)
+		party_vouchers = party_vouchers.where(Criterion.all(self.prepare_conditions(party_gl_entry)))
+
+		voucher = Tuple(gl_entry.voucher_type, gl_entry.voucher_no)
+		gl_entries = (
+			frappe.qb.from_(gl_entry)
+			.select(
+				gl_entry.posting_date,
+				gl_entry.account,
+				gl_entry.party,
+				gl_entry.voucher_type,
+				gl_entry.voucher_no,
+				gl_entry.debit_in_account_currency,
+				gl_entry.credit_in_account_currency,
+			)
+			.where(
+				(gl_entry.docstatus < 2)
+				& (gl_entry.is_cancelled == 0)
+				& voucher.isin(adjustment_vouchers)
+				& voucher.isin(party_vouchers)
+			)
+		).run(as_dict=True)
 
 		self.party_adjustment_details = {}
 		self.party_adjustment_accounts = set()
