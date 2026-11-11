@@ -5,6 +5,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Sum
+from csf_tz.fleet_management.trip_queries import get_offloaded_trips_query, get_trip_location_query
+from csf_tz.utils.query_builder import get_latest_reporting_status_query
 import ast
 import datetime
 
@@ -184,206 +188,24 @@ def execute(filters=None):
 	yesterday = yesterday.strftime("%Y-%m-%d")
 	day_before = day_before.strftime("%Y-%m-%d")
 	
-	main_where = ''
-	return_where = ''
-	where_filter = {'today': today, 'yesterday': yesterday, 'day_before': day_before}
-	if filters.customer:
-		#For main trip
-		main_where = ' AND `tabVehicle Trip`.main_customer = %(customer)s'
-		where_filter.update({'customer': filters.customer})
-		#For return trip
-		return_where = ' AND `tabVehicle Trip`.return_customer = %(customer)s'
-		
-	
-	data_main = frappe.db.sql('''SELECT
-					`tabVehicle Trip`.name AS file_number,
-					`tabVehicle Trip`.main_customer AS client,
-					`tabTransport Request`.request_received AS order_date,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo Logistics'
-						WHEN `tabVehicle Trip`.transporter_type = 'Sub-Contractor' THEN `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						`tabVehicle Trip`.main_cargo_type
-					END AS cargo_type,
-					`tabVehicle Trip`.main_goods_description AS cargo,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						(SELECT `tabCargo Details`.container_number FROM `tabCargo Details` WHERE parenttype = 'Vehicle Trip' \
-							AND parent = `tabVehicle Trip`.name AND parentfield = 'main_cargo' LIMIT 1)
-					END AS cargo_reference,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Container' THEN 
-						(SELECT SUM(`tabCargo Details`.net_weight) FROM `tabCargo Details` WHERE `tabCargo Details`.parent = `tabVehicle Trip`.name \
-						AND `tabCargo Details`.parenttype = 'Vehicle Trip' AND `tabCargo Details`.parentfield = 'main_cargo')
-					ELSE `tabVehicle Trip`.main_loose_net_weight
-					END AS weight,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.passport_number,
-					`tabVehicle Trip`.main_offloading_weight AS offloading_weight,
-					(SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE parent = `tabVehicle Trip`.name
-							AND parenttype = 'Vehicle Trip' AND parentfield = 'main_location_update' ORDER BY `tabVehicle Trip Location Update`.timestamp LIMIT 1) AS vehicle_position,
-					(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Vehicle Trip' \
-						AND `tabReporting Status Table`.parent = `tabVehicle Trip`.name AND `tabReporting Status Table`.parentfield = 'main_reporting_status' \
-						ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-				FROM
-					`tabVehicle Trip`
-				LEFT JOIN
-					`tabTransport Assignment` ON `tabVehicle Trip`.reference_docname = `tabTransport Assignment`.name
-				LEFT JOIN
-					`tabTransport Request` ON `tabTransport Request`.name = `tabTransport Assignment`.parent
-				WHERE 
-					`tabVehicle Trip`.reference_doctype IS NOT NULL AND `tabVehicle Trip`.reference_docname IS NOT NULL ''' + main_where +
-				'''
-					AND `tabVehicle Trip`.status = 'En Route' ''', where_filter, as_dict=1)
-	
-	data_return = frappe.db.sql(''' SELECT
-					`tabVehicle Trip`.name AS file_number,
-					`tabVehicle Trip`.return_customer AS client,
-					`tabTransport Request`.request_received AS order_date,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo Logistics'
-						WHEN `tabVehicle Trip`.transporter_type = 'Sub-Contractor' THEN `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					CASE
-						WHEN `tabVehicle Trip`.return_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						`tabVehicle Trip`.return_cargo_type
-					END AS cargo_type,
-					`tabVehicle Trip`.return_goods_description AS cargo,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						(SELECT `tabCargo Details`.container_number FROM `tabCargo Details` WHERE parenttype = 'Vehicle Trip' \
-							AND parent = `tabVehicle Trip`.name AND parentfield = 'return_cargo' LIMIT 1)
-					END AS cargo_reference,
-					CASE
-						WHEN `tabVehicle Trip`.return_cargo_type = 'Container' THEN 
-						(SELECT SUM(`tabCargo Details`.net_weight) FROM `tabCargo Details` WHERE `tabCargo Details`.parent = `tabVehicle Trip`.name \
-						AND `tabCargo Details`.parenttype = 'Vehicle Trip' AND `tabCargo Details`.parentfield = 'return_cargo')
-					ELSE `tabVehicle Trip`.return_loose_net_weight
-					END AS weight,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.passport_number,
-					`tabVehicle Trip`.return_offloading_weight AS offloading_weight,
-					(SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE parent = `tabVehicle Trip`.name
-							AND parenttype = 'Vehicle Trip' AND parentfield = 'return_location_update' ORDER BY `tabVehicle Trip Location Update`.timestamp LIMIT 1) AS vehicle_position,
-					(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Vehicle Trip' \
-						AND `tabReporting Status Table`.parent = `tabVehicle Trip`.name AND `tabReporting Status Table`.parentfield = 'return_reporting_status' \
-						ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-				FROM
-					`tabVehicle Trip`
-				LEFT JOIN
-					`tabTransport Assignment` ON `tabVehicle Trip`.reference_docname = `tabTransport Assignment`.name
-				LEFT JOIN
-					`tabTransport Request` ON `tabTransport Request`.name = `tabTransport Assignment`.parent
-				WHERE 
-					`tabVehicle Trip`.return_reference_doctype IS NOT NULL AND `tabVehicle Trip`.return_reference_docname IS NOT NULL '''
-				+ return_where + '''
-					AND `tabVehicle Trip`.status = 'En Route - Returning' ''', where_filter, as_dict=1)
-	
-	
-	data_offloaded_main = frappe.db.sql('''SELECT
-					`tabVehicle Trip`.name AS file_number,
-					`tabVehicle Trip`.main_customer AS client,
-					`tabTransport Request`.request_received AS order_date,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo Logistics'
-						WHEN `tabVehicle Trip`.transporter_type = 'Sub-Contractor' THEN `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						`tabVehicle Trip`.main_cargo_type
-					END AS cargo_type,
-					`tabVehicle Trip`.main_goods_description AS cargo,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						(SELECT `tabCargo Details`.container_number FROM `tabCargo Details` WHERE parenttype = 'Vehicle Trip' \
-							AND parent = `tabVehicle Trip`.name AND parentfield = 'main_cargo' LIMIT 1)
-					END AS cargo_reference,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Container' THEN 
-						(SELECT SUM(`tabCargo Details`.net_weight) FROM `tabCargo Details` WHERE `tabCargo Details`.parent = `tabVehicle Trip`.name \
-						AND `tabCargo Details`.parenttype = 'Vehicle Trip' AND `tabCargo Details`.parentfield = 'main_cargo')
-					ELSE `tabVehicle Trip`.main_loose_net_weight
-					END AS weight,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.passport_number,
-					`tabVehicle Trip`.main_offloading_weight AS offloading_weight,
-					(SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE parent = `tabVehicle Trip`.name
-							AND parenttype = 'Vehicle Trip' AND parentfield = 'main_location_update' ORDER BY `tabVehicle Trip Location Update`.timestamp LIMIT 1) AS vehicle_position,
-					(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Vehicle Trip' \
-						AND `tabReporting Status Table`.parent = `tabVehicle Trip`.name AND `tabReporting Status Table`.parentfield = 'main_reporting_status' \
-						ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-				FROM
-					`tabVehicle Trip`
-				LEFT JOIN
-					`tabTransport Assignment` ON `tabVehicle Trip`.reference_docname = `tabTransport Assignment`.name
-				LEFT JOIN
-					`tabTransport Request` ON `tabTransport Request`.name = `tabTransport Assignment`.parent
-				WHERE 
-					`tabVehicle Trip`.name IN (SELECT parent FROM `tabRoute Steps Table` WHERE parenttype = 'Vehicle Trip' AND parentfield = 'main_route_steps' AND offloading_date IN (%(today)s, %(yesterday)s, %(day_before)s)) ''' + main_where +
-				'''
-					AND `tabVehicle Trip`.status = 'En Route' ''', where_filter, as_dict=1)
-	
-					
-	data_offloaded_return = frappe.db.sql(''' SELECT
-					`tabVehicle Trip`.name AS file_number,
-					`tabVehicle Trip`.return_customer AS client,
-					`tabTransport Request`.request_received AS order_date,
-					CASE
-						WHEN `tabVehicle Trip`.transporter_type = 'Bravo' THEN 'Bravo Logistics'
-						WHEN `tabVehicle Trip`.transporter_type = 'Sub-Contractor' THEN `tabVehicle Trip`.sub_contractor
-					END AS transporter_name,
-					`tabVehicle Trip`.vehicle_plate_number,
-					`tabVehicle Trip`.trailer_plate_number,
-					CASE
-						WHEN `tabVehicle Trip`.return_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						`tabVehicle Trip`.return_cargo_type
-					END AS cargo_type,
-					`tabVehicle Trip`.return_goods_description AS cargo,
-					CASE
-						WHEN `tabVehicle Trip`.main_cargo_type = 'Loose Cargo' THEN 'Loose'
-					ELSE
-						(SELECT `tabCargo Details`.container_number FROM `tabCargo Details` WHERE parenttype = 'Vehicle Trip' \
-							AND parent = `tabVehicle Trip`.name AND parentfield = 'return_cargo' LIMIT 1)
-					END AS cargo_reference,
-					CASE
-						WHEN `tabVehicle Trip`.return_cargo_type = 'Container' THEN 
-						(SELECT SUM(`tabCargo Details`.net_weight) FROM `tabCargo Details` WHERE `tabCargo Details`.parent = `tabVehicle Trip`.name \
-						AND `tabCargo Details`.parenttype = 'Vehicle Trip' AND `tabCargo Details`.parentfield = 'return_cargo')
-					ELSE `tabVehicle Trip`.return_loose_net_weight
-					END AS weight,
-					`tabVehicle Trip`.driver_name,
-					`tabVehicle Trip`.passport_number,
-					`tabVehicle Trip`.return_offloading_weight AS offloading_weight,
-					(SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE parent = `tabVehicle Trip`.name
-							AND parenttype = 'Vehicle Trip' AND parentfield = 'return_location_update' ORDER BY `tabVehicle Trip Location Update`.timestamp LIMIT 1) AS vehicle_position,
-					(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Vehicle Trip' \
-						AND `tabReporting Status Table`.parent = `tabVehicle Trip`.name AND `tabReporting Status Table`.parentfield = 'return_reporting_status' \
-						ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-				FROM
-					`tabVehicle Trip`
-				LEFT JOIN
-					`tabTransport Assignment` ON `tabVehicle Trip`.reference_docname = `tabTransport Assignment`.name
-				LEFT JOIN
-					`tabTransport Request` ON `tabTransport Request`.name = `tabTransport Assignment`.parent
-				WHERE 
-					`tabVehicle Trip`.name IN (SELECT parent FROM `tabRoute Steps Table` WHERE parenttype = 'Vehicle Trip' AND parentfield = 'return_route_steps' AND offloading_date IN (%(today)s, %(yesterday)s, %(day_before)s)) '''
-				+ return_where + '''
-					AND `tabVehicle Trip`.status = 'En Route - Returning' ''', where_filter, as_dict=1)
+	vehicle_trip = frappe.qb.DocType("Vehicle Trip")
+	offloading_dates = [today, yesterday, day_before]
+
+	data_main = get_trip_query("main", "En Route", filters.customer).where(
+		vehicle_trip.reference_doctype.isnotnull() & vehicle_trip.reference_docname.isnotnull()
+	).run(as_dict=True)
+
+	data_return = get_trip_query("return", "En Route - Returning", filters.customer).where(
+		vehicle_trip.return_reference_doctype.isnotnull() & vehicle_trip.return_reference_docname.isnotnull()
+	).run(as_dict=True)
+
+	data_offloaded_main = get_trip_query("main", "En Route", filters.customer).where(
+		vehicle_trip.name.isin(get_offloaded_trips_query("main_route_steps", offloading_dates))
+	).run(as_dict=True)
+
+	data_offloaded_return = get_trip_query("return", "En Route - Returning", filters.customer).where(
+		vehicle_trip.name.isin(get_offloaded_trips_query("return_route_steps", offloading_dates))
+	).run(as_dict=True)
 	
 	data_main = get_trip_data(data_main)				
 	data_return = get_trip_data(data_return, True)
@@ -424,3 +246,85 @@ def get_trip_data(trip_data, return_trip=False):
 					
 					
 	return trip_data
+
+
+def get_trip_query(leg, status, customer):
+	vehicle_trip = frappe.qb.DocType("Vehicle Trip")
+	transport_assignment = frappe.qb.DocType("Transport Assignment")
+	transport_request = frappe.qb.DocType("Transport Request")
+	query = (
+		frappe.qb.from_(vehicle_trip)
+		.left_join(transport_assignment)
+		.on(vehicle_trip.reference_docname == transport_assignment.name)
+		.left_join(transport_request)
+		.on(transport_request.name == transport_assignment.parent)
+		.select(
+			vehicle_trip.name.as_("file_number"),
+			vehicle_trip[f"{leg}_customer"].as_("client"),
+			transport_request.request_received.as_("order_date"),
+			get_transporter_name(vehicle_trip).as_("transporter_name"),
+			vehicle_trip.vehicle_plate_number,
+			vehicle_trip.trailer_plate_number,
+			get_cargo_type(vehicle_trip, leg).as_("cargo_type"),
+			vehicle_trip[f"{leg}_goods_description"].as_("cargo"),
+			get_cargo_reference(vehicle_trip, leg).as_("cargo_reference"),
+			get_cargo_weight(vehicle_trip, leg).as_("weight"),
+			vehicle_trip.driver_name,
+			vehicle_trip.passport_number,
+			vehicle_trip[f"{leg}_offloading_weight"].as_("offloading_weight"),
+			get_trip_location_query(vehicle_trip, leg).as_("vehicle_position"),
+			get_latest_reporting_status_query(
+				vehicle_trip.name, "Vehicle Trip", f"{leg}_reporting_status"
+			).as_("remarks"),
+		)
+		.where(vehicle_trip.status == status)
+	)
+	if customer:
+		query = query.where(vehicle_trip[f"{leg}_customer"] == customer)
+	return query
+
+
+def get_transporter_name(vehicle_trip):
+	return (
+		Case()
+		.when(vehicle_trip.transporter_type == "Bravo", "Bravo Logistics")
+		.when(vehicle_trip.transporter_type == "Sub-Contractor", vehicle_trip.sub_contractor)
+	)
+
+
+def get_cargo_type(vehicle_trip, leg):
+	cargo_type = vehicle_trip[f"{leg}_cargo_type"]
+	return Case().when(cargo_type == "Loose Cargo", "Loose").else_(cargo_type)
+
+
+def get_cargo_reference(vehicle_trip, leg):
+	cargo_details = frappe.qb.DocType("Cargo Details")
+	container_number = (
+		frappe.qb.from_(cargo_details)
+		.select(cargo_details.container_number)
+		.where(
+			(cargo_details.parenttype == "Vehicle Trip")
+			& (cargo_details.parent == vehicle_trip.name)
+			& (cargo_details.parentfield == f"{leg}_cargo")
+		)
+		.limit(1)
+	)
+	return Case().when(vehicle_trip.main_cargo_type == "Loose Cargo", "Loose").else_(container_number)
+
+
+def get_cargo_weight(vehicle_trip, leg):
+	cargo_details = frappe.qb.DocType("Cargo Details")
+	container_weight = (
+		frappe.qb.from_(cargo_details)
+		.select(Sum(cargo_details.net_weight))
+		.where(
+			(cargo_details.parent == vehicle_trip.name)
+			& (cargo_details.parenttype == "Vehicle Trip")
+			& (cargo_details.parentfield == f"{leg}_cargo")
+		)
+	)
+	return (
+		Case()
+		.when(vehicle_trip[f"{leg}_cargo_type"] == "Container", container_weight)
+		.else_(vehicle_trip[f"{leg}_loose_net_weight"])
+	)
