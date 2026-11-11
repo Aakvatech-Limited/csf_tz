@@ -11,42 +11,32 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {
-		"from_date": filters.from_date,
-		"to_date": filters.to_date,
-	}
-	where = ""
+	order_track = frappe.qb.DocType("Order Track")
+	query = (
+		frappe.qb.from_(order_track)
+		.select(
+			order_track.name.as_("order_no"),
+			order_track.supplier,
+			order_track.supplier_type,
+			order_track.shipped_date,
+			order_track.expected_arrival_date,
+			order_track.mode_of_transport,
+			order_track.bl_number,
+			order_track.arrival_date,
+			order_track.discharged_date,
+			order_track.clearing_company,
+			order_track.expected_clearing_completion_date,
+			order_track.clearing_completion_date,
+		)
+		.where(order_track.expected_arrival_date[filters.from_date : filters.to_date])
+	)
 	if filters.order:
-		where += "  AND tot.name = %(order)s "
-		where_filter.update({"order": filters.order})
+		query = query.where(order_track.name == filters.order)
 
 	if filters.supplier:
-		where += "  AND tot.supplier = %(supplier)s "
-		where_filter.update({"supplier": filters.supplier})
+		query = query.where(order_track.supplier == filters.supplier)
 
-	data = frappe.db.sql(
-		"""SELECT
-				tot.name AS order_no,
-				tot.supplier,
-				tot.supplier_type,
-				tot.shipped_date,
-				tot.expected_arrival_date,
-				tot.mode_of_transport,
-				tot.bl_number,
-				tot.arrival_date,
-				tot.discharged_date,
-				tot.clearing_company,
-				tot.expected_clearing_completion_date,
-				tot.clearing_completion_date
-			FROM
-				`tabOrder Track` tot
-			WHERE
-				tot.expected_arrival_date BETWEEN %(from_date)s AND %(to_date)s
-		 """
-		+ where,
-		where_filter,
-		as_dict=1,
-	)
+	data = query.run(as_dict=True)
 	return columns, data
 
 

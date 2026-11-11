@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import frappe
 from erpnext.accounts.utils import get_balance_on
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, flt, formatdate, getdate
 
 
@@ -299,36 +300,27 @@ class MultiBankBalance:
 		Returns:
 		    list: List of account dictionaries
 		"""
-		values = [company, account_type]
-
-		# Base query
-		query = """
-            SELECT
-                name,
-                account_name,
-                account_type,
-                account_currency,
-                parent_account,
-                root_type,
-                is_group,
-                disabled
-            FROM `tabAccount`
-            WHERE company = %s
-                AND account_type = %s
-                AND is_group = 0
-        """
-
-		# Add conditions based on parameters
+		filters = {"company": company, "account_type": account_type, "is_group": 0}
 		if not include_inactive:
-			query += " AND disabled = 0"
-
+			filters["disabled"] = 0
 		if currency:
-			query += " AND account_currency = %s"
-			values.append(currency)
+			filters["account_currency"] = currency
 
-		query += " ORDER BY account_name"
-
-		accounts = frappe.db.sql(query, values, as_dict=True)
+		accounts = frappe.get_all(
+			"Account",
+			filters=filters,
+			fields=[
+				"name",
+				"account_name",
+				"account_type",
+				"account_currency",
+				"parent_account",
+				"root_type",
+				"is_group",
+				"disabled",
+			],
+			order_by="account_name asc",
+		)
 
 		# Filter accounts based on user permissions
 		allowed_accounts = []
@@ -373,21 +365,20 @@ class MultiBankBalance:
 		account_names = [acc["name"] for acc in accounts]
 
 		# Get all GL entries for these accounts in the date range
-		gl_entries = frappe.db.sql(
-			"""
-            SELECT
-                account,
-                posting_date,
-                SUM(debit - credit) as net_amount
-            FROM `tabGL Entry`
-            WHERE account IN ({})
-                AND posting_date BETWEEN %s AND %s
-                AND is_cancelled = 0
-            GROUP BY account, posting_date
-            ORDER BY posting_date, account
-        """.format(",".join(["%s"] * len(account_names))),
-			account_names + [from_date, to_date],
-			as_dict=True,
+		gl_entry = frappe.qb.DocType("GL Entry")
+		gl_entries = (
+			frappe.qb.from_(gl_entry)
+			.select(
+				gl_entry.account,
+				gl_entry.posting_date,
+				Sum(gl_entry.debit - gl_entry.credit).as_("net_amount"),
+			)
+			.where(gl_entry.account.isin(account_names))
+			.where(gl_entry.posting_date[from_date:to_date])
+			.where(gl_entry.is_cancelled == 0)
+			.groupby(gl_entry.account, gl_entry.posting_date)
+			.orderby(gl_entry.posting_date, gl_entry.account)
+			.run(as_dict=True)
 		)
 
 		# Build running balances
@@ -854,17 +845,16 @@ def get_account_currencies(company):
 	Returns:
 	    list: List of currencies
 	"""
-	return frappe.db.sql(
-		"""
-        SELECT DISTINCT account_currency
-        FROM `tabAccount`
-        WHERE company = %s
-        AND account_type IN ('Bank', 'Cash')
-        AND account_currency IS NOT NULL
-        ORDER BY account_currency
-    """,
-		company,
-		pluck=True,
+	account = frappe.qb.DocType("Account")
+	return (
+		frappe.qb.from_(account)
+		.select(account.account_currency)
+		.distinct()
+		.where(account.company == company)
+		.where(account.account_type.isin(["Bank", "Cash"]))
+		.where(account.account_currency.isnotnull())
+		.orderby(account.account_currency)
+		.run(pluck=True)
 	)
 
 
