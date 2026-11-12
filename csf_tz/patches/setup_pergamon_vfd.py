@@ -14,6 +14,6 @@ def execute():
 			"doctype": "VFD Provider",
 			"vfd_provider": "Pergamon",
 			"vfd_provider_settings": "Pergamon VFD Settings",
-			"sandbox": 0,
+			"sandbox": 1,
 		}
 	).insert(ignore_permissions=True)
