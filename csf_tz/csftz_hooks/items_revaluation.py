@@ -1,30 +1,43 @@
 import frappe
-from frappe import _
 from frappe.utils import flt
 
 
-@frappe.whitelist()
-def get_data(filters):
-    filters = frappe._dict(filters)
-    data = get_stock_ledger_entries(filters)
-    itewise_balance_qty = {}
+def process_incorrect_balance_qty():
+    rec = get_first_incorrect_entry()
+    if not rec:
+        return
 
-    for row in data:
-        key = (row.item_code, row.warehouse)
-        itewise_balance_qty.setdefault(key, []).append(row)
+    doc = frappe.new_doc("Repost Item Valuation")
+    doc.based_on = "Transaction"
+    doc.voucher_type = rec.voucher_type
+    doc.voucher_no = rec.voucher_no
+    doc.posting_date = rec.posting_date
+    doc.posting_time = rec.posting_time
+    doc.company = rec.company
+    doc.warehouse = rec.warehouse
+    doc.allow_negative_stock = 1
+    doc.docstatus = 1
+    doc.insert(ignore_permissions=True)
+    frappe.db.commit()
 
-    res = validate_data(itewise_balance_qty)
-    return res
 
+def get_first_incorrect_entry():
+    """Incorrect entry of the item-warehouse whose first entry is earliest."""
+    entries_by_item = {}
+    for entry in get_stock_ledger_entries():
+        entries_by_item.setdefault((entry.item_code, entry.warehouse), []).append(entry)
 
-def validate_data(itewise_balance_qty):
-    res = []
-    for key, data in itewise_balance_qty.items():
-        row = get_incorrect_data(data)
-        if row:
-            res.append(row)
+    incorrect = []
+    for entries in entries_by_item.values():
+        if row := get_incorrect_data(entries):
+            first = entries[0]
+            incorrect.append(
+                ((first.posting_date, first.posting_time, first.creation), row)
+            )
 
-    return res
+    return (
+        min(incorrect, key=lambda started_row: started_row[0])[1] if incorrect else None
+    )
 
 
 def get_incorrect_data(data):
@@ -42,47 +55,62 @@ def get_incorrect_data(data):
             return row
 
 
-def get_stock_ledger_entries(report_filters):
-    filters = {"is_cancelled": 0}
-    fields = [
-        "name",
-        "voucher_type",
-        "voucher_no",
-        "item_code",
-        "actual_qty",
-        "posting_date",
-        "posting_time",
-        "company",
-        "warehouse",
-        "qty_after_transaction",
-        "batch_no",
-    ]
+@frappe.read_only()
+def get_stock_ledger_entries():
+    sle = frappe.qb.DocType("Stock Ledger Entry")
+    index, order_by = get_posting_order_index()
 
-    for field in ["warehouse", "item_code", "company"]:
-        if report_filters.get(field):
-            filters[field] = report_filters.get(field)
+    query = frappe.qb.from_(sle)
+    if index:
+        # the index isn't covering, so MariaDB would rather scan and sort the
+        # whole ledger on disk
+        query = query.force_index(index)
 
-    return frappe.get_all(
-        "Stock Ledger Entry",
-        fields=fields,
-        filters=filters,
-        order_by="timestamp(posting_date, posting_time) asc, creation asc",
-    )
+    query = query.select(
+        sle.voucher_type,
+        sle.voucher_no,
+        sle.item_code,
+        sle.actual_qty,
+        sle.posting_date,
+        sle.posting_time,
+        sle.creation,
+        sle.company,
+        sle.warehouse,
+        sle.qty_after_transaction,
+        sle.batch_no,
+    ).where(sle.is_cancelled == 0)
+
+    for column in order_by:
+        query = query.orderby(sle[column])
+
+    return query.run(as_dict=True)
 
 
-def process_incorrect_balance_qty():
-    data = get_data({})
-    if len(data) > 0:
-        rec = frappe._dict(data[0])
-        doc = frappe.new_doc("Repost Item Valuation")
-        doc.based_on = "Transaction"
-        doc.voucher_type = rec.voucher_type
-        doc.voucher_no = rec.voucher_no
-        doc.posting_date = rec.posting_date
-        doc.posting_time = rec.posting_time
-        doc.company = rec.company
-        doc.warehouse = rec.warehouse
-        doc.allow_negative_stock = 1
-        doc.docstatus = 1
-        doc.insert(ignore_permissions=True)
-        frappe.db.commit()
+def get_posting_order_index():
+    """An SLE index that returns each item-warehouse in posting order, and its order.
+
+    ERPNext has had (posting_datetime, creation) and, from v15.64,
+    (item_code, warehouse, posting_datetime, creation).
+    """
+    statistics = frappe.qb.Schema("information_schema").statistics
+    index_columns = {}
+    for row in (
+        frappe.qb.from_(statistics)
+        .select(statistics.index_name, statistics.column_name)
+        .where(
+            (statistics.table_schema == frappe.db.cur_db_name)
+            & (statistics.table_name == "tabStock Ledger Entry")
+        )
+        .orderby(statistics.index_name)
+        .orderby(statistics.seq_in_index)
+        .run(as_dict=True)
+    ):
+        index_columns.setdefault(row.index_name, []).append(row.column_name)
+
+    for prefix in (["item_code", "warehouse"], []):
+        order_by = [*prefix, "posting_datetime", "creation"]
+        for index, columns in index_columns.items():
+            if columns[: len(order_by)] == order_by:
+                return index, order_by
+
+    return None, ["posting_date", "posting_time", "creation"]
