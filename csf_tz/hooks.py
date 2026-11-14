@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from . import __version__ as app_version
+
+from . import __version__ as app_version  # noqa: F401
 
 app_name = "csf_tz"
 app_title = "CSF TZ"
@@ -188,8 +189,9 @@ doc_events = {
         "validate": "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
     },
     "Purchase Order": {
-        "validate": ["csf_tz.custom_api.target_warehouse_based_price_list", 
-                     "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice"
+        "validate": [
+            "csf_tz.custom_api.target_warehouse_based_price_list",
+            "csf_tz.csftz_hooks.budget.check_budget_for_purchase_invoice",
         ],
     },
     "Material Request": {
@@ -301,18 +303,20 @@ scheduler_events = {
     # "all": [
     # 	"csf_tz.tasks.all"
     # ],
-    "cron": { 
+    "cron": {
         "* * * * *": [
             "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.run_vehicle_batch"
         ],
         "0 */6 * * *": [
             "csf_tz.csf_tz.doctype.parking_bill.parking_bill.check_bills_all_vehicles",
         ],
-        
         "*/15 * * * *": [
-            "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
+        ],
+        # twice daily, off-peak: scans the whole stock ledger
+        "0 4,22 * * *": [
+            "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
         ],
         # Routine for every day 3:30am at night
         "30 3 * * *": [
@@ -331,8 +335,7 @@ scheduler_events = {
         "csf_tz.csftz_hooks.exchange_calculations.update_pending_transactions",
         "csf_tz.csf_tz.doctype.vehicle_sync_task.processor.seed_vehicle_sync_queue",
         "csf_tz.csf_tz.doctype.latra_licenses.latra_licenses.update_latra_offences",
-		"csf_tz.vehicle_authority.run_daily_authority_notifications",
-
+        "csf_tz.vehicle_authority.run_daily_authority_notifications",
     ],
     # "hourly": [
     # 	"csf_tz.tasks.hourly"
@@ -341,10 +344,10 @@ scheduler_events = {
         "csf_tz.custom_api.make_stock_reconciliation_for_all_pending_material_request"
     ],
     "monthly": [
-		# "csf_tz.tasks.monthly",
-		"csf_tz.csf_tz.doctype.tz_insurance_cover_note.tz_insurance_cover_note.update_covernote_docs",
-		"csf_tz.csf_tz.doctype.latra_licenses.latra_licenses.update_latra_records",
-	],
+        # "csf_tz.tasks.monthly",
+        "csf_tz.csf_tz.doctype.tz_insurance_cover_note.tz_insurance_cover_note.update_covernote_docs",
+        "csf_tz.csf_tz.doctype.latra_licenses.latra_licenses.update_latra_records",
+    ],
 }
 
 jinja = {"methods": ["csf_tz.custom_api.generate_qrcode"]}
