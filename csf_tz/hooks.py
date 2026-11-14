@@ -310,9 +310,12 @@ scheduler_events = {
         ],
         
         "*/15 * * * *": [
-            "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
             "csf_tz.stanbic.sftp.sync_all_stanbank_files",
             "csf_tz.stanbic.sftp.process_download_files",
+        ],
+        # twice daily, off-peak: scans the whole stock ledger
+        "0 4,22 * * *": [
+            "csf_tz.csftz_hooks.items_revaluation.process_incorrect_balance_qty",
         ],
         # Routine for every day 3:30am at night
         "30 3 * * *": [
