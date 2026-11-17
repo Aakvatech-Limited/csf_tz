@@ -3,6 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Count, Sum
 
 
 def execute(filters=None):
@@ -28,32 +30,28 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {
-		"from_date": filters.from_date,
-		"to_date": filters.to_date,
-	}
-	where = ""
-
-	data = frappe.db.sql(
-		"""SELECT
-								tqi.item_code,
-								tqi.item_name,
-								SUM(tqi.qty) AS total_qty,
-								COUNT(tq.name) AS quotations,
-								COUNT(DISTINCT CASE WHEN tq.quotation_to = 'Customer' THEN tq.party_name END) AS customers,
-								COUNT(DISTINCT CASE WHEN tq.quotation_to = 'Lead' THEN tq.party_name END) AS leads,
-								tqi.warehouse
-							FROM
-								(`tabQuotation Item` tqi)
-							LEFT JOIN
-								(`tabQuotation` tq) ON (tqi.parent = tq.name)
-							WHERE
-								tq.docstatus = 1 AND tq.transaction_date BETWEEN %(from_date)s AND %(to_date)s
-							GROUP BY tqi.item_code, tqi.warehouse
-							"""
-		+ where,
-		where_filter,
-		as_dict=1,
-		as_list=1,
+	quotation_item = frappe.qb.DocType("Quotation Item")
+	quotation = frappe.qb.DocType("Quotation")
+	data = (
+		frappe.qb.from_(quotation_item)
+		.left_join(quotation)
+		.on(quotation_item.parent == quotation.name)
+		.select(
+			quotation_item.item_code,
+			quotation_item.item_name,
+			Sum(quotation_item.qty).as_("total_qty"),
+			Count(quotation.name).as_("quotations"),
+			Count(party_of_type(quotation, "Customer")).distinct().as_("customers"),
+			Count(party_of_type(quotation, "Lead")).distinct().as_("leads"),
+			quotation_item.warehouse,
+		)
+		.where(quotation.docstatus == 1)
+		.where(quotation.transaction_date[filters.from_date : filters.to_date])
+		.groupby(quotation_item.item_code, quotation_item.warehouse)
+		.run(as_dict=True)
 	)
 	return columns, data
+
+
+def party_of_type(quotation, quotation_to):
+	return Case().when(quotation.quotation_to == quotation_to, quotation.party_name)
