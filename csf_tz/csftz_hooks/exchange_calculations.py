@@ -452,12 +452,12 @@ def recalculate_import_differences(tracker_name):
 
 def update_pending_transactions():
 	"""Scheduled task to update pending import transactions"""
-	pending_trackers = frappe.db.sql(
-		"""
-        SELECT name FROM `tabForeign Import Transaction`
-        WHERE status = 'Active' AND docstatus = 1
-    """,
-		as_dict=True,
+	import_tracker = frappe.qb.DocType("Foreign Import Transaction")
+	pending_trackers = (
+		frappe.qb.from_(import_tracker)
+		.select(import_tracker.name)
+		.where((import_tracker.status == "Active") & (import_tracker.docstatus == 1))
+		.run(as_dict=True)
 	)
 
 	for tracker in pending_trackers:
@@ -543,16 +543,20 @@ def debug_payment_linking_issue(payment_entry_name):
 
 		# Find potential trackers for this supplier
 		if payment_doc.party_type == "Supplier":
-			trackers = frappe.db.sql(
-				"""
-                SELECT name, purchase_invoice, currency, original_exchange_rate,
-                       invoice_amount_foreign, status, docstatus, supplier
-                FROM `tabForeign Import Transaction`
-                WHERE supplier = %s
-                ORDER BY transaction_date DESC
-            """,
-				payment_doc.party,
-				as_dict=True,
+			trackers = frappe.get_all(
+				"Foreign Import Transaction",
+				filters={"supplier": payment_doc.party},
+				fields=[
+					"name",
+					"purchase_invoice",
+					"currency",
+					"original_exchange_rate",
+					"invoice_amount_foreign",
+					"status",
+					"docstatus",
+					"supplier",
+				],
+				order_by="transaction_date desc",
 			)
 
 			for tracker in trackers:
@@ -599,16 +603,16 @@ def manually_link_payment_to_tracker(payment_entry_name, tracker_name=None):
 
 		if not tracker_name:
 			# Find the best matching tracker
-			trackers = frappe.db.sql(
-				"""
-                SELECT name, currency, status, docstatus
-                FROM `tabForeign Import Transaction`
-                WHERE supplier = %s AND status IN ('Active', 'Draft') AND docstatus = 1
-                ORDER BY transaction_date DESC
-                LIMIT 1
-            """,
-				payment_doc.party,
-				as_dict=True,
+			trackers = frappe.get_all(
+				"Foreign Import Transaction",
+				filters={
+					"supplier": payment_doc.party,
+					"status": ["in", ["Active", "Draft"]],
+					"docstatus": 1,
+				},
+				fields=["name", "currency", "status", "docstatus"],
+				order_by="transaction_date desc",
+				limit=1,
 			)
 
 			if not trackers:

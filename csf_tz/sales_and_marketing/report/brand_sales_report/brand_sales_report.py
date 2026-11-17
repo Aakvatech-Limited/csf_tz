@@ -4,6 +4,8 @@
 import frappe
 from frappe import _
 
+from csf_tz.sales_and_marketing.customer_address import get_customer_address
+
 
 def execute(filters=None):
 	columns, data = [], []
@@ -37,77 +39,44 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {
-		"from_date": filters.from_date,
-		"to_date": filters.to_date,
-	}
-	where = ""
-
-	if filters.customer:
-		where += " AND si.customer = %(customer)s"
-		where_filter.update({"customer": filters.customer})
-
-	if filters.brand:
-		where += " AND ti.brand = %(brand)s"
-		where_filter.update({"brand": filters.brand})
-
-	data = frappe.db.sql(
-		"""SELECT
-								si.customer,
-								si.name,
-								si.posting_date,
-								si.grand_total,
-								sit.warehouse,
-								sit.item_code as itm,
-								sit.qty as quantity,
-								ti.brand as brand,
-								sit.parent as si_name,
-								si.customer as cust
-							FROM
-								(`tabSales Invoice Item` sit)
-							LEFT JOIN
-								(`tabSales Invoice` si)
-								ON (si.name = sit.parent)
-							LEFT JOIN
-								(`tabItem` ti)
-								ON (ti.item_code = sit.item_code)
-							WHERE
-							 	si.docstatus = 1 AND ti.item_group <> 'Spare Parts'
-							 	AND si.customer <> 'Guest' AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
-							"""
-		+ where,
-		where_filter,
-		as_dict=1,
+	invoice_item = frappe.qb.DocType("Sales Invoice Item")
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	item = frappe.qb.DocType("Item")
+	query = (
+		frappe.qb.from_(invoice_item)
+		.left_join(sales_invoice)
+		.on(sales_invoice.name == invoice_item.parent)
+		.left_join(item)
+		.on(item.item_code == invoice_item.item_code)
+		.select(
+			sales_invoice.customer,
+			sales_invoice.name,
+			sales_invoice.posting_date,
+			sales_invoice.grand_total,
+			invoice_item.warehouse,
+			invoice_item.item_code.as_("itm"),
+			invoice_item.qty.as_("quantity"),
+			item.brand.as_("brand"),
+			invoice_item.parent.as_("si_name"),
+			sales_invoice.customer.as_("cust"),
+		)
+		.where(sales_invoice.docstatus == 1)
+		.where(item.item_group != "Spare Parts")
+		.where(sales_invoice.customer != "Guest")
+		.where(sales_invoice.posting_date[filters.from_date : filters.to_date])
 	)
 
+	if filters.customer:
+		query = query.where(sales_invoice.customer == filters.customer)
+
+	if filters.brand:
+		query = query.where(item.brand == filters.brand)
+
+	data = query.run(as_dict=True)
+
 	for customer in data:
-		address = []
-		address_name = frappe.db.sql(
-			"""SELECT
-											dl.parent
-										FROM
-											(`tabDynamic Link` dl)
-										WHERE
-											dl.parenttype='Address' AND dl.link_doctype='Customer' AND dl.link_name= %(customer)s
-										ORDER BY
-											dl.creation
-										LIMIT 1""",
-			{"customer": customer.customer},
-			as_dict=1,
-		)
-		if address_name:
-			address = frappe.db.sql(
-				"""SELECT
-											CONCAT(ta.address_line1,",", ta.city,',', ta.country) AS customer_address,
-											ta.phone AS contact
-										FROM
-											(`tabAddress` ta)
-										WHERE
-											ta.name = %(address_name)s""",
-				{"address_name": address_name[0].parent},
-				as_dict=1,
-			)
+		address = get_customer_address(customer.customer)
 		if address:
-			customer.update({"customer_address": address[0].customer_address, "contact": address[0].contact})
+			customer.update(address)
 
 	return columns, data

@@ -242,6 +242,9 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 		if args.get("party_type") == "Supplier":
 			cols += ["bill_no", "bill_date"]
 
+		if self.filters.based_on_payment_terms:
+			cols += ["payment_term", "invoice_amount"]
+
 		cols += [
 			"invoiced_amt",
 			"paid_amt",
