@@ -35,34 +35,35 @@ def get_columns():
 
 
 def get_data(filters):
-    conditions = ""
+    purchase_order = frappe.qb.DocType("Purchase Order")
+    purchase_order_item = frappe.qb.DocType("Purchase Order Item")
+    query = (
+        frappe.qb.from_(purchase_order_item)
+        .join(purchase_order)
+        .on(purchase_order_item.parent == purchase_order.name)
+        .select(
+            purchase_order.name.as_("purchase_order"),
+            purchase_order.supplier,
+            purchase_order_item.item_code,
+            purchase_order_item.warehouse,
+            purchase_order.status,
+            purchase_order_item.qty,
+            purchase_order_item.received_qty,
+            (purchase_order_item.qty - purchase_order_item.received_qty).as_("pending_qty"),
+            purchase_order_item.amount,
+            purchase_order_item.billed_amt.as_("billed_amount"),
+            (purchase_order_item.amount - purchase_order_item.billed_amt).as_("pending_amount"),
+            (purchase_order_item.received_qty * purchase_order_item.rate).as_("received_qty_amount"),
+        )
+        .where(purchase_order.docstatus == 1)
+        .orderby(purchase_order.status)
+        .orderby(purchase_order.name)
+    )
     if filters.get("from_date"):
-        conditions += " and po.transaction_date >= %(from_date)s"
+        query = query.where(purchase_order.transaction_date >= filters.get("from_date"))
     if filters.get("to_date"):
-        conditions += " and po.transaction_date <= %(to_date)s"
+        query = query.where(purchase_order.transaction_date <= filters.get("to_date"))
 
-    data = frappe.db.sql(f"""
-        SELECT
-            po.name as purchase_order,
-            po.supplier,
-            poi.item_code,
-            poi.warehouse,
-            po.status,
-
-            poi.qty as qty,
-            poi.received_qty as received_qty,
-            (poi.qty - poi.received_qty) as pending_qty,
-                -- Removed billed_qty and qty_to_bill as billed_qty does not exist
-
-            poi.amount as amount,
-            poi.billed_amt as billed_amount,
-            (poi.amount - poi.billed_amt) as pending_amount,
-            (poi.received_qty * poi.rate) as received_qty_amount
-
-        FROM `tabPurchase Order Item` poi
-        JOIN `tabPurchase Order` po ON poi.parent = po.name
-        WHERE po.docstatus = 1 {conditions}
-        ORDER BY po.status, po.name
-    """, filters, as_dict=True)
+    data = query.run(as_dict=True)
 
     return data

@@ -4,8 +4,10 @@
 import frappe
 from erpnext import get_company_currency
 from frappe import _, msgprint
+from frappe.query_builder import Criterion
 from frappe.utils import getdate, flt, cstr, cint
-from frappe.utils.nestedset import get_descendants_of
+
+from csf_tz.csf_tz.report.salary_slip_conditions import get_currency_and_department_conditions
 
 import calendar
 
@@ -164,11 +166,20 @@ def get_prev_salary_slips(filters, company_currency, prev_first_date, prev_last_
 		"prev_first_date": prev_first_date,
 		"prev_last_date": prev_last_date
 	})
-	prev_conditions = get_prev_conditions(custom_filters, company_currency)
-	prev_salary_slips = frappe.db.sql("""
-		select name, employee, employee_name, department, gross_pay as prev_gross_pay from `tabSalary Slip` where %s
-		order by employee"""% 
-	prev_conditions, filters, as_dict=1)
+	salary_slip = frappe.qb.DocType("Salary Slip")
+	prev_salary_slips = (
+		frappe.qb.from_(salary_slip)
+		.select(
+			salary_slip.name,
+			salary_slip.employee,
+			salary_slip.employee_name,
+			salary_slip.department,
+			salary_slip.gross_pay.as_("prev_gross_pay"),
+		)
+		.where(Criterion.all(get_prev_conditions(salary_slip, custom_filters, company_currency)))
+		.orderby(salary_slip.employee)
+		.run(as_dict=True)
+	)
 
 	return prev_salary_slips or []
 
@@ -179,11 +190,20 @@ def get_cur_salary_slips(filters, company_currency):
 		"from_date": filters.get("from_date"),
         "to_date": filters.get("to_date")
 	})
-	conditions, filters = get_cur_conditions(filters, company_currency)
-	salary_slips = frappe.db.sql("""
-		select name, employee, employee_name, department, gross_pay as cur_gross_pay from `tabSalary Slip` where %s
-        order by employee"""%
-		conditions, filters, as_dict=1)
+	salary_slip = frappe.qb.DocType("Salary Slip")
+	salary_slips = (
+		frappe.qb.from_(salary_slip)
+		.select(
+			salary_slip.name,
+			salary_slip.employee,
+			salary_slip.employee_name,
+			salary_slip.department,
+			salary_slip.gross_pay.as_("cur_gross_pay"),
+		)
+		.where(Criterion.all(get_cur_conditions(salary_slip, filters, company_currency)))
+		.orderby(salary_slip.employee)
+		.run(as_dict=True)
+	)
 	
 	return salary_slips or []
 
@@ -204,56 +224,40 @@ def get_prev_month_date(filters):
 
 	return prev_first_date, prev_last_date, prev_month, prev_year
 
-def get_prev_conditions(filters, company_currency):
+def get_prev_conditions(salary_slip, filters, company_currency):
 	"""Conditions that will be used to get salary slips for previous month"""
 	
 	# this is get submitted salary slips for the previous month
-	conditions = "docstatus <= 1"
+	conditions = [salary_slip.docstatus <= 1]
 
 	if filters.get("prev_first_date"):
-		conditions += " and start_date >= %(prev_first_date)s"
+		conditions.append(salary_slip.start_date >= filters.get("prev_first_date"))
 	if filters.get("prev_last_date"):
-		conditions += " and end_date <= %(prev_last_date)s"
-	if filters.get("company"):
-		conditions += " and company = %(company)s"
-	if filters.get("employee"):
-		conditions += " and employee = %(employee)s"
-	if filters.get("currency") and filters.get("currency") != company_currency:
-		conditions += " and currency = %(currency)s"
-	if filters.get("department") and filters.get("company"):
-		department_list = get_departments(filters.get("department"), filters.get("company"))
-		conditions += 'and department in (' + ','.join(
-            ("'"+n+"'" for n in department_list)) + ')'
+		conditions.append(salary_slip.end_date <= filters.get("prev_last_date"))
 
-	return conditions
+	return conditions + get_common_conditions(salary_slip, filters, company_currency)
 
-def get_cur_conditions(filters, company_currency):
+def get_cur_conditions(salary_slip, filters, company_currency):
 	"""Conditions that will be used to get salary slips for current month"""
 
-	conditions = ""
+	conditions = []
 	doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
 
 	if filters.get("docstatus"):
-		conditions += "docstatus = {0}".format(doc_status[filters.get("docstatus")])
-
+		conditions.append(salary_slip.docstatus == doc_status[filters.get("docstatus")])
 	if filters.get("from_date"):
-		conditions += " and start_date >= %(from_date)s"
+		conditions.append(salary_slip.start_date >= filters.get("from_date"))
 	if filters.get("to_date"):
-		conditions += " and end_date <= %(to_date)s"
-	if filters.get("company"):
-		conditions += " and company = %(company)s"
-	if filters.get("employee"):
-		conditions += " and employee = %(employee)s"
-	if filters.get("currency") and filters.get("currency") != company_currency:
-		conditions += " and currency = %(currency)s"
-	if filters.get("department") and filters.get("company"):
-		department_list = get_departments(filters.get("department"), filters.get("company"))
-		conditions += 'and department in (' + ','.join(
-            ("'"+n+"'" for n in department_list)) + ')'
+		conditions.append(salary_slip.end_date <= filters.get("to_date"))
 
-	return conditions, filters
+	return conditions + get_common_conditions(salary_slip, filters, company_currency)
 
-def get_departments(department,company):
-    departments_list = get_descendants_of("Department", department)
-    departments_list.append(department)
-    return departments_list
+def get_common_conditions(salary_slip, filters, company_currency):
+	"""Company, employee, currency and department conditions shared by both months"""
+
+	conditions = []
+	for fieldname in ("company", "employee"):
+		if filters.get(fieldname):
+			conditions.append(salary_slip[fieldname] == filters.get(fieldname))
+
+	return conditions + get_currency_and_department_conditions(salary_slip, filters, company_currency)

@@ -8,6 +8,8 @@ import time
 import datetime
 from frappe.model.document import Document
 from frappe import _
+from frappe.query_builder import Interval
+from frappe.query_builder.functions import Now
 
 class TransportRequest(Document):
 	def before_save(self):
@@ -148,7 +150,16 @@ class TransportRequest(Document):
 @frappe.whitelist(allow_guest=True)
 def transport_request_scheduler():
 	#Create requests for imports less than 10 days to eta
-	for row in frappe.db.sql("""SELECT name, eta, reference_file_number FROM `tabImport` WHERE (status <> 'Closed' OR status IS NULL) AND `eta` < timestampadd(day, -10, now())""", as_dict=1):
+	import_doctype = frappe.qb.DocType("Import")
+	imports_past_eta = (
+		frappe.qb.from_(import_doctype)
+		.select(import_doctype.name, import_doctype.eta, import_doctype.reference_file_number)
+		.where(
+			((import_doctype.status != "Closed") | import_doctype.status.isnull())
+			& (import_doctype.eta < Now() - Interval(days=10))
+		)
+	).run(as_dict=True)
+	for row in imports_past_eta:
 		create_transport_request(reference_doctype="Import", reference_docname=row.name, file_number=row.reference_file_number)
 	
 

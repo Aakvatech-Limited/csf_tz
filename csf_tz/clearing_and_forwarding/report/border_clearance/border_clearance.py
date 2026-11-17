@@ -6,6 +6,7 @@ import frappe
 
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder import Case, Criterion
 import ast
 import datetime
 from frappe.desk.reportview import export_query
@@ -18,6 +19,7 @@ from openpyxl.styles import Font
 from openpyxl import load_workbook
 from six import StringIO, string_types
 from frappe.utils.xlsxutils import handle_html
+from csf_tz.utils.query_builder import get_latest_reporting_status_query
 
 def execute(filters=None):
 	columns, data = [], []
@@ -195,74 +197,84 @@ def execute(filters=None):
 		}
 	]
 	
-	where = ''
-	where_filter = {}
-	
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
-	else:
-		where = " WHERE `tabBorder Clearance`.documents_received >= %(from_date)s AND `tabBorder Clearance`.documents_received <= %(to_date)s"
-		where_filter.update({"from_date": filters.from_date, "to_date": filters.to_date})
+
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	conditions = [
+		border_clearance.documents_received >= filters.from_date,
+		border_clearance.documents_received <= filters.to_date,
+	]
 		
 	if filters.client:
-		where += 'AND `tabBorder Clearance`.client = %(client)s'
-		where_filter.update({"client": filters.client})
+		conditions.append(border_clearance.client == filters.client)
 		
 	if filters.type and filters.type == 'Import':
-		where += "AND `tabBorder Clearance`.clearance_type = 'Exit'"
+		conditions.append(border_clearance.clearance_type == 'Exit')
 	elif filters.type and filters.type == 'Export':
-		where += "AND `tabBorder Clearance`.clearance_type = 'Entry'"
+		conditions.append(border_clearance.clearance_type == 'Entry')
 		
-	
-	data = frappe.db.sql('''
-		SELECT
-			`tabBorder Clearance`.name AS file_number,
-			`tabBorder Clearance`.client AS client,
-			`tabBorder Clearance`.consignee,
-			CASE
-				WHEN `tabBorder Clearance`.clearance_type = 'Entry' THEN 'Export'
-				WHEN `tabBorder Clearance`.clearance_type = 'Exit' THEN 'Import'
-				WHEN `tabBorder Clearance`.clearance_type = 'Pass Through' THEN 'Pass Through'
-			END AS type,
-			`tabBorder Clearance`.crn_reference_number,
-			`tabBorder Clearance`.documents_received AS documents_received,
-			CASE
-				WHEN `tabBorder Clearance`.transporter_type = 'Bravo' THEN 'Bravo'
-				ELSE `tabBorder Clearance`.transporter_name
-			END AS transporter,
-			`tabBorder Clearance`.trip_reference_no AS trip_number,
-			`tabBorder Clearance`.vehicle_plate_number AS vehicle_reg,
-			`tabBorder Clearance`.trailer_plate_number AS trailer_reg,
-			`tabBorder Clearance`.driver_name AS driver_name,
-			`tabBorder Clearance`.cargo_category AS cargo,
-			CASE
-				WHEN `tabBorder Clearance`.cargo_type = 'Container' AND `tabCargo Details`.container_size IN ('40 FT GP', '40 OT', '40RF', '40 FT Heavy') THEN '40'
-				WHEN `tabBorder Clearance`.cargo_type = 'Container' AND `tabCargo Details`.container_size IN ('20 FT GP', '20 OT', '20RF') THEN '20'
-				WHEN `tabBorder Clearance`.cargo_type = 'Loose Cargo' THEN 'Loose Cargo'
-			END AS container_size,
-			CASE
-				WHEN `tabBorder Clearance`.cargo_type = 'Container' THEN `tabCargo Details`.net_weight
-				WHEN `tabBorder Clearance`.cargo_type = 'Loose Cargo' THEN `tabBorder Clearance`.loose_net_weight
-			END AS weight,
-			`tabBorder Clearance`.bond_ref_no AS bond_reference,
-			`tabBorder Clearance`.cargo_origin_country AS cargo_origin,
-			`tabBorder Clearance`.cargo_destination_exact AS cargo_destination,
-			`tabBorder Clearance`.border1_name AS border1_name,
-			`tabBorder Clearance`.border1_arrival AS border1_arrival,
-			`tabBorder Clearance`.border1_departure AS border1_departure,
-			`tabBorder Clearance`.border1_crossing AS border1_crossing,
-			`tabBorder Clearance`.border2_name AS border2_name,
-			`tabBorder Clearance`.border2_arrival AS border2_arrival,
-			`tabBorder Clearance`.border2_departure AS border2_departure,
-			`tabBorder Clearance`.border2_crossing AS border2_crossing,
-			`tabBorder Clearance`.offloading_point_arrival AS arrival_offloading_point,
-			`tabBorder Clearance`.offloading_datetime AS offloading_datetime,
-			(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` \
-				WHERE `tabReporting Status Table`.parenttype = 'Border Clearance' AND \
-				`tabReporting Status Table`.parent = `tabBorder Clearance`.name ORDER BY \
-				`tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks \
-		FROM \
-			`tabBorder Clearance`
-		LEFT JOIN
-			`tabCargo Details` ON `tabCargo Details`.name = (SELECT name FROM `tabCargo Details` WHERE `tabCargo Details`.parent = `tabBorder Clearance`.name LIMIT 1)''' + where, where_filter, as_dict=True)
+	data = get_border_clearance_query().where(Criterion.all(conditions)).run(as_dict=True)
 	return columns, data
+
+
+def get_border_clearance_query():
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	cargo = frappe.qb.DocType("Cargo Details")
+	first_cargo = frappe.qb.DocType("Cargo Details").as_("first_cargo")
+	first_cargo_name = (
+		frappe.qb.from_(first_cargo)
+		.select(first_cargo.name)
+		.where(first_cargo.parent == border_clearance.name)
+		.limit(1)
+	)
+	is_container = border_clearance.cargo_type == 'Container'
+	is_loose_cargo = border_clearance.cargo_type == 'Loose Cargo'
+	return (
+		frappe.qb.from_(border_clearance)
+		.left_join(cargo).on(cargo.name == first_cargo_name)
+		.select(
+			border_clearance.name.as_("file_number"),
+			border_clearance.client,
+			border_clearance.consignee,
+			Case()
+			.when(border_clearance.clearance_type == 'Entry', 'Export')
+			.when(border_clearance.clearance_type == 'Exit', 'Import')
+			.when(border_clearance.clearance_type == 'Pass Through', 'Pass Through')
+			.as_("type"),
+			border_clearance.crn_reference_number,
+			border_clearance.documents_received,
+			Case()
+			.when(border_clearance.transporter_type == 'Bravo', 'Bravo')
+			.else_(border_clearance.transporter_name)
+			.as_("transporter"),
+			border_clearance.trip_reference_no.as_("trip_number"),
+			border_clearance.vehicle_plate_number.as_("vehicle_reg"),
+			border_clearance.trailer_plate_number.as_("trailer_reg"),
+			border_clearance.driver_name,
+			border_clearance.cargo_category.as_("cargo"),
+			Case()
+			.when(is_container & cargo.container_size.isin(['40 FT GP', '40 OT', '40RF', '40 FT Heavy']), '40')
+			.when(is_container & cargo.container_size.isin(['20 FT GP', '20 OT', '20RF']), '20')
+			.when(is_loose_cargo, 'Loose Cargo')
+			.as_("container_size"),
+			Case()
+			.when(is_container, cargo.net_weight)
+			.when(is_loose_cargo, border_clearance.loose_net_weight)
+			.as_("weight"),
+			border_clearance.bond_ref_no.as_("bond_reference"),
+			border_clearance.cargo_origin_country.as_("cargo_origin"),
+			border_clearance.cargo_destination_exact.as_("cargo_destination"),
+			border_clearance.border1_name,
+			border_clearance.border1_arrival,
+			border_clearance.border1_departure,
+			border_clearance.border1_crossing,
+			border_clearance.border2_name,
+			border_clearance.border2_arrival,
+			border_clearance.border2_departure,
+			border_clearance.border2_crossing,
+			border_clearance.offloading_point_arrival.as_("arrival_offloading_point"),
+			border_clearance.offloading_datetime,
+			get_latest_reporting_status_query(border_clearance.name, "Border Clearance").as_("remarks"),
+		)
+	)

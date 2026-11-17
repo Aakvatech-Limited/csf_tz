@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Criterion, Field
+from frappe.query_builder.custom import ConstantColumn
 
 def execute(filters=None):
 	columns, data = [], []
@@ -61,102 +63,136 @@ def execute(filters=None):
         }
 	]
 	
-	where = ""
-	where_filter = {}
+	conditions = []
 	
 	if filters:
-		where += ' WHERE '
 		if filters.from_date > filters.to_date:
 			frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 			
-		if filters.from_date and filters.to_date:
-			if filters.filter_by == 'Bond Date':
-				where += " bond_date >= %(from_date)s AND bond_date <= %(to_date)s "
-				where_filter.update({'from_date': filters.from_date, "to_date": filters.to_date})
-			elif filters.filter_by == 'Bond Cancelation Date':
-				where += " bond_cancellation_date >= %(from_date)s AND bond_cancellation_date <= %(to_date)s "
-				where_filter.update({'from_date': filters.from_date, "to_date": filters.to_date})
-			
-		if filters.bt:
-			where += " AND bond_reference LIKE %(bond_reference)s "
-			where_filter.update({"bond_reference": filters.bt})
-			
-		if filters.status == 'Not Cancelled':
-			where += " AND bond_cancellation_date IS NULL "
-		elif filters.status == 'Cancelled':
-			where += " AND bond_cancellation_date IS NOT NULL "
+		conditions = get_conditions(filters)
 	
-	data = frappe.db.sql('''SELECT * FROM 
-							(
-								SELECT 
-									`tabImport`.bt_number AS bond_reference,
-									cargo1.bond_ref_no AS sub_t1,
-									`tabImport`.t1_approved AS bond_date,
-									cargo1.bond_value,
-									`tabImport`.cargo,
-									`tabBorder Clearance`.bond_canceled_date AS bond_cancellation_date,
-									'Import' AS reference_type,
-									`tabImport`.name AS reference_doc
-								FROM
-									`tabCargo Details` AS cargo1
-								LEFT JOIN
-									`tabImport` ON `tabImport`.name = cargo1.parent
-								LEFT JOIN
-									`tabBorder Clearance` ON `tabBorder Clearance`.name = (SELECT cargo2.parent FROM `tabCargo Details` AS cargo2 \
-										WHERE cargo2.parenttype = 'Border Clearance' AND cargo2.bond_ref_no = cargo1.bond_ref_no LIMIT 1)
-								WHERE
-									cargo1.parenttype = 'Import' AND `tabImport`.bt_number IS NOT NULL AND `tabImport`.bt_number != ''
-							UNION ALL
-								SELECT
-									`tabExport`.bt_ref_no AS bond_reference,
-									`tabBond Reference Table`.customs_ref_number AS sub_t1,
-									`tabExport`.bt_approval_date AS bond_date,
-									`tabBond Reference Table`.bond_value,
-									`tabExport`.material AS cargo,
-									`tabExport`.bond_validated AS bond_cancellation_date,
-									'Export' AS reference_type,
-									`tabExport`.name AS reference_doc
-								FROM
-									`tabBond Reference Table`
-								LEFT JOIN
-									`tabExport` ON `tabExport`.name = `tabBond Reference Table`.parent
-								WHERE
-									`tabBond Reference Table`.parenttype = 'Export' AND `tabExport`.bt_ref_no IS NOT NULL AND `tabExport`.bt_ref_no != ''
-							UNION ALL
-								SELECT
-									`tabBorder Clearance`.bond_ref_no AS bond_reference,
-									`tabCargo Details`.bond_ref_no AS sub_t1,
-									`tabBorder Clearance`.bt_approval_date AS bond_date,
-									`tabCargo Details`.bond_value,
-									`tabBorder Clearance`.cargo_description AS cargo,
-									`tabBorder Clearance`.bond_canceled_date AS bond_cancellation_date,
-									'Border Clearance' AS reference_type,
-									`tabBorder Clearance`.name AS reference_doc
-								FROM
-									`tabCargo Details`
-								LEFT JOIN
-									`tabBorder Clearance` ON `tabBorder Clearance`.name = `tabCargo Details`.parent
-								WHERE
-									`tabCargo Details`.parenttype = 'Border Clearance' AND `tabBorder Clearance`.bond_ref_no IS NOT NULL \
-									AND `tabBorder Clearance`.bond_ref_no != '' AND `tabBorder Clearance`.cargo_type = 'Container' \
-									AND `tabBorder Clearance`.clearance_type IN ('Entry', 'Pass Through')
-							UNION ALL
-								SELECT
-									`tabBorder Clearance`.bond_ref_no AS bond_reference,
-									`tabBorder Clearance`.loose_sub_t1_ref AS sub_t1,
-									`tabBorder Clearance`.bt_approval_date AS bond_date,
-									`tabBorder Clearance`.loose_bond_value AS bond_value,
-									`tabBorder Clearance`.cargo_description AS cargo,
-									`tabBorder Clearance`.bond_canceled_date AS bond_cancellation_date,
-									'Border Clearance' AS reference_type,
-									`tabBorder Clearance`.name AS reference_doc
-								FROM
-									`tabBorder Clearance`
-								WHERE
-									`tabBorder Clearance`.bond_ref_no IS NOT NULL \
-									AND `tabBorder Clearance`.bond_ref_no != '' AND `tabBorder Clearance`.cargo_type = 'Loose Cargo' \
-									AND `tabBorder Clearance`.clearance_type IN ('Entry', 'Pass Through')
-							) AS a'''
-							+ where +
-							'''ORDER BY bond_date ASC''', where_filter, as_dict=1)
+	bonds = get_bonds_query().as_("a")
+	query = frappe.qb.from_(bonds).select("*").where(Criterion.all(conditions)).orderby(Field("bond_date"))
+	data = query.run(as_dict=True)
 	return columns, data
+
+
+def get_conditions(filters):
+	conditions = []
+	if filters.from_date and filters.to_date:
+		if filters.filter_by == 'Bond Date':
+			conditions += [Field("bond_date") >= filters.from_date, Field("bond_date") <= filters.to_date]
+		elif filters.filter_by == 'Bond Cancelation Date':
+			conditions += [Field("bond_cancellation_date") >= filters.from_date, Field("bond_cancellation_date") <= filters.to_date]
+
+	if filters.bt:
+		conditions.append(Field("bond_reference").like(filters.bt))
+
+	if filters.status == 'Not Cancelled':
+		conditions.append(Field("bond_cancellation_date").isnull())
+	elif filters.status == 'Cancelled':
+		conditions.append(Field("bond_cancellation_date").isnotnull())
+	return conditions
+
+
+def get_bonds_query():
+	return get_import_bonds_query() * get_export_bonds_query() * get_border_container_bonds_query() * get_border_loose_bonds_query()
+
+
+def get_import_bonds_query():
+	cargo = frappe.qb.DocType("Cargo Details").as_("cargo1")
+	border_cargo = frappe.qb.DocType("Cargo Details").as_("cargo2")
+	import_doc = frappe.qb.DocType("Import")
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	first_border_clearance = (
+		frappe.qb.from_(border_cargo)
+		.select(border_cargo.parent)
+		.where(border_cargo.parenttype == 'Border Clearance')
+		.where(border_cargo.bond_ref_no == cargo.bond_ref_no)
+		.limit(1)
+	)
+	return (
+		frappe.qb.from_(cargo)
+		.left_join(import_doc).on(import_doc.name == cargo.parent)
+		.left_join(border_clearance).on(border_clearance.name == first_border_clearance)
+		.select(
+			import_doc.bt_number.as_("bond_reference"),
+			cargo.bond_ref_no.as_("sub_t1"),
+			import_doc.t1_approved.as_("bond_date"),
+			cargo.bond_value,
+			import_doc.cargo,
+			border_clearance.bond_canceled_date.as_("bond_cancellation_date"),
+			ConstantColumn('Import').as_("reference_type"),
+			import_doc.name.as_("reference_doc"),
+		)
+		.where(cargo.parenttype == 'Import')
+		.where(import_doc.bt_number.isnotnull())
+		.where(import_doc.bt_number != '')
+	)
+
+
+def get_export_bonds_query():
+	bond_reference = frappe.qb.DocType("Bond Reference Table")
+	export = frappe.qb.DocType("Export")
+	return (
+		frappe.qb.from_(bond_reference)
+		.left_join(export).on(export.name == bond_reference.parent)
+		.select(
+			export.bt_ref_no.as_("bond_reference"),
+			bond_reference.customs_ref_number.as_("sub_t1"),
+			export.bt_approval_date.as_("bond_date"),
+			bond_reference.bond_value,
+			export.material.as_("cargo"),
+			export.bond_validated.as_("bond_cancellation_date"),
+			ConstantColumn('Export').as_("reference_type"),
+			export.name.as_("reference_doc"),
+		)
+		.where(bond_reference.parenttype == 'Export')
+		.where(export.bt_ref_no.isnotnull())
+		.where(export.bt_ref_no != '')
+	)
+
+
+def get_border_container_bonds_query():
+	cargo = frappe.qb.DocType("Cargo Details")
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	return (
+		frappe.qb.from_(cargo)
+		.left_join(border_clearance).on(border_clearance.name == cargo.parent)
+		.select(
+			border_clearance.bond_ref_no.as_("bond_reference"),
+			cargo.bond_ref_no.as_("sub_t1"),
+			border_clearance.bt_approval_date.as_("bond_date"),
+			cargo.bond_value,
+			border_clearance.cargo_description.as_("cargo"),
+			border_clearance.bond_canceled_date.as_("bond_cancellation_date"),
+			ConstantColumn('Border Clearance').as_("reference_type"),
+			border_clearance.name.as_("reference_doc"),
+		)
+		.where(cargo.parenttype == 'Border Clearance')
+		.where(border_clearance.bond_ref_no.isnotnull())
+		.where(border_clearance.bond_ref_no != '')
+		.where(border_clearance.cargo_type == 'Container')
+		.where(border_clearance.clearance_type.isin(['Entry', 'Pass Through']))
+	)
+
+
+def get_border_loose_bonds_query():
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	return (
+		frappe.qb.from_(border_clearance)
+		.select(
+			border_clearance.bond_ref_no.as_("bond_reference"),
+			border_clearance.loose_sub_t1_ref.as_("sub_t1"),
+			border_clearance.bt_approval_date.as_("bond_date"),
+			border_clearance.loose_bond_value.as_("bond_value"),
+			border_clearance.cargo_description.as_("cargo"),
+			border_clearance.bond_canceled_date.as_("bond_cancellation_date"),
+			ConstantColumn('Border Clearance').as_("reference_type"),
+			border_clearance.name.as_("reference_doc"),
+		)
+		.where(border_clearance.bond_ref_no.isnotnull())
+		.where(border_clearance.bond_ref_no != '')
+		.where(border_clearance.cargo_type == 'Loose Cargo')
+		.where(border_clearance.clearance_type.isin(['Entry', 'Pass Through']))
+	)

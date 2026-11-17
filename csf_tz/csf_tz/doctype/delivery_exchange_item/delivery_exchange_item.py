@@ -95,29 +95,28 @@ class DeliveryExchangeItem(Document):
 
 @frappe.whitelist()
 def get_item_details(doctype, doctype_id, item_code=None):
-    condition = ""
-    if item_code:
-        condition += f"AND cdt.item_code = '{item_code}'"
-
-    return frappe.db.sql(
-        f"""
-			SELECT 
-                cdt.item_code, 
-                cdt.amount, 
-                cdt.warehouse, 
-                cdt.qty, 
-                cdt.rate, 
-                cdt.uom, 
-                pdt.selling_price_list, 
-                i.is_stock_item
-			FROM `tab{doctype}` pdt 
-			INNER JOIN `tab{doctype} Item` cdt 
-			ON pdt.name = cdt.parent
-            INNER JOIN `tabItem` i 
-			ON i.name = cdt.item_code
-			WHERE pdt.name = '{doctype_id}'
-           
-			{condition}
-		""",
-        as_dict=1,
+    parent = frappe.qb.DocType(doctype)
+    child = frappe.qb.DocType(f"{doctype} Item")
+    item = frappe.qb.DocType("Item")
+    query = (
+        frappe.qb.from_(parent)
+        .inner_join(child)
+        .on(parent.name == child.parent)
+        .inner_join(item)
+        .on(item.name == child.item_code)
+        .select(
+            child.item_code,
+            child.amount,
+            child.warehouse,
+            child.qty,
+            child.rate,
+            child.uom,
+            parent.selling_price_list,
+            item.is_stock_item,
+        )
+        .where(parent.name == doctype_id)
     )
+    if item_code:
+        query = query.where(child.item_code == item_code)
+
+    return query.run(as_dict=True)

@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Date
 
 def execute(filters=None):
 	columns, data = [], []
@@ -68,30 +70,24 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"start_date": filters.from_date,"end_date": filters.to_date,}
-	where = ""
+	loan_assistance = frappe.qb.DocType("Customer Loan Assistance")
+	has_customer = loan_assistance.customer.isnotnull()
+	query = (
+		frappe.qb.from_(loan_assistance)
+		.select(
+			loan_assistance.name.as_("reference"),
+			Case().when(has_customer, 'Customer').else_('Lead').as_("customer_type"),
+			Case().when(has_customer, loan_assistance.customer).else_(loan_assistance.lead).as_("customer_reference"),
+			Case().when(has_customer, loan_assistance.customer).else_(loan_assistance.lead_name).as_("customer_name"),
+			loan_assistance.loan_supplier,
+			Date(loan_assistance.creation).as_("start_date"),
+			loan_assistance.completion_date.as_("end_date"),
+			loan_assistance.loan_status,
+		)
+		.where(loan_assistance.creation[filters.from_date:filters.to_date])
+	)
 	if filters.loan_supplier:
-		where += '  AND loan_supplier = %(loan_supplier)s '
-		where_filter.update({"loan_supplier": filters.loan_supplier})
+		query = query.where(loan_assistance.loan_supplier == filters.loan_supplier)
 	
-	data = frappe.db.sql('''SELECT 
-								name AS reference,
-								CASE
-									WHEN customer IS NOT NULL THEN 'Customer'
-								ELSE 'Lead' END AS customer_type,
-								CASE
-									WHEN customer IS NOT NULL THEN customer
-								ELSE lead END AS customer_reference,
-								CASE
-									WHEN customer IS NOT NULL THEN customer
-								ELSE lead_name END AS customer_name,
-								loan_supplier,
-								DATE(creation) AS start_date,
-								completion_date AS end_date,
-								loan_status
-							FROM
-								`tabCustomer Loan Assistance`
-							WHERE
-								creation BETWEEN %(start_date)s AND %(end_date)s
-							''' + where, where_filter, as_dict=1)
+	data = query.run(as_dict=True)
 	return columns, data

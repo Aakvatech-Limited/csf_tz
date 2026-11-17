@@ -28,6 +28,9 @@ on a big table, and needs free disk for a second copy, so run it in a quiet wind
 import json
 
 import frappe
+from frappe.query_builder.functions import Round
+from pypika import Table
+from pypika.terms import CustomFunction
 
 DOCTYPE = "Shift Type"
 SYNC_FIELD = "last_sync_of_checkin"
@@ -138,18 +141,18 @@ def scan():
     issues its COMMIT on that same cursor, breaking the connection mid-stream.
     """
     last_name = ""
+    version = frappe.qb.DocType("Version")
 
     while True:
-        batch = frappe.db.sql(
-            """select name, data from tabVersion
-            where ref_doctype = %s
-                and name > %s
-                and data like %s
-            order by name
-            limit %s""",
-            (DOCTYPE, last_name, DATA_LIKE, BATCH_SIZE),
-            as_dict=True,
-        )
+        batch = (
+            frappe.qb.from_(version)
+            .select(version.name, version.data)
+            .where(version.ref_doctype == DOCTYPE)
+            .where(version.name > last_name)
+            .where(version.data.like(DATA_LIKE))
+            .orderby(version.name)
+            .limit(BATCH_SIZE)
+        ).run(as_dict=True)
         if not batch:
             return
 
@@ -193,6 +196,18 @@ def is_checkin_sync_only(data: str) -> bool:
     return not any(value for key, value in payload.items() if key != "changed")
 
 
+information_schema_tables = Table("tables", schema="information_schema")
+
+
+def get_version_table_query():
+    """`information_schema.tables` row of `tabVersion` in the current database."""
+    return (
+        frappe.qb.from_(information_schema_tables)
+        .where(information_schema_tables.table_schema == CustomFunction("DATABASE", [])())
+        .where(information_schema_tables.table_name == "tabVersion")
+    )
+
+
 def table_space() -> str:
     """On-disk size of tabVersion and how much is reusable but not yet returned.
 
@@ -200,10 +215,11 @@ def table_space() -> str:
     can see rather than requiring a global privilege. (Unlike `innodb_trx`, which needs
     PROCESS and raises for a site user.) A missing table yields no rows, hence the guard.
     """
-    row = frappe.db.sql(
-        """select round(data_length/1024/1024, 1), round(data_free/1024/1024, 1)
-        from information_schema.tables
-        where table_schema = database() and table_name = 'tabVersion'"""
+    tables = information_schema_tables
+    row = (
+        get_version_table_query()
+        .select(Round(tables.data_length / 1024 / 1024, 1), Round(tables.data_free / 1024 / 1024, 1))
+        .run()
     )
     if not row:
         return ""
@@ -215,10 +231,7 @@ def table_space() -> str:
 
 def _table_size_mb() -> float:
     """Just the on-disk size, for before/after comparison."""
-    row = frappe.db.sql(
-        """select data_length/1024/1024 from information_schema.tables
-        where table_schema = database() and table_name = 'tabVersion'"""
-    )
+    row = get_version_table_query().select(information_schema_tables.data_length / 1024 / 1024).run()
 
     return float(row[0][0]) if row else 0.0
 

@@ -5,9 +5,14 @@ from __future__ import unicode_literals
 import frappe
 import erpnext
 from frappe import _
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import Count
 from frappe.utils import flt, cint, getdate
 from erpnext.stock.utils import add_additional_uom_columns
 from erpnext.stock.report.stock_ledger.stock_ledger import get_item_group_condition
+from pypika.terms import ExistsCriterion, ValueWrapper
+
+from csf_tz.csf_tz.report.excise_duty_stock.excise_duty_stock import get_excisable_entries_query
 
 
 from six import iteritems
@@ -96,81 +101,85 @@ def get_columns(filters):
 
 
 def get_conditions(filters):
-    conditions = ""
+    sle = frappe.qb.DocType("Stock Ledger Entry")
+    warehouse = frappe.qb.DocType("Warehouse")
+    conditions = []
     if not filters.get("from_date"):
         frappe.throw(_("'From Date' is required"))
 
     if filters.get("to_date"):
-        conditions += " and sle.posting_date <= %s" % frappe.db.escape(
-            filters.get("to_date"))
+        conditions.append(sle.posting_date <= filters.get("to_date"))
     else:
         frappe.throw(_("'To Date' is required"))
 
     if filters.get("company"):
-        conditions += " and sle.company = %s" % frappe.db.escape(
-            filters.get("company"))
+        conditions.append(sle.company == filters.get("company"))
 
     if filters.get("warehouse"):
-        warehouse_details = frappe.db.get_value("Warehouse",
-                                                filters.get("warehouse"), ["lft", "rgt"], as_dict=1)
+        warehouse_details = frappe.db.get_value(
+            "Warehouse", filters.get("warehouse"), ["lft", "rgt"], as_dict=1
+        )
         if warehouse_details:
-            conditions += " and exists (select name from `tabWarehouse` wh \
-                where wh.lft >= %s and wh.rgt <= %s and sle.warehouse = wh.name)" % (warehouse_details.lft,
-                                                                        warehouse_details.rgt)
+            conditions.append(
+                ExistsCriterion(
+                    frappe.qb.from_(warehouse)
+                    .select(warehouse.name)
+                    .where(
+                        (warehouse.lft >= warehouse_details.lft)
+                        & (warehouse.rgt <= warehouse_details.rgt)
+                        & (sle.warehouse == warehouse.name)
+                    )
+                )
+            )
 
     if filters.get("warehouse_type") and not filters.get("warehouse"):
-        conditions += " and exists (select name from `tabWarehouse` wh \
-            where wh.warehouse_type = '%s' and sle.warehouse = wh.name)" % (filters.get("warehouse_type"))
+        conditions.append(
+            ExistsCriterion(
+                frappe.qb.from_(warehouse)
+                .select(warehouse.name)
+                .where(
+                    (warehouse.warehouse_type == filters.get("warehouse_type"))
+                    & (sle.warehouse == warehouse.name)
+                )
+            )
+        )
 
     return conditions
 
 
 def get_stock_ledger_entries(filters, items):
-    item_conditions_sql = ''
-    if items:
-        item_conditions_sql = ' and sle.item_code in ({})'\
-            .format(', '.join([frappe.db.escape(i, percent=False) for i in items]))
-
+    sle = frappe.qb.DocType("Stock Ledger Entry")
+    stock_entry = frappe.qb.DocType("Stock Entry")
+    sales_invoice = frappe.qb.DocType("Sales Invoice")
     conditions = get_conditions(filters)
+    if items:
+        conditions.append(sle.item_code.isin(items))
 
-    return frappe.db.sql("""
-        select
-            sle.item_code, sle.warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
-            sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
-            sle.item_code as name, sle.voucher_no, sle.stock_value, 0 as excise_stock
-        from
-            `tabStock Ledger Entry` sle force index (posting_sort_index)
-        inner join `tabStock Entry` se on sle.voucher_type = "Stock Entry" and se.name = sle.voucher_no
-        inner join `tabItem` i on sle.item_code = i.name
-        where sle.is_cancelled = 0
-            and (se.purpose != "Material Transfer")
-            and i.excisable_item = 1
-            and sle.docstatus < 2 %s %s
-        UNION ALL
-        select
-            sle.item_code, sle.warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
-            sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
-            sle.item_code as name, sle.voucher_no, sle.stock_value, sle.actual_qty * si.excise_duty_applicable as excise_stock
-        from
-            `tabStock Ledger Entry` sle force index (posting_sort_index)
-        inner join `tabSales Invoice` si on sle.voucher_type = "Sales Invoice" and si.name = sle.voucher_no
-        inner join `tabItem` i on sle.item_code = i.name
-        where sle.is_cancelled = 0
-            and i.excisable_item = 1
-            and sle.docstatus < 2 %s %s
-        UNION ALL
-        select
-            sle.item_code, sle.warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
-            sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
-            sle.item_code as name, sle.voucher_no, sle.stock_value, 0 as excise_stock
-        from
-            `tabStock Ledger Entry` sle force index (posting_sort_index)
-        inner join `tabItem` i on sle.item_code = i.name
-        where sle.is_cancelled = 0
-            and sle.voucher_type NOT IN ("Stock Entry", "Sales Invoice")
-            and i.excisable_item = 1
-            and sle.docstatus < 2 %s %s""" %  # nosec
-                        (item_conditions_sql, conditions, item_conditions_sql, conditions, item_conditions_sql, conditions), as_dict=1)
+    stock_entry_query = get_excisable_entries_query(
+        frappe.qb.from_(sle)
+        .force_index("posting_sort_index")
+        .inner_join(stock_entry)
+        .on((sle.voucher_type == "Stock Entry") & (stock_entry.name == sle.voucher_no)),
+        ValueWrapper(0),
+        conditions,
+    ).where(stock_entry.purpose != "Material Transfer")
+    sales_invoice_query = get_excisable_entries_query(
+        frappe.qb.from_(sle)
+        .force_index("posting_sort_index")
+        .inner_join(sales_invoice)
+        .on((sle.voucher_type == "Sales Invoice") & (sales_invoice.name == sle.voucher_no)),
+        sle.actual_qty * sales_invoice.excise_duty_applicable,
+        conditions,
+    )
+    other_voucher_query = get_excisable_entries_query(
+        frappe.qb.from_(sle).force_index("posting_sort_index"), ValueWrapper(0), conditions
+    ).where(sle.voucher_type.notin(["Stock Entry", "Sales Invoice"]))
+
+    return (
+        stock_entry_query.union_all(sales_invoice_query)
+        .union_all(other_voucher_query)
+        .run(as_dict=True)
+    )
 
 
 def get_item_warehouse_map(filters, sle):
@@ -233,18 +242,22 @@ def filter_items_with_no_transactions(iwb_map, float_precision):
 
 
 def get_items(filters):
+    item = frappe.qb.DocType("Item")
     conditions = []
     if filters.get("item_code"):
-        conditions.append("item.name=%(item_code)s")
+        conditions.append(item.name == filters.get("item_code"))
     else:
         if filters.get("item_group"):
-            conditions.append(get_item_group_condition(
-                filters.get("item_group")))
+            conditions.append(get_item_group_condition(filters.get("item_group"), item))
 
     items = []
     if conditions:
-        items = frappe.db.sql_list("""select name from `tabItem` item where {}"""
-                                .format(" and ".join(conditions)), filters)
+        items = (
+            frappe.qb.from_(item)
+            .select(item.name)
+            .where(Criterion.all(conditions))
+            .run(pluck=True)
+        )
     return items
 
 
@@ -256,21 +269,30 @@ def get_item_details(items, sle, filters):
     if not items:
         return item_details
 
-    cf_field = cf_join = ""
+    item = frappe.qb.DocType("Item")
+    query = (
+        frappe.qb.from_(item)
+        .select(
+            item.name,
+            item.item_name,
+            item.description,
+            item.item_group,
+            item.brand,
+            item.stock_uom,
+        )
+        .where(item.name.isin(items))
+    )
     if filters.get("include_uom"):
-        cf_field = ", ucd.conversion_factor"
-        cf_join = "left join `tabUOM Conversion Detail` ucd on ucd.parent=item.name and ucd.uom=%s" \
-            % frappe.db.escape(filters.get("include_uom"))
-
-    res = frappe.db.sql("""
-        select
-            item.name, item.item_name, item.description, item.item_group, item.brand, item.stock_uom %s
-        from
-            `tabItem` item
-            %s
-        where
-            item.name in (%s)
-    """ % (cf_field, cf_join, ','.join(['%s'] * len(items))), items, as_dict=1)
+        uom_conversion = frappe.qb.DocType("UOM Conversion Detail")
+        query = (
+            query.left_join(uom_conversion)
+            .on(
+                (uom_conversion.parent == item.name)
+                & (uom_conversion.uom == filters.get("include_uom"))
+            )
+            .select(uom_conversion.conversion_factor)
+        )
+    res = query.run(as_dict=True)
 
     for item in res:
         item_details.setdefault(item.name, item)
@@ -285,8 +307,8 @@ def get_item_details(items, sle, filters):
 
 def validate_filters(filters):
     if not (filters.get("item_code") or filters.get("warehouse")):
-        sle_count = flt(frappe.db.sql(
-            """select count(name) from `tabStock Ledger Entry`""")[0][0])
+        sle = frappe.qb.DocType("Stock Ledger Entry")
+        sle_count = flt(frappe.qb.from_(sle).select(Count(sle.name)).run()[0][0])
         if sle_count > 500000:
             frappe.throw(
                 _("Please set filter based on Item or Warehouse due to a large amount of entries."))
@@ -300,9 +322,17 @@ def get_variants_attributes():
 def get_variant_values_for(items):
     '''Returns variant values for items.'''
     attribute_map = {}
-    for attr in frappe.db.sql('''select parent, attribute, attribute_value
-        from `tabItem Variant Attribute` where parent in (%s)
-        ''' % ", ".join(["%s"] * len(items)), tuple(items), as_dict=1):
+    variant_attribute = frappe.qb.DocType("Item Variant Attribute")
+    for attr in (
+        frappe.qb.from_(variant_attribute)
+        .select(
+            variant_attribute.parent,
+            variant_attribute.attribute,
+            variant_attribute.attribute_value,
+        )
+        .where(variant_attribute.parent.isin(items))
+        .run(as_dict=True)
+    ):
         attribute_map.setdefault(attr['parent'], {})
         attribute_map[attr['parent']].update(
             {attr['attribute']: attr['attribute_value']})

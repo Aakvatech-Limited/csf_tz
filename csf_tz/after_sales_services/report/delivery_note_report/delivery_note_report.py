@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Concat
 
 
 def execute(filters=None):
@@ -93,52 +94,66 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where = ''
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date}
+	delivery_note_item = frappe.qb.DocType("Delivery Note Item")
+	sales_invoice = frappe.qb.DocType("Sales Invoice")
+	delivery_note = frappe.qb.DocType("Delivery Note")
+	stock_bin = frappe.qb.DocType("Bin")
+	item = frappe.qb.DocType("Item")
+	address = frappe.qb.DocType("Address")
+	dynamic_link = frappe.qb.DocType("Dynamic Link")
+	return_note = frappe.qb.DocType("Delivery Note").as_("return_note")
+
+	customer_address_name = (
+		frappe.qb.from_(dynamic_link)
+		.select(dynamic_link.parent)
+		.where(dynamic_link.parenttype == 'Address')
+		.where(dynamic_link.link_doctype == 'Customer')
+		.where(dynamic_link.link_name == delivery_note.customer)
+		.orderby(address.creation)
+		.limit(1)
+	)
+	return_against_note = (
+		frappe.qb.from_(return_note)
+		.select(return_note.name)
+		.where(return_note.return_against == delivery_note.name)
+	)
+
+	query = (
+		frappe.qb.from_(delivery_note_item)
+		.left_join(sales_invoice)
+		.on(delivery_note_item.against_sales_invoice == sales_invoice.name)
+		.left_join(delivery_note)
+		.on(delivery_note_item.parent == delivery_note.name)
+		.left_join(stock_bin)
+		.on((stock_bin.item_code == delivery_note_item.item_code) & (stock_bin.warehouse == delivery_note_item.warehouse))
+		.left_join(item)
+		.on(item.item_code == delivery_note_item.item_code)
+		.left_join(address)
+		.on(address.name == customer_address_name)
+		.select(
+			delivery_note.customer_name,
+			Concat(address.address_line1, ",", address.city, ",", address.country).as_("customer_address"),
+			address.phone.as_("phone_number"),
+			delivery_note.posting_date,
+			delivery_note_item.item_name,
+			delivery_note_item.item_code,
+			delivery_note_item.serial_no,
+			delivery_note_item.qty.as_("quantity"),
+			delivery_note_item.uom,
+			delivery_note_item.warehouse,
+			delivery_note.name.as_("delivery_note"),
+			sales_invoice.name.as_("sales_invoice"),
+			stock_bin.actual_qty.as_("actual_quantity"),
+			stock_bin.projected_qty.as_("projected_quantity"),
+		)
+		.where(delivery_note.docstatus == 1)
+		.where(delivery_note.status.isin(['Completed', 'To Bill', 'Closed']))
+		.where(delivery_note.posting_date[filters.from_date:filters.to_date])
+		.where(return_against_note.isnull())
+	)
 
 	if filters.warehouse:
-		where += ' AND dni.warehouse = %(warehouse)s'
-		where_filter.update({"warehouse": filters.warehouse})
-	
-	data = frappe.db.sql('''SELECT 
-								dn.customer_name,
-								CONCAT(ta.address_line1,",", ta.city,',', ta.country) AS customer_address,
- 								ta.phone AS phone_number,
- 								dn.posting_date,
-								dni.item_name,
-								dni.item_code,
-								dni.serial_no,
-								dni.qty AS quantity,
-								dni.uom,
-								dni.warehouse,
-								dn.name AS delivery_note,
-								so.name AS sales_invoice,
-								`tabBin`.actual_qty AS actual_quantity,
-								`tabBin`.projected_qty AS projected_quantity
-							FROM
-								(`tabDelivery Note Item`dni)
-							LEFT JOIN
-								(`tabSales Invoice` so)
-								ON (dni.against_sales_invoice = so.name)						
-							LEFT JOIN
-								(`tabDelivery Note` dn)
-								ON (dni.parent=dn.name)
-							LEFT JOIN 
-								`tabBin` ON (`tabBin`.item_code = dni.item_code
-									and `tabBin`.warehouse = dni.warehouse)
-							LEFT JOIN
-								tabItem ON tabItem.item_code = dni.item_code
-							LEFT JOIN
-								(`tabAddress` ta) ON ta.name=(SELECT dl.parent
-								FROM (`tabDynamic Link` dl)
-								WHERE 
-									dl.parenttype='Address' AND dl.link_doctype='Customer' AND 
-									dl.link_name=dn.customer ORDER BY ta.creation LIMIT 1
-								)
-							WHERE
-							 	dn.docstatus = 1 AND dn.status IN ('Completed', 'To Bill', 'Closed')
-							 	AND dn.posting_date BETWEEN %(from_date)s AND %(to_date)s
-							 	AND (SELECT name FROM `tabDelivery Note` WHERE return_against = dn.name) IS NULL''' + where,
-							where_filter, as_dict=1
-							);
+		query = query.where(delivery_note_item.warehouse == filters.warehouse)
+
+	data = query.run(as_dict=1)
 	return columns, data

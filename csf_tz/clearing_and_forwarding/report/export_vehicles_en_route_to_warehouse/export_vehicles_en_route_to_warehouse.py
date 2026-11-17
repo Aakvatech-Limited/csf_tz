@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Case
+from frappe.query_builder.functions import Concat
 import ast
 import datetime
 import time
@@ -65,33 +67,49 @@ def execute(filters=None):
 	]
 	
 	
-	data = frappe.db.sql('''SELECT
-								`tabBorder Clearance`.name AS reference,
-								`tabBorder Clearance`.client AS customer,
-								`tabBorder Clearance`.cargo_destination_exact AS warehouse,
-								CASE
-									WHEN `tabBorder Clearance`.transporter_type = 'Other' THEN `tabBorder Clearance`.transporter_name
-									ELSE 'Bravo'
-								END AS transporter,
-								CONCAT(`tabBorder Clearance`.vehicle_plate_number, '/', `tabBorder Clearance`.trailer_plate_number) AS truck,
-								`tabBorder Clearance`.cargo_description AS cargo,
-								CASE
-									WHEN `tabBorder Clearance`.no_of_borders = 1 THEN `tabBorder Clearance`.border1_name
-									WHEN `tabBorder Clearance`.no_of_borders = 2 THEN `tabBorder Clearance`.border2_name
-									WHEN `tabBorder Clearance`.no_of_borders = 3 THEN `tabBorder Clearance`.border3_name
-									WHEN `tabBorder Clearance`.no_of_borders = 4 THEN `tabBorder Clearance`.border4_name
-								END AS border,
-								CASE
-									WHEN `tabBorder Clearance`.no_of_borders = 1 THEN `tabBorder Clearance`.border1_crossing
-									WHEN `tabBorder Clearance`.no_of_borders = 2 THEN `tabBorder Clearance`.border2_crossing
-									WHEN `tabBorder Clearance`.no_of_borders = 3 THEN `tabBorder Clearance`.border3_crossing
-									WHEN `tabBorder Clearance`.no_of_borders = 4 THEN `tabBorder Clearance`.border4_crossing
-								END AS border_date_time
-							FROM
-								`tabBorder Clearance`
-							WHERE
-								`tabBorder Clearance`.cargo_destination_country = 'Tanzania' AND `tabBorder Clearance`.offloading_datetime IS NULL
-						''', as_dict=1)
+	border_clearance = frappe.qb.DocType("Border Clearance")
+	data = (
+		frappe.qb.from_(border_clearance)
+		.select(
+			border_clearance.name.as_("reference"),
+			border_clearance.client.as_("customer"),
+			border_clearance.cargo_destination_exact.as_("warehouse"),
+			Case()
+			.when(border_clearance.transporter_type == 'Other', border_clearance.transporter_name)
+			.else_('Bravo')
+			.as_("transporter"),
+			Concat(border_clearance.vehicle_plate_number, '/', border_clearance.trailer_plate_number).as_("truck"),
+			border_clearance.cargo_description.as_("cargo"),
+			get_last_border_case(
+				border_clearance,
+				[
+					border_clearance.border1_name,
+					border_clearance.border2_name,
+					border_clearance.border3_name,
+					border_clearance.border4_name,
+				],
+			).as_("border"),
+			get_last_border_case(
+				border_clearance,
+				[
+					border_clearance.border1_crossing,
+					border_clearance.border2_crossing,
+					border_clearance.border3_crossing,
+					border_clearance.border4_crossing,
+				],
+			).as_("border_date_time"),
+		)
+		.where(border_clearance.cargo_destination_country == 'Tanzania')
+		.where(border_clearance.offloading_datetime.isnull())
+		.run(as_dict=True)
+	)
 	
 	
 	return columns, data
+
+
+def get_last_border_case(border_clearance, border_fields):
+	last_border = Case()
+	for border_number, border_field in enumerate(border_fields, start=1):
+		last_border = last_border.when(border_clearance.no_of_borders == border_number, border_field)
+	return last_border

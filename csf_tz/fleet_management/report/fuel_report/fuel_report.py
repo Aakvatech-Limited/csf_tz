@@ -79,30 +79,32 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 		
-	where = " WHERE approved_date BETWEEN %(from_date)s AND %(to_date)s "
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date}
+	fuel_request = frappe.qb.DocType("Fuel Request")
+	vehicle_trip = frappe.qb.DocType("Vehicle Trip")
+	fuel_request_table = frappe.qb.DocType("Fuel Request Table")
+	query = (
+		frappe.qb.from_(fuel_request)
+		.left_join(vehicle_trip)
+		.on(fuel_request.reference_docname == vehicle_trip.name)
+		.left_join(fuel_request_table)
+		.on(fuel_request.reference_docname == fuel_request_table.parent)
+		.select(
+			fuel_request.reference_docname,
+			vehicle_trip.vehicle,
+			fuel_request_table.fuel_type,
+			fuel_request_table.quantity,
+			fuel_request_table.cost_per_litre,
+			fuel_request_table.disburcement_type,
+			fuel_request_table.supplier,
+			fuel_request.name.as_("fuel_request"),
+		)
+		.where(fuel_request_table.approved_date.between(filters.from_date, filters.to_date))
+	)
 	if filters.vehicle:
-		where += 'AND vehicle = %(vehicle)s'
-		where_filter.update({"vehicle": filters.vehicle})
-		
+		query = query.where(vehicle_trip.vehicle == filters.vehicle)
+
 	if filters.disburcement_type:
-		where += ' AND disburcement_type = %(disburcement_type)s'
-		where_filter.update({"disburcement_type": filters.disburcement_type})
-	
-	data = frappe.db.sql('''SELECT
-								`tabFuel Request`.reference_docname,
-								`tabVehicle Trip`.vehicle,
-								`tabFuel Request Table`.fuel_type,
-								`tabFuel Request Table`.quantity,
-								`tabFuel Request Table`.cost_per_litre,
-								`tabFuel Request Table`.disburcement_type,
-								`tabFuel Request Table`.supplier,
-								`tabFuel Request`.name AS fuel_request
-							FROM
-								`tabFuel Request`
-							LEFT JOIN
-								`tabVehicle Trip` ON `tabFuel Request`.reference_docname = `tabVehicle Trip`.name
-							LEFT JOIN
-								`tabFuel Request Table` ON `tabFuel Request`.reference_docname = `tabFuel Request Table`.parent
-							''' + where, where_filter, as_dict=1)
+		query = query.where(fuel_request_table.disburcement_type == filters.disburcement_type)
+
+	data = query.run(as_dict=True)
 	return columns, data

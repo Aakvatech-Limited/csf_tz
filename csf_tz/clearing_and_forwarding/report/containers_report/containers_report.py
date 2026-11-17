@@ -56,26 +56,23 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date, }
-	where = ""
+	container = frappe.qb.DocType("Container")
+	query = (
+		frappe.qb.from_(container)
+		.select(
+			container.creation_document_no,
+			container.shipping_line,
+			container.export_reference,
+			container.booking_number,
+			container.container_no,
+			container.container_type,
+			container.seal_number,
+		)
+		.where(container.container_no.isnotnull())
+	)
 	if filters.shipping_line:
-		where += 'AND tc.shipping_line = %(shipping_line)s '
-		where_filter.update({"shipping_line": filters.shipping_line})
+		query = query.where(container.shipping_line == filters.shipping_line)
 
-	data = frappe.db.sql('''SELECT 
-		                                tc.creation_document_no AS creation_document_no,
-		                                tc.shipping_line AS shipping_line,
-		                                tc.export_reference AS export_reference,
-		                                tc.booking_number AS booking_number,
-		                                tc.container_no AS container_no,
-		                                tc.container_type AS container_type,
-		                                tc.seal_number AS seal_number
-
-										FROM 
-											(`tabContainer` tc)
-											WHERE
-	                                tc.container_no IS NOT NULL ''' + where + '''
-								''',
-						 where_filter, as_dict=1, as_list=1);
+	data = query.run(as_dict=True)
 
 	return columns, data

@@ -4,13 +4,20 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.query_builder import Order
 import unittest
 from frappe.utils import nowdate,flt, cstr,random_string
 # test_records = frappe.get_test_records('Vehicle Log')
 class TestVehicleLog(unittest.TestCase):
 	def test_make_vehicle_log(self):
 		license_plate=random_string(10).upper()
-		employee_id=frappe.db.sql("""select name from `tabEmployee` order by modified desc limit 1""")[0][0]
+		employee = frappe.qb.DocType("Employee")
+		employee_id = (
+			frappe.qb.from_(employee)
+			.select(employee.name)
+			.orderby(employee.modified, order=Order.desc)
+			.limit(1)
+		).run()[0][0]
 		vehicle = frappe.get_doc({
 			"doctype": "Vehicle",
 			"license_plate": cstr(license_plate),

@@ -6,10 +6,15 @@ import frappe
 from frappe.utils import flt, getdate, cstr
 from frappe import _
 from erpnext.accounts.utils import get_account_currency
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import Sum
+from csf_tz.csf_tz.report.gl_entry_conditions import get_child_accounts_query
+from csf_tz.utils.query_builder import get_match_criterion
 
 def execute(filters=None):
 	account_details = {}
-	for acc in frappe.db.sql("""select name, is_group from tabAccount""", as_dict=1):
+	account = frappe.qb.DocType("Account")
+	for acc in frappe.qb.from_(account).select(account.name, account.is_group).run(as_dict=True):
 		account_details.setdefault(acc.name, acc)
 
 	validate_filters(filters, account_details)
@@ -108,56 +113,53 @@ def get_result(filters, account_details):
 	return result
 
 def get_gl_entries(filters):
-	select_fields = """, sum(debit_in_account_currency) as debit_in_account_currency,
-		sum(credit_in_account_currency) as credit_in_account_currency""" \
-		if filters.get("show_in_account_currency") else ""
+	gl_entry = frappe.qb.DocType("GL Entry")
+	query = (
+		frappe.qb.from_(gl_entry)
+		.select(
+			gl_entry.posting_date, gl_entry.account, gl_entry.party_type, gl_entry.party,
+			Sum(gl_entry.debit).as_("debit"), Sum(gl_entry.credit).as_("credit"),
+			gl_entry.voucher_type, gl_entry.voucher_no, gl_entry.cost_center, gl_entry.project,
+			gl_entry.against_voucher_type, gl_entry.against_voucher,
+			gl_entry.remarks, gl_entry.against, gl_entry.is_opening,
+		)
+		.where(gl_entry.company == filters.get("company"))
+		.orderby(gl_entry.posting_date)
+		.orderby(gl_entry.account)
+	)
+	if filters.get("show_in_account_currency"):
+		query = query.select(
+			Sum(gl_entry.debit_in_account_currency).as_("debit_in_account_currency"),
+			Sum(gl_entry.credit_in_account_currency).as_("credit_in_account_currency"),
+		)
 
-	group_by_condition = "group by voucher_type, voucher_no, account, cost_center" \
-		if filters.get("group_by_voucher") else "group by name"
+	if filters.get("group_by_voucher"):
+		query = query.groupby(gl_entry.voucher_type, gl_entry.voucher_no, gl_entry.account, gl_entry.cost_center)
+	else:
+		query = query.groupby(gl_entry.name)
 
-	gl_entries = frappe.db.sql("""
-		select
-			posting_date, account, party_type, party,
-			sum(debit) as debit, sum(credit) as credit,
-			voucher_type, voucher_no, cost_center, project,
-			against_voucher_type, against_voucher,
-			remarks, against, is_opening {select_fields}
-		from `tabGL Entry`
-		where company=%(company)s {conditions}
-		{group_by_condition}
-		order by posting_date, account"""\
-		.format(select_fields=select_fields, conditions=get_conditions(filters),
-			group_by_condition=group_by_condition), filters, as_dict=1)
+	return query.where(Criterion.all(get_conditions(filters, gl_entry))).run(as_dict=True)
 
-	return gl_entries
-
-def get_conditions(filters):
+def get_conditions(filters, gl_entry):
 	conditions = []
 	if filters.get("account"):
-		lft, rgt = frappe.db.get_value("Account", filters["account"], ["lft", "rgt"])
-		conditions.append("""account in (select name from tabAccount
-			where lft>=%s and rgt<=%s and docstatus<2)""" % (lft, rgt))
+		conditions.append(gl_entry.account.isin(get_child_accounts_query(filters["account"])))
 
-	if filters.get("voucher_no"):
-		conditions.append("voucher_no=%(voucher_no)s")
-
-	if filters.get("party_type"):
-		conditions.append("party_type=%(party_type)s")
-
-	if filters.get("party"):
-		conditions.append("party=%(party)s")
+	for fieldname in ("voucher_no", "party_type", "party"):
+		if filters.get(fieldname):
+			conditions.append(gl_entry[fieldname] == filters.get(fieldname))
 
 	if not (filters.get("account") or filters.get("party") or filters.get("group_by_account")):
-		conditions.append("posting_date >=%(from_date)s")
+		conditions.append(gl_entry.posting_date >= filters.get("from_date"))
 
 	if filters.get("project"):
-		conditions.append("project=%(project)s")
+		conditions.append(gl_entry.project == filters.get("project"))
 
-	from frappe.desk.reportview import build_match_conditions
-	match_conditions = build_match_conditions("GL Entry")
-	if match_conditions: conditions.append(match_conditions)
+	match_criterion = get_match_criterion("GL Entry")
+	if match_criterion:
+		conditions.append(match_criterion)
 
-	return "and {}".format(" and ".join(conditions)) if conditions else ""
+	return conditions
 
 def get_data_with_opening_closing(filters, account_details, gl_entries):
 	data = []

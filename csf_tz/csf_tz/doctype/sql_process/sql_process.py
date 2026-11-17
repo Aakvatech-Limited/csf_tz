@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from pypika import Table
 
 
 class SQLProcess(Document):
@@ -11,15 +12,13 @@ class SQLProcess(Document):
 
     @frappe.whitelist()
     def get_process(self):
-        process = frappe.db.sql(
-            """
-                select id, time, info
-                from information_schema.processlist
-                WHERE info IS NOT NULL
-            """,
-            as_dict=True,
+        processlist = Table("processlist", schema="information_schema")
+        return (
+            frappe.qb.from_(processlist)
+            .select(processlist.id, processlist.time, processlist.info)
+            .where(processlist.info.isnotnull())
+            .run(as_dict=True)
         )
-        return process
 
     @frappe.whitelist()
     def kill_process(self, pid):

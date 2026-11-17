@@ -3,9 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe, erpnext
-from frappe.utils import flt, today
+from frappe.utils import cint, flt, today
 from frappe import msgprint, _
 from frappe.model.document import Document
+from frappe.query_builder.functions import IfNull, Sum
+from pypika.terms import ValueWrapper
 from erpnext.accounts.utils import (get_outstanding_invoices,
 	update_reference_in_payment_entry, reconcile_against_document)
 
@@ -39,42 +41,51 @@ class PaymentReconciliationPro(Document):
 		dr_or_cr = ("credit_in_account_currency" if erpnext.get_party_account_type(self.party_type) == 'Receivable'
 			else "debit_in_account_currency")
 
-		bank_account_condition = "t2.against_account like %(bank_cash_account)s" \
-				if self.bank_cash_account else "1=1"
-
-		limit_cond = "limit %s" % self.limit if self.limit else ""
-
-		journal_entries = frappe.db.sql("""
-			select
-				"Journal Entry" as reference_type, t1.name as reference_name,
-				t1.posting_date, t1.remark as remarks, t2.name as reference_row,
-				{dr_or_cr} as amount, t2.is_advance,
-				t2.account_currency as currency
-			from
-				`tabJournal Entry` t1, `tabJournal Entry Account` t2
-			where
-				t1.name = t2.parent and t1.docstatus = 1 and t2.docstatus = 1
-				and t2.party_type = %(party_type)s and t2.party = %(party)s
-				and t2.account = %(account)s and {dr_or_cr} > 0
-				and (t2.reference_type is null or t2.reference_type = '' or
-					(t2.reference_type in ('Sales Order', 'Purchase Order')
-						and t2.reference_name is not null and t2.reference_name != ''))
-				and (CASE
-					WHEN t1.voucher_type in ('Debit Note', 'Credit Note')
-					THEN 1=1
-					ELSE {bank_account_condition}
-				END)
-			order by t1.posting_date {limit_cond}
-			""".format(**{
-				"dr_or_cr": dr_or_cr,
-				"bank_account_condition": bank_account_condition,
-				"limit_cond": limit_cond
-			}), {
-				"party_type": self.party_type,
-				"party": self.party,
-				"account": self.receivable_payable_account,
-				"bank_cash_account": "%%%s%%" % self.bank_cash_account
-			}, as_dict=1)
+		journal_entry = frappe.qb.DocType("Journal Entry")
+		journal_entry_account = frappe.qb.DocType("Journal Entry Account")
+		amount = journal_entry_account[dr_or_cr]
+		is_unlinked_or_order_reference = (
+			journal_entry_account.reference_type.isnull()
+			| (journal_entry_account.reference_type == "")
+			| (
+				journal_entry_account.reference_type.isin(["Sales Order", "Purchase Order"])
+				& journal_entry_account.reference_name.isnotnull()
+				& (journal_entry_account.reference_name != "")
+			)
+		)
+		query = (
+			frappe.qb.from_(journal_entry)
+			.join(journal_entry_account)
+			.on(journal_entry.name == journal_entry_account.parent)
+			.select(
+				ValueWrapper("Journal Entry").as_("reference_type"),
+				journal_entry.name.as_("reference_name"),
+				journal_entry.posting_date,
+				journal_entry.remark.as_("remarks"),
+				journal_entry_account.name.as_("reference_row"),
+				amount.as_("amount"),
+				journal_entry_account.is_advance,
+				journal_entry_account.account_currency.as_("currency"),
+			)
+			.where(
+				(journal_entry.docstatus == 1)
+				& (journal_entry_account.docstatus == 1)
+				& (journal_entry_account.party_type == self.party_type)
+				& (journal_entry_account.party == self.party)
+				& (journal_entry_account.account == self.receivable_payable_account)
+				& (amount > 0)
+				& is_unlinked_or_order_reference
+			)
+			.orderby(journal_entry.posting_date)
+		)
+		if self.bank_cash_account:
+			query = query.where(
+				journal_entry.voucher_type.isin(["Debit Note", "Credit Note"])
+				| journal_entry_account.against_account.like("%" + self.bank_cash_account + "%")
+			)
+		if self.limit:
+			query = query.limit(cint(self.limit))
+		journal_entries = query.run(as_dict=True)
 
 		return list(journal_entries)
 
@@ -88,32 +99,33 @@ class PaymentReconciliationPro(Document):
 		voucher_type = ('Sales Invoice'
 			if self.party_type == 'Customer' else "Purchase Invoice")
 
-		return frappe.db.sql(""" SELECT doc.name as reference_name, %(voucher_type)s as reference_type,
-				(sum(gl.{dr_or_cr}) - sum(gl.{reconciled_dr_or_cr})) as amount,
-				account_currency as currency
-			FROM `tab{doc}` doc, `tabGL Entry` gl
-			WHERE
-				(doc.name = gl.against_voucher or doc.name = gl.voucher_no)
-				and doc.{party_type_field} = %(party)s
-				and doc.is_return = 1 and ifnull(doc.return_against, "") = ""
-				and gl.against_voucher_type = %(voucher_type)s
-				and doc.docstatus = 1 and gl.party = %(party)s
-				and gl.party_type = %(party_type)s and gl.account = %(account)s
-				and gl.is_cancelled = 0
-			GROUP BY doc.name
-			Having
-				amount > 0
-		""".format(
-			doc=voucher_type,
-			dr_or_cr=dr_or_cr,
-			reconciled_dr_or_cr=reconciled_dr_or_cr,
-			party_type_field=frappe.scrub(self.party_type)),
-			{
-				'party': self.party,
-				'party_type': self.party_type,
-				'voucher_type': voucher_type,
-				'account': self.receivable_payable_account
-			}, as_dict=1)
+		invoice = frappe.qb.DocType(voucher_type)
+		gl_entry = frappe.qb.DocType("GL Entry")
+		amount = Sum(gl_entry[dr_or_cr]) - Sum(gl_entry[reconciled_dr_or_cr])
+		return (
+			frappe.qb.from_(invoice)
+			.join(gl_entry)
+			.on((invoice.name == gl_entry.against_voucher) | (invoice.name == gl_entry.voucher_no))
+			.select(
+				invoice.name.as_("reference_name"),
+				ValueWrapper(voucher_type).as_("reference_type"),
+				amount.as_("amount"),
+				gl_entry.account_currency.as_("currency"),
+			)
+			.where(
+				(invoice[frappe.scrub(self.party_type)] == self.party)
+				& (invoice.is_return == 1)
+				& (IfNull(invoice.return_against, "") == "")
+				& (gl_entry.against_voucher_type == voucher_type)
+				& (invoice.docstatus == 1)
+				& (gl_entry.party == self.party)
+				& (gl_entry.party_type == self.party_type)
+				& (gl_entry.account == self.receivable_payable_account)
+				& (gl_entry.is_cancelled == 0)
+			)
+			.groupby(invoice.name)
+			.having(amount > 0)
+		).run(as_dict=True)
 
 	def add_payment_entries(self, entries):
 		self.set('payments', [])
@@ -316,42 +328,67 @@ def get_advance_payment_entries(party_type, party, party_account, order_doctype,
 	exchange_rate_field = "source_exchange_rate" if payment_type == "Receive" else "target_exchange_rate"
 
 	payment_entries_against_order, unallocated_payment_entries = [], []
-	limit_cond = "limit %s" % limit if limit else ""
+	payment_entry = frappe.qb.DocType("Payment Entry")
+	party_conditions = (
+		(payment_entry[party_account_field] == party_account)
+		& (payment_entry.payment_type == payment_type)
+		& (payment_entry.party_type == party_type)
+		& (payment_entry.party == party)
+		& (payment_entry.docstatus == 1)
+	)
 
 	if order_list or against_all_orders:
-		if order_list:
-			reference_condition = " and t2.reference_name in ({0})" \
-				.format(', '.join(['%s'] * len(order_list)))
-		else:
-			reference_condition = ""
-			order_list = []
-
-		payment_entries_against_order = frappe.db.sql("""
-			select
-				"Payment Entry" as reference_type, t1.name as reference_name,
-				t1.remarks, t2.allocated_amount as amount, t2.name as reference_row,
-				t2.reference_name as against_order, t1.posting_date,
-				t1.{0} as currency, t1.{4} as exchange_rate
-			from `tabPayment Entry` t1, `tabPayment Entry Reference` t2
-			where
-				t1.name = t2.parent and t1.{1} = %s and t1.payment_type = %s
-				and t1.party_type = %s and t1.party = %s and t1.docstatus = 1
-				and t2.reference_doctype = %s {2}
-			order by t1.posting_date {3}
-		""".format(currency_field, party_account_field, reference_condition, limit_cond, exchange_rate_field),
-													  [party_account, payment_type, party_type, party,
-													   order_doctype] + order_list, as_dict=1)
+		payment_entries_against_order = get_payment_entries_against_order(party_conditions,
+			order_doctype, order_list, currency_field, exchange_rate_field, limit)
 
 	if include_unallocated:
-		unallocated_payment_entries = frappe.db.sql("""
-				select "Payment Entry" as reference_type, name as reference_name,
-				remarks, unallocated_amount as amount, {2} as exchange_rate
-				from `tabPayment Entry`
-				where
-					{0} = %s and party_type = %s and party = %s and payment_type = %s
-					and docstatus = 1 and unallocated_amount > 0
-				order by posting_date {1}
-			""".format(party_account_field, limit_cond, exchange_rate_field),
-			(party_account, party_type, party, payment_type), as_dict=1)
+		unallocated_payment_entries = get_unallocated_payment_entries(party_conditions,
+			exchange_rate_field, limit)
 
 	return list(payment_entries_against_order) + list(unallocated_payment_entries)
+
+def get_payment_entries_against_order(party_conditions, order_doctype, order_list,
+		currency_field, exchange_rate_field, limit):
+	payment_entry = frappe.qb.DocType("Payment Entry")
+	payment_entry_reference = frappe.qb.DocType("Payment Entry Reference")
+	query = (
+		frappe.qb.from_(payment_entry)
+		.join(payment_entry_reference)
+		.on(payment_entry.name == payment_entry_reference.parent)
+		.select(
+			ValueWrapper("Payment Entry").as_("reference_type"),
+			payment_entry.name.as_("reference_name"),
+			payment_entry.remarks,
+			payment_entry_reference.allocated_amount.as_("amount"),
+			payment_entry_reference.name.as_("reference_row"),
+			payment_entry_reference.reference_name.as_("against_order"),
+			payment_entry.posting_date,
+			payment_entry[currency_field].as_("currency"),
+			payment_entry[exchange_rate_field].as_("exchange_rate"),
+		)
+		.where(party_conditions & (payment_entry_reference.reference_doctype == order_doctype))
+		.orderby(payment_entry.posting_date)
+	)
+	if order_list:
+		query = query.where(payment_entry_reference.reference_name.isin(order_list))
+	if limit:
+		query = query.limit(cint(limit))
+	return query.run(as_dict=True)
+
+def get_unallocated_payment_entries(party_conditions, exchange_rate_field, limit):
+	payment_entry = frappe.qb.DocType("Payment Entry")
+	query = (
+		frappe.qb.from_(payment_entry)
+		.select(
+			ValueWrapper("Payment Entry").as_("reference_type"),
+			payment_entry.name.as_("reference_name"),
+			payment_entry.remarks,
+			payment_entry.unallocated_amount.as_("amount"),
+			payment_entry[exchange_rate_field].as_("exchange_rate"),
+		)
+		.where(party_conditions & (payment_entry.unallocated_amount > 0))
+		.orderby(payment_entry.posting_date)
+	)
+	if limit:
+		query = query.limit(cint(limit))
+	return query.run(as_dict=True)

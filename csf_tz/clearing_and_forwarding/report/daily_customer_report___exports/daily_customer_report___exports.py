@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder.functions import Count, Sum
+from csf_tz.utils.query_builder import get_latest_reporting_status_query
 import ast
 import datetime
 
@@ -178,44 +180,52 @@ def execute(filters=None):
 	yesterday = yesterday.strftime("%Y-%m-%d")
 	day_before = day_before.strftime("%Y-%m-%d")
 	
-	where = ''
-	where_filter = {'today': today, 'yesterday': yesterday, 'day_before': day_before}
+	export = frappe.qb.DocType("Export")
+	query = get_exports_query(export).where(
+		export.scanner_report_sent_to_client.isnull()
+		| export.scanner_report_sent_to_client.isin([today, yesterday, day_before])
+	)
 	if filters.customer:
-		where = 'AND tabExport.client = %(customer)s'
-		where_filter.update({'customer': filters.customer})
+		query = query.where(export.client == filters.customer)
 	
 	
-	data = frappe.db.sql('''SELECT 
-								tabExport.name AS file_number,
-								tabExport.client,
-								tabExport.booking_received,
-								tabExport.booking_number AS booking_no,
-								tabExport.material AS commodity,
-								(SELECT count(`tabPacking List`.name) FROM `tabPacking List` WHERE `tabPacking List`.parenttype = 'Export' AND `tabPacking List`.parent = `tabExport`.name) AS no_of_containers,
-								(SELECT SUM(`tabPacking List`.net_weight) FROM `tabPacking List` WHERE `tabPacking List`.parenttype = 'Export' AND `tabPacking List`.parent = `tabExport`.name) AS weight,
-								tabExport.destination,
-								tabExport.vessel_name AS vessel,
-								tabExport.voyage_no AS voyager_no,
-								tabExport.shipping_line,
-								tabExport.eta,
-								tabExport.engagement_date,
-								tabExport.cut_off_date AS payment_cutoff,
-								tabExport.stuffing_date,
-								tabExport.release_received AS tra_release_obtained,
-								tabExport.lodge_port_charges,
-								tabExport.port_charges_paid,
-								tabExport.loading_permit_received AS permit_obtained_date,
-								tabExport.loading_date AS delivery_date,
-								tabExport.loading_permit_handover_transporter AS permit_submited_to_client,
-								tabExport.containers_arrived_at_port AS containers_arrived_port,
-								tabExport.file_submitted_to_scanner,
-								tabExport.scanner_report_collected,
-								tabExport.scanner_report_sent_to_client,
-								(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Export' \
-									AND `tabReporting Status Table`.parent = `tabExport`.name ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-							FROM
-								`tabExport`
-							WHERE tabExport.status <> 'Closed' AND (`tabExport`.scanner_report_sent_to_client IS NULL OR `tabExport`.scanner_report_sent_to_client IN (%(today)s, %(yesterday)s, %(day_before)s))
-							''' + where, where_filter, as_dict=1)
+	data = query.run(as_dict=True)
 	
 	return columns, data
+
+
+def get_exports_query(export):
+	packing_list = frappe.qb.DocType("Packing List")
+	export_packing_list = frappe.qb.from_(packing_list).where(packing_list.parenttype == 'Export').where(packing_list.parent == export.name)
+	return (
+		frappe.qb.from_(export)
+		.select(
+			export.name.as_("file_number"),
+			export.client,
+			export.booking_received,
+			export.booking_number.as_("booking_no"),
+			export.material.as_("commodity"),
+			export_packing_list.select(Count(packing_list.name)).as_("no_of_containers"),
+			export_packing_list.select(Sum(packing_list.net_weight)).as_("weight"),
+			export.destination,
+			export.vessel_name.as_("vessel"),
+			export.voyage_no.as_("voyager_no"),
+			export.shipping_line,
+			export.eta,
+			export.engagement_date,
+			export.cut_off_date.as_("payment_cutoff"),
+			export.stuffing_date,
+			export.release_received.as_("tra_release_obtained"),
+			export.lodge_port_charges,
+			export.port_charges_paid,
+			export.loading_permit_received.as_("permit_obtained_date"),
+			export.loading_date.as_("delivery_date"),
+			export.loading_permit_handover_transporter.as_("permit_submited_to_client"),
+			export.containers_arrived_at_port.as_("containers_arrived_port"),
+			export.file_submitted_to_scanner,
+			export.scanner_report_collected,
+			export.scanner_report_sent_to_client,
+			get_latest_reporting_status_query(export.name, "Export").as_("remarks"),
+		)
+		.where(export.status != 'Closed')
+	)

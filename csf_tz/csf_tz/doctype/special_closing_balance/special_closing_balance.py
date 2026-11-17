@@ -109,16 +109,29 @@ class SpecialClosingBalance(Document):
 def get_items(warehouse, posting_date, posting_time, company):
 	lft, rgt = frappe.db.get_value("Warehouse", warehouse, ["lft", "rgt"])
 
-	items = frappe.db.sql("""
-		select i.name, i.item_name, i.stock_uom, id.default_warehouse
-		from tabItem i, `tabItem Default` id
-		where i.name = id.parent
-			and exists(select name from `tabWarehouse` where lft >= %s and rgt <= %s and name=id.default_warehouse)
-			and i.is_stock_item = 1 and i.has_serial_no = 0 and i.has_batch_no = 0
-			and i.has_variants = 0 and i.disabled = 0 and id.company=%s
-		group by i.name
-		order by i.name
-	""", (lft, rgt, company), as_list=True)
+	item = frappe.qb.DocType("Item")
+	defaults = frappe.qb.DocType("Item Default")
+	child_warehouse = frappe.qb.DocType("Warehouse")
+	items = (
+		frappe.qb.from_(item)
+		.join(defaults)
+		.on(defaults.parent == item.name)
+		.join(child_warehouse)
+		.on(child_warehouse.name == defaults.default_warehouse)
+		.select(item.name, item.item_name, item.stock_uom, defaults.default_warehouse)
+		.where(
+			(child_warehouse.lft >= lft)
+			& (child_warehouse.rgt <= rgt)
+			& (defaults.company == company)
+			& (item.is_stock_item == 1)
+			& (item.has_serial_no == 0)
+			& (item.has_batch_no == 0)
+			& (item.has_variants == 0)
+			& (item.disabled == 0)
+		)
+		.groupby(item.name)
+		.orderby(item.name)
+	).run(as_list=True)
 
 	res = []
 	for d in items:

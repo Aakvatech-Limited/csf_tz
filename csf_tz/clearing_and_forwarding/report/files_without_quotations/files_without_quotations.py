@@ -46,14 +46,13 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 	
-	data = frappe.db.sql('''SELECT
-					tabFiles.name AS reference,
-					tabFiles.customer,
-					tabFiles.documents_received_date
-				FROM
-					`tabFiles`
-				WHERE 
-					tabFiles.quotation IS NULL AND tabFiles.documents_received_date BETWEEN %(from_date)s AND %(to_date)s''', 
-				{"from_date": filters.from_date, "to_date": filters.to_date}, as_dict=1)
+	files = frappe.qb.DocType("Files")
+	data = (
+		frappe.qb.from_(files)
+		.select(files.name.as_("reference"), files.customer, files.documents_received_date)
+		.where(files.quotation.isnull())
+		.where(files.documents_received_date[filters.from_date:filters.to_date])
+		.run(as_dict=True)
+	)
 	
 	return columns, data

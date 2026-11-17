@@ -3,6 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import Criterion, Order
+from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import flt, getdate, cstr
 
 
@@ -107,70 +109,75 @@ def get_columns():
 
 
 def get_data(filters):
-    conditions = get_conditions(filters)
-    
-    query = """
-        SELECT 
-            fit.name as foreign_import_transaction,
-            fit.purchase_invoice,
-            fit.supplier,
-            fit.transaction_date,
-            fit.currency,
-            fit.original_exchange_rate,
-            fit.invoice_amount_foreign,
-            fit.invoice_amount_base,
-            fit.total_gain_loss,
-            fit.status,
-            COALESCE(payment_summary.total_payments, 0) as total_payments,
-            COALESCE(payment_summary.payment_differences, 0) as payment_differences,
-            COALESCE(lcv_summary.lcv_differences, 0) as lcv_differences
-        FROM `tabForeign Import Transaction` fit
-        LEFT JOIN (
-            SELECT 
-                parent,
-                SUM(payment_amount_foreign) as total_payments,
-                SUM(exchange_difference) as payment_differences
-            FROM `tabForeign Import Payment Details`
-            GROUP BY parent
-        ) payment_summary ON payment_summary.parent = fit.name
-        LEFT JOIN (
-            SELECT 
-                parent,
-                SUM(exchange_difference) as lcv_differences
-            FROM `tabForeign Import LCV Details`
-            GROUP BY parent
-        ) lcv_summary ON lcv_summary.parent = fit.name
-        WHERE fit.docstatus = 1 {conditions}
-        ORDER BY fit.transaction_date DESC, fit.name
-    """.format(conditions=conditions)
-    
-    data = frappe.db.sql(query, filters, as_dict=1)
-    
-    return data
+    foreign_import_transaction = frappe.qb.DocType("Foreign Import Transaction")
+    payment_details = frappe.qb.DocType("Foreign Import Payment Details")
+    lcv_details = frappe.qb.DocType("Foreign Import LCV Details")
+
+    payment_summary = (
+        frappe.qb.from_(payment_details)
+        .select(
+            payment_details.parent,
+            Sum(payment_details.payment_amount_foreign).as_("total_payments"),
+            Sum(payment_details.exchange_difference).as_("payment_differences"),
+        )
+        .groupby(payment_details.parent)
+    ).as_("payment_summary")
+    lcv_summary = (
+        frappe.qb.from_(lcv_details)
+        .select(lcv_details.parent, Sum(lcv_details.exchange_difference).as_("lcv_differences"))
+        .groupby(lcv_details.parent)
+    ).as_("lcv_summary")
+
+    query = (
+        frappe.qb.from_(foreign_import_transaction)
+        .left_join(payment_summary)
+        .on(payment_summary.parent == foreign_import_transaction.name)
+        .left_join(lcv_summary)
+        .on(lcv_summary.parent == foreign_import_transaction.name)
+        .select(
+            foreign_import_transaction.name.as_("foreign_import_transaction"),
+            foreign_import_transaction.purchase_invoice,
+            foreign_import_transaction.supplier,
+            foreign_import_transaction.transaction_date,
+            foreign_import_transaction.currency,
+            foreign_import_transaction.original_exchange_rate,
+            foreign_import_transaction.invoice_amount_foreign,
+            foreign_import_transaction.invoice_amount_base,
+            foreign_import_transaction.total_gain_loss,
+            foreign_import_transaction.status,
+            Coalesce(payment_summary.total_payments, 0).as_("total_payments"),
+            Coalesce(payment_summary.payment_differences, 0).as_("payment_differences"),
+            Coalesce(lcv_summary.lcv_differences, 0).as_("lcv_differences"),
+        )
+        .where(foreign_import_transaction.docstatus == 1)
+        .orderby(foreign_import_transaction.transaction_date, order=Order.desc)
+        .orderby(foreign_import_transaction.name)
+    )
+    return query.where(Criterion.all(get_conditions(filters, foreign_import_transaction))).run(as_dict=True)
 
 
-def get_conditions(filters):
+def get_conditions(filters, foreign_import_transaction):
     conditions = []
     
     if filters.get("company"):
-        conditions.append("AND fit.company = %(company)s")
+        conditions.append(foreign_import_transaction.company == filters.get("company"))
     
     if filters.get("from_date"):
-        conditions.append("AND fit.transaction_date >= %(from_date)s")
+        conditions.append(foreign_import_transaction.transaction_date >= filters.get("from_date"))
     
     if filters.get("to_date"):
-        conditions.append("AND fit.transaction_date <= %(to_date)s")
+        conditions.append(foreign_import_transaction.transaction_date <= filters.get("to_date"))
     
     if filters.get("purchase_invoice"):
-        conditions.append("AND fit.purchase_invoice = %(purchase_invoice)s")
+        conditions.append(foreign_import_transaction.purchase_invoice == filters.get("purchase_invoice"))
     
     if filters.get("supplier"):
-        conditions.append("AND fit.supplier = %(supplier)s")
+        conditions.append(foreign_import_transaction.supplier == filters.get("supplier"))
     
     if filters.get("currency"):
-        conditions.append("AND fit.currency = %(currency)s")
+        conditions.append(foreign_import_transaction.currency == filters.get("currency"))
     
     if filters.get("status"):
-        conditions.append("AND fit.status = %(status)s")
+        conditions.append(foreign_import_transaction.status == filters.get("status"))
     
-    return " ".join(conditions)
+    return conditions

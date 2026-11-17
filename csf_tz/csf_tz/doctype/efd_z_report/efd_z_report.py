@@ -32,32 +32,26 @@ class EFDZReport(Document):
             str(self.z_report_date_time), "%Y-%m-%d %H:%M:%S"
         ).time()
 
-        condition = (
-            "docstatus = 1  and (efd_z_report = '' OR efd_z_report is null) and status !='Return' and posting_date <= '"
-            + str(date)
-            + "' and IF(IF(posting_date = '"
-            + str(date)
-            + "', IF(posting_time < '"
-            + str(time)
-            + "',1,'PostingTime'),'PostingDate') = 1 or IF(posting_date = '"
-            + str(date)
-            + "',IF(posting_time < '"
-            + str(time)
-            + "',1,'PostingTime'),'PostingDate') = 'PostingDate',1,0)"
-        )
-
-        condition += (
-            " and ( electronic_fiscal_device = '" + self.electronic_fiscal_device + "'"
-            "or electronic_fiscal_device is null or electronic_fiscal_device = '')"
-        )
-
-        query = """ select *
-                        from `tabSales Invoice`
-                        where {0}""".format(
-            condition
-        )
-
-        sales_invoices = frappe.db.sql(query, as_dict=True)
+        sales_invoice = frappe.qb.DocType("Sales Invoice")
+        sales_invoices = (
+            frappe.qb.from_(sales_invoice)
+            .select("*")
+            .where(
+                (sales_invoice.docstatus == 1)
+                & ((sales_invoice.efd_z_report == "") | sales_invoice.efd_z_report.isnull())
+                & (sales_invoice.status != "Return")
+                & (sales_invoice.posting_date <= str(date))
+                & (
+                    (sales_invoice.posting_date < str(date))
+                    | ((sales_invoice.posting_date == str(date)) & (sales_invoice.posting_time < str(time)))
+                )
+                & (
+                    (sales_invoice.electronic_fiscal_device == self.electronic_fiscal_device)
+                    | sales_invoice.electronic_fiscal_device.isnull()
+                    | (sales_invoice.electronic_fiscal_device == "")
+                )
+            )
+        ).run(as_dict=True)
 
         if not sales_invoices:
             frappe.throw("No Sales Invoice Fetch")

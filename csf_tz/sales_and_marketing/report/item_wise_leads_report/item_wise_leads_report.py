@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Count, Sum
 
 
 def execute(filters=None):
@@ -50,27 +51,27 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ""
-
-	data = frappe.db.sql('''SELECT 
-								tqi.item_code,
-								tqi.item_name,
-								SUM(tqi.qty) AS total_qty,
-								COUNT(tq.name) AS quotations,
-								COUNT(DISTINCT customer_quot.customer) AS customers,
-								COUNT(DISTINCT tq.lead) AS leads,
-								tqi.warehouse
-							FROM
-								(`tabQuotation Item` tqi)
-							LEFT JOIN
-								(`tabQuotation` tq) ON (tqi.parent = tq.name)
-							LEFT JOIN
-								(`tabQuotation` customer_quot) ON tqi.parent = customer_quot.name AND customer_quot.quotation_to = 'Customer'
-							WHERE
-								tq.docstatus = 1 AND tq.transaction_date BETWEEN %(from_date)s AND %(to_date)s
-							GROUP BY tqi.item_code, tqi.warehouse					
-							'''+ where,
-								where_filter, as_dict=1,as_list=1
-							);
+	quotation_item = frappe.qb.DocType("Quotation Item")
+	quotation = frappe.qb.DocType("Quotation")
+	customer_quotation = frappe.qb.DocType("Quotation").as_("customer_quot")
+	data = (
+		frappe.qb.from_(quotation_item)
+		.left_join(quotation).on(quotation_item.parent == quotation.name)
+		.left_join(customer_quotation).on(
+			(quotation_item.parent == customer_quotation.name) & (customer_quotation.quotation_to == 'Customer')
+		)
+		.select(
+			quotation_item.item_code,
+			quotation_item.item_name,
+			Sum(quotation_item.qty).as_("total_qty"),
+			Count(quotation.name).as_("quotations"),
+			Count(customer_quotation.customer).distinct().as_("customers"),
+			Count(quotation.lead).distinct().as_("leads"),
+			quotation_item.warehouse,
+		)
+		.where(quotation.docstatus == 1)
+		.where(quotation.transaction_date[filters.from_date:filters.to_date])
+		.groupby(quotation_item.item_code, quotation_item.warehouse)
+		.run(as_dict=True)
+	)
 	return columns, data

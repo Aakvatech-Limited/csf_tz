@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 
 def execute(filters=None):
     raw_data = get_data(filters)
@@ -22,23 +23,23 @@ def get_columns(fiscal_years):
     return columns
 
 def get_data(filters):
-    # Fetch data from the database
-    results = frappe.db.sql("""
-        SELECT
-            party,
-            account,
-            fiscal_year,
-            SUM(debit - credit) as balance
-        FROM
-            `tabGL Entry`
-        WHERE
-            party_type = 'Customer'
-            AND is_cancelled = 0
-            AND posting_date BETWEEN %(from_date)s AND %(to_date)s AND company = %(company)s
-        GROUP BY
-            party, account, fiscal_year
-    """, filters, as_dict=True)
-    return results
+    gl_entry = frappe.qb.DocType("GL Entry")
+    return (
+        frappe.qb.from_(gl_entry)
+        .select(
+            gl_entry.party,
+            gl_entry.account,
+            gl_entry.fiscal_year,
+            Sum(gl_entry.debit - gl_entry.credit).as_("balance"),
+        )
+        .where(
+            (gl_entry.party_type == "Customer")
+            & (gl_entry.is_cancelled == 0)
+            & gl_entry.posting_date.between(filters["from_date"], filters["to_date"])
+            & (gl_entry.company == filters["company"])
+        )
+        .groupby(gl_entry.party, gl_entry.account, gl_entry.fiscal_year)
+    ).run(as_dict=True)
 
 def build_data(raw_data, fiscal_years):
     # Initialize a dictionary to store balances by party, account, and fiscal year

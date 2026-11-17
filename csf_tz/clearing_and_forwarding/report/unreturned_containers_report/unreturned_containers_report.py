@@ -66,44 +66,31 @@ def execute(filters=None):
 
 	]
 
-	where = ""
-	where_filter = {}
-
-	if filters.from_date or filters.container_owner or  filters.shipping_line:
-		where ="where "
+	import_doc = frappe.qb.DocType("Import")
+	closing_information = frappe.qb.DocType("Container File Closing Information")
+	query = (
+		frappe.qb.from_(import_doc)
+		.left_join(closing_information).on(import_doc.name == closing_information.parent)
+		.select(
+			import_doc.name.as_("import_no"),
+			import_doc.reference_file_number,
+			import_doc.bl_number,
+			import_doc.shipping_line,
+			import_doc.container_owner,
+			closing_information.container_no,
+			closing_information.container_return_date,
+			import_doc.demurrage_start_date,
+		)
+	)
 
 	if filters.from_date:
-		where += ' imp.demurrage_start_date >= %(from_date)s'
-		where_filter.update({"from_date": filters.from_date})
+		query = query.where(import_doc.demurrage_start_date >= filters.from_date)
 
 	if filters.container_owner:
-		if filters.from_date:
-			where += ' AND '
-		where += ' imp.container_owner = %(container_owner)s'
-		where_filter.update({"container_owner": filters.container_owner})
+		query = query.where(import_doc.container_owner == filters.container_owner)
 
 	if filters.shipping_line:
-		if filters.from_date or filters.container_owner:
-			where += ' AND '
-		where += '  imp.shipping_line = %(shipping_line)s '
-		where_filter.update({"shipping_line":filters.shipping_line})
+		query = query.where(import_doc.shipping_line == filters.shipping_line)
 
-	data = frappe.db.sql('''SELECT 
-								imp.name AS import_no,
-								imp.reference_file_number,
-								imp.bl_number,
-								imp.shipping_line ,
-								imp.container_owner ,
-								cfci.container_no,
-								cfci.container_return_date,
-								imp.demurrage_start_date 
-
-
-								FROM 
-									(`tabImport` imp)
-								LEFT JOIN `tabContainer File Closing Information` AS cfci
-									ON (imp.name=cfci.parent)
-								''' + where + '''
-									''',
-						 where_filter,as_dict=1,as_list=1);
+	data = query.run(as_dict=True)
 	return columns, data

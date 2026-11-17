@@ -17,8 +17,12 @@ class VehicleLog(Document):
 							frappe.throw(_("Service Item,Type,frequency and expense amount are required"))
 							
 	def on_submit(self):
-		frappe.db.sql("update `tabVehicle` set last_odometer=%s where license_plate=%s",
-			(self.odometer, self.license_plate))
+		vehicle = frappe.qb.DocType("Vehicle")
+		(
+			frappe.qb.update(vehicle)
+			.set(vehicle.last_odometer, self.odometer)
+			.where(vehicle.license_plate == self.license_plate)
+		).run()
 	
 @frappe.whitelist()
 def get_make_model(license_plate):
@@ -28,7 +32,12 @@ def get_make_model(license_plate):
 @frappe.whitelist()
 def make_expense_claim(docname):
 	def check_exp_claim_exists():
-		exp_claim = frappe.db.sql("""select name from `tabExpense Claim` where vehicle_log=%s""",vehicle_log.name)
+		expense_claim = frappe.qb.DocType("Expense Claim")
+		exp_claim = (
+			frappe.qb.from_(expense_claim)
+			.select(expense_claim.name)
+			.where(expense_claim.vehicle_log == vehicle_log.name)
+		).run()
 		return exp_claim[0][0] if exp_claim else ""
 	def calc_service_exp():
 		total_exp_amt=0

@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import getdate, add_days, formatdate, flt, get_datetime
 from frappe.utils.dashboard import cache_source
 from erpnext.accounts.utils import get_balance_on
@@ -287,37 +288,35 @@ class MultiBankBalance:
         Returns:
             list: List of account dictionaries
         """
-        conditions = []
-        values = [company, account_type]
-        
-        # Base query
-        query = """
-            SELECT 
-                name,
-                account_name,
-                account_type,
-                account_currency,
-                parent_account,
-                root_type,
-                is_group,
-                disabled
-            FROM `tabAccount`
-            WHERE company = %s
-                AND account_type = %s
-                AND is_group = 0
-        """
+        account_table = frappe.qb.DocType("Account")
+        query = (
+            frappe.qb.from_(account_table)
+            .select(
+                account_table.name,
+                account_table.account_name,
+                account_table.account_type,
+                account_table.account_currency,
+                account_table.parent_account,
+                account_table.root_type,
+                account_table.is_group,
+                account_table.disabled,
+            )
+            .where(
+                (account_table.company == company)
+                & (account_table.account_type == account_type)
+                & (account_table.is_group == 0)
+            )
+            .orderby(account_table.account_name)
+        )
         
         # Add conditions based on parameters
         if not include_inactive:
-            query += " AND disabled = 0"
+            query = query.where(account_table.disabled == 0)
         
         if currency:
-            query += " AND account_currency = %s"
-            values.append(currency)
+            query = query.where(account_table.account_currency == currency)
         
-        query += " ORDER BY account_name"
-        
-        accounts = frappe.db.sql(query, values, as_dict=True)
+        accounts = query.run(as_dict=True)
         
         # Filter accounts based on user permissions
         allowed_accounts = []
@@ -362,19 +361,23 @@ class MultiBankBalance:
         account_names = [acc['name'] for acc in accounts]
         
         # Get all GL entries for these accounts in the date range
-        gl_entries = frappe.db.sql("""
-            SELECT 
-                account,
-                posting_date,
-                SUM(debit - credit) as net_amount
-            FROM `tabGL Entry`
-            WHERE account IN ({0})
-                AND posting_date BETWEEN %s AND %s
-                AND is_cancelled = 0
-            GROUP BY account, posting_date
-            ORDER BY posting_date, account
-        """.format(','.join(['%s'] * len(account_names))), 
-        account_names + [from_date, to_date], as_dict=True)
+        gl_entry = frappe.qb.DocType("GL Entry")
+        gl_entries = (
+            frappe.qb.from_(gl_entry)
+            .select(
+                gl_entry.account,
+                gl_entry.posting_date,
+                Sum(gl_entry.debit - gl_entry.credit).as_("net_amount"),
+            )
+            .where(
+                gl_entry.account.isin(account_names)
+                & gl_entry.posting_date.between(from_date, to_date)
+                & (gl_entry.is_cancelled == 0)
+            )
+            .groupby(gl_entry.account, gl_entry.posting_date)
+            .orderby(gl_entry.posting_date)
+            .orderby(gl_entry.account)
+        ).run(as_dict=True)
         
         # Build running balances
         balance_data = {}
@@ -846,14 +849,18 @@ def get_account_currencies(company):
     Returns:
         list: List of currencies
     """
-    return frappe.db.sql("""
-        SELECT DISTINCT account_currency
-        FROM `tabAccount`
-        WHERE company = %s
-        AND account_type IN ('Bank', 'Cash')
-        AND account_currency IS NOT NULL
-        ORDER BY account_currency
-    """, company, pluck=True)
+    account = frappe.qb.DocType("Account")
+    return (
+        frappe.qb.from_(account)
+        .select(account.account_currency)
+        .distinct()
+        .where(
+            (account.company == company)
+            & account.account_type.isin(["Bank", "Cash"])
+            & account.account_currency.isnotnull()
+        )
+        .orderby(account.account_currency)
+    ).run(pluck=True)
 
 @frappe.whitelist()
 def create_test_transactions(company, account_name=None, amount=10000):

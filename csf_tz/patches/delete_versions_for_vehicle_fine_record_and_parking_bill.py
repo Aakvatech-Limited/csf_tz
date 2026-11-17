@@ -1,9 +1,9 @@
 import frappe
 
 def execute():
-    frappe.db.sql("""
-        DELETE FROM `tabVersion` 
-        WHERE ref_doctype IN ('Vehicle Fine Record', 'Parking Bill')
-    """)
+    version = frappe.qb.DocType("Version")
+    frappe.qb.from_(version).delete().where(
+        version.ref_doctype.isin(["Vehicle Fine Record", "Parking Bill"])
+    ).run()
    
     frappe.db.commit()

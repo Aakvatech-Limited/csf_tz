@@ -5,10 +5,12 @@ import frappe
 import pandas as pd
 import numpy as np
 from frappe import msgprint, _
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import DateFormat
 from frappe.utils import data, flt
 
 def execute(filters=None):
-	conditions, filters = get_conditions(filters)
+	conditions = get_conditions(filters)
 
 	columns = get_columns(filters)
 	data = []
@@ -48,7 +50,7 @@ def execute(filters=None):
 	elif filters.hours_per_project:
 		columns = [_("Project") + ":Link/Project:180"]
 
-		project_details = hours_per_project_data(conditions, filters)
+		project_details = hours_per_project_data(conditions)
 
 		if not project_details:
 			frappe.throw("No Record found for the filters From Date: {0}, To Date: {1} and Hours Per Project: {2} you specified..., \
@@ -114,10 +116,11 @@ def get_columns(filters):
 
 
 def get_conditions(filters):
-	conditions = ""
-	if filters.get("from_date"): conditions += "ts.start_date >= %(from_date)s"
-	if filters.get("to_date"): conditions += "AND ts.start_date <= %(to_date)s"
-	return conditions, filters
+	timesheet = frappe.qb.DocType("Timesheet")
+	conditions = []
+	if filters.get("from_date"): conditions.append(timesheet.start_date >= filters.from_date)
+	if filters.get("to_date"): conditions.append(timesheet.start_date <= filters.to_date)
+	return conditions
 
 
 def timesheet_details(conditions, filters):
@@ -126,7 +129,7 @@ def timesheet_details(conditions, filters):
 		fields=["start_date", "employee", "employee_name"]
 	)
 
-	logs_data = get_timesheet_logs(conditions, filters)
+	logs_data = get_timesheet_logs(conditions)
 
 	data = []
 	for emp in employees:
@@ -178,17 +181,22 @@ def hours_per_day_data(conditions, filters):
 	return data
 
 
-def hours_per_project_data(conditions, filters):
-	project_details = frappe.db.sql("""
-		SELECT ts.employee, 
-			ts.employee_name, 
-			tsd.project,
-			tsd.hours
-		FROM `tabTimesheet Detail` tsd
-		INNER JOIN `tabTimesheet` ts ON tsd.parent = ts.name
-		WHERE {conditions}
-		ORDER BY ts.start_date
-		""".format(conditions=conditions), filters, as_dict=1 
+def hours_per_project_data(conditions):
+	timesheet = frappe.qb.DocType("Timesheet")
+	timesheet_detail = frappe.qb.DocType("Timesheet Detail")
+	project_details = (
+		frappe.qb.from_(timesheet_detail)
+		.inner_join(timesheet)
+		.on(timesheet_detail.parent == timesheet.name)
+		.select(
+			timesheet.employee,
+			timesheet.employee_name,
+			timesheet_detail.project,
+			timesheet_detail.hours,
+		)
+		.where(Criterion.all(conditions))
+		.orderby(timesheet.start_date)
+		.run(as_dict=True)
 	)
 	
 	data = []
@@ -200,21 +208,26 @@ def hours_per_project_data(conditions, filters):
 	return data
 
 
-def get_timesheet_logs(conditions, filters):
-	timesheet_logs = frappe.db.sql("""
-		SELECT ts.employee AS employee,
-				ts.employee_name AS employee_name,
-				tsd.activity_type AS activity_type,
-				DATE_FORMAT(tsd.from_time, "%%Y-%%m-%%d") AS date2,
-				DATE_FORMAT(tsd.from_time, "%%T") AS from_time,
-				DATE_FORMAT(tsd.to_time, "%%T") AS to_time,
-				tsd.hours AS hours_used,
-				tsd.task AS task,
-				tsd.project AS project
-		FROM `tabTimesheet Detail` tsd
-		INNER JOIN `tabTimesheet` ts ON tsd.parent = ts.name
-		WHERE {conditions}
-		ORDER BY ts.start_date
-	""".format(conditions=conditions), filters, as_dict=1
+def get_timesheet_logs(conditions):
+	timesheet = frappe.qb.DocType("Timesheet")
+	timesheet_detail = frappe.qb.DocType("Timesheet Detail")
+	timesheet_logs = (
+		frappe.qb.from_(timesheet_detail)
+		.inner_join(timesheet)
+		.on(timesheet_detail.parent == timesheet.name)
+		.select(
+			timesheet.employee,
+			timesheet.employee_name,
+			timesheet_detail.activity_type,
+			DateFormat(timesheet_detail.from_time, "%Y-%m-%d").as_("date2"),
+			DateFormat(timesheet_detail.from_time, "%T").as_("from_time"),
+			DateFormat(timesheet_detail.to_time, "%T").as_("to_time"),
+			timesheet_detail.hours.as_("hours_used"),
+			timesheet_detail.task,
+			timesheet_detail.project,
+		)
+		.where(Criterion.all(conditions))
+		.orderby(timesheet.start_date)
+		.run(as_dict=True)
 	)
 	return timesheet_logs

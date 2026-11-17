@@ -8,6 +8,7 @@ from frappe import _
 import json
 import requests
 from frappe.utils import get_host_name, flt, cint
+from frappe.query_builder.functions import Coalesce, IfNull, Max, Sum
 from time import sleep
 import binascii
 import os
@@ -332,18 +333,17 @@ def auto_approve_student_applicant(fee_doc, nmb_doc):
         return
 
     # the callback being processed may not be committed yet, so add it separately; count each receipt once
-    previous = frappe.db.sql(
-        """
-        select coalesce(sum(amount), 0)
-        from (
-            select max(amount) as amount
-            from `tabNMB Callback`
-            where reference = %(reference)s and ifnull(receipt, '') != %(receipt)s
-            group by receipt
-        ) as receipts
-        """,
-        {"reference": nmb_doc.reference, "receipt": nmb_doc.receipt or ""},
-    )[0][0]
+    nmb_callback = frappe.qb.DocType("NMB Callback")
+    receipts = (
+        frappe.qb.from_(nmb_callback)
+        .select(Max(nmb_callback.amount).as_("amount"))
+        .where(nmb_callback.reference == nmb_doc.reference)
+        .where(IfNull(nmb_callback.receipt, "") != (nmb_doc.receipt or ""))
+        .groupby(nmb_callback.receipt)
+    ).as_("receipts")
+    previous = (
+        frappe.qb.from_(receipts).select(Coalesce(Sum(receipts.amount), 0))
+    ).run()[0][0]
     total_paid = flt(previous) + nmb_amount
     fully_paid = total_paid >= flt(fee_doc.grand_total)
 

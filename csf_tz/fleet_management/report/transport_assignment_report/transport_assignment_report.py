@@ -4,6 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import Case, Field, Order
+from csf_tz.fleet_management.trip_queries import get_case_by_joined_table, get_trip_location_query
+from csf_tz.utils.query_builder import get_latest_reporting_status_query
 import ast
 import datetime
 import time
@@ -145,106 +148,11 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 	
-	having = ''
+	query = get_transport_assignment_query(filters.from_date, filters.to_date)
 	if filters.customer:
-		having = 'HAVING tcustomer = %(customer)s'
-	
-	data = frappe.db.sql('''SELECT
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN main_trip.name
-									WHEN return_trip.name IS NOT NULL THEN return_trip.name
-								END AS trip_no,
-								CASE
-									WHEN transport_request.name IS NOT NULL THEN transport_request.customer
-									WHEN import_request.name IS NOT NULL THEN import_request.customer
-								END AS tcustomer,
-								`tabVehicle`.fleet_number AS fleet_no,
-								`tabTransport Assignment`.vehicle_plate_number AS truck_no,
-								`tabTransport Assignment`.trailer_plate_number AS trailer_no,
-								`tabTransport Assignment`.driver_name AS driver,
-								`tabTransport Assignment`.passport_number AS passport_no,
-								CASE
-									WHEN transport_request.name IS NOT NULL THEN transport_request.cargo_description
-									WHEN import_request.name IS NOT NULL THEN import_request.cargo_description
-								END AS cargo_description,
-								CASE
-									WHEN transport_request.name IS NOT NULL AND transport_request.cargo_type = 'Container' AND \
-										`tabCargo Details`.net_weight IS NOT NULL AND `tabCargo Details`.net_weight > 0 \
-										THEN (`tabCargo Details`.net_weight /1000) \
-									WHEN transport_request.name IS NOT NULL AND transport_request.cargo_type = 'Loose Cargo' AND transport_request.unit = 'TONNES'
-										THEN `tabTransport Assignment`.amount
-									WHEN import_request.name IS NOT NULL AND import_request.cargo_type = 'Container' AND \
-										`tabCargo Details`.net_weight IS NOT NULL AND `tabCargo Details`.net_weight > 0 \
-										THEN (`tabCargo Details`.net_weight/1000) \
-									WHEN import_request.name IS NOT NULL AND import_request.cargo_type = 'Loose Cargo' AND import_request.unit = 'TONNES'
-										THEN `tabTransport Assignment`.amount
-								END AS quantity,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT loading_date FROM `tabRoute Steps Table` WHERE parent = main_trip.name \
-										AND parentfield = 'main_route_steps' AND loading_date IS NOT NULL LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT loading_date FROM `tabRoute Steps Table` WHERE parent = return_trip.name \
-										AND parentfield = 'return_route_steps' AND loading_date IS NOT NULL LIMIT 1)
-								END AS loading_date,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT departure_date FROM `tabRoute Steps Table` WHERE parent = main_trip.name \
-										AND parentfield = 'main_route_steps' AND departure_date IS NOT NULL LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT departure_date FROM `tabRoute Steps Table` WHERE parent = return_trip.name \
-										AND parentfield = 'return_route_steps' AND departure_date IS NOT NULL LIMIT 1)
-								END AS departure_date,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT arrival_date FROM `tabRoute Steps Table` WHERE parent = main_trip.name \
-										AND parentfield = 'main_route_steps' AND location_type = 'BORDER' ORDER BY arrival_date ASC LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT arrival_date FROM `tabRoute Steps Table` WHERE parent = return_trip.name \
-										AND parentfield = 'return_route_steps' AND location_type = 'BORDER' ORDER BY arrival_date ASC LIMIT 1)
-								END AS ata_border,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT departure_date FROM `tabRoute Steps Table` WHERE parent = main_trip.name \
-										AND parentfield = 'main_route_steps' AND location_type = 'BORDER' ORDER BY departure_date ASC LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT departure_date FROM `tabRoute Steps Table` WHERE parent = return_trip.name \
-										AND parentfield = 'return_route_steps' AND location_type = 'BORDER' ORDER BY departure_date ASC LIMIT 1)
-								END AS departure_border,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT offloading_date FROM `tabRoute Steps Table` WHERE parent = main_trip.name \
-										AND parentfield = 'main_route_steps' AND offloading_date IS NOT NULL LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT offloading_date FROM `tabRoute Steps Table` WHERE parent = return_trip.name \
-										AND parentfield = 'return_route_steps' AND offloading_date IS NOT NULL LIMIT 1)
-								END AS offloading_date,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE \
-										parent = main_trip.name AND parenttype = 'Vehicle Trip' AND parentfield = 'main_location_update' ORDER BY \
-										`tabVehicle Trip Location Update`.timestamp LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT `tabVehicle Trip Location Update`.location FROM `tabVehicle Trip Location Update` WHERE \
-										parent = return_trip.name AND parenttype = 'Vehicle Trip' AND parentfield = 'return_location_update' ORDER BY \
-										`tabVehicle Trip Location Update`.timestamp LIMIT 1)
-								END AS current_position,
-								CASE
-									WHEN main_trip.name IS NOT NULL THEN (SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE \
-										`tabReporting Status Table`.parenttype = 'Vehicle Trip' AND `tabReporting Status Table`.parent = main_trip.name AND \
-										`tabReporting Status Table`.parentfield = 'main_reporting_status' ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1)
-									WHEN return_trip.name IS NOT NULL THEN (SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE \
-										`tabReporting Status Table`.parenttype = 'Vehicle Trip' AND `tabReporting Status Table`.parent = return_trip.name AND \
-										`tabReporting Status Table`.parentfield = 'return_reporting_status' ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1)
-								END AS remarks
-							FROM
-								`tabTransport Assignment`
-							LEFT JOIN
-								`tabVehicle Trip` AS main_trip ON main_trip.reference_docname = `tabTransport Assignment`.name
-							LEFT JOIN
-								`tabVehicle Trip` AS return_trip ON return_trip.return_reference_docname = `tabTransport Assignment`.name
-							LEFT JOIN
-								`tabTransport Request` AS transport_request ON transport_request.name = `tabTransport Assignment`.parent AND \
-								`tabTransport Assignment`.parenttype = 'Transport Request'
-							LEFT JOIN
-								`tabTransport Request` AS import_request ON import_request.reference_docname = `tabTransport Assignment`.parent AND \
-								`tabTransport Assignment`.parenttype = 'Import' AND import_request.file_number IS NOT NULL
-							LEFT JOIN
-								`tabVehicle` ON `tabVehicle`.name = `tabTransport Assignment`.assigned_vehicle AND `tabTransport Assignment`.transporter_type = 'Bravo'
-							LEFT JOIN
-								`tabCargo Details` ON `tabCargo Details`.container_number = `tabTransport Assignment`.container_number AND \
-								`tabCargo Details`.parent = `tabTransport Assignment`.parent
-							WHERE
-								`tabTransport Assignment`.expected_loading_date BETWEEN %(from_date)s AND %(to_date)s ''' + having
-						, {"from_date": filters.from_date, "to_date": filters.to_date, "customer": filters.customer}, as_dict=1)
+		query = query.having(Field("tcustomer") == filters.customer)
+
+	data = query.run(as_dict=True)
 						
 	for row in data:
 		if row.ata_border and row.departure_border:
@@ -254,3 +162,126 @@ def execute(filters=None):
 			row.update({"trip_days": (row.offloading_date-row.loading_date).days})
 	
 	return columns, data
+
+
+def get_transport_assignment_query(from_date, to_date):
+	transport_assignment = frappe.qb.DocType("Transport Assignment")
+	main_trip = frappe.qb.DocType("Vehicle Trip").as_("main_trip")
+	return_trip = frappe.qb.DocType("Vehicle Trip").as_("return_trip")
+	transport_request = frappe.qb.DocType("Transport Request").as_("transport_request")
+	import_request = frappe.qb.DocType("Transport Request").as_("import_request")
+	vehicle = frappe.qb.DocType("Vehicle")
+	cargo_details = frappe.qb.DocType("Cargo Details")
+	trips = [(main_trip, "main"), (return_trip, "return")]
+	requests = [transport_request, import_request]
+	return (
+		frappe.qb.from_(transport_assignment)
+		.left_join(main_trip)
+		.on(main_trip.reference_docname == transport_assignment.name)
+		.left_join(return_trip)
+		.on(return_trip.return_reference_docname == transport_assignment.name)
+		.left_join(transport_request)
+		.on(
+			(transport_request.name == transport_assignment.parent)
+			& (transport_assignment.parenttype == "Transport Request")
+		)
+		.left_join(import_request)
+		.on(
+			(import_request.reference_docname == transport_assignment.parent)
+			& (transport_assignment.parenttype == "Import")
+			& import_request.file_number.isnotnull()
+		)
+		.left_join(vehicle)
+		.on((vehicle.name == transport_assignment.assigned_vehicle) & (transport_assignment.transporter_type == "Bravo"))
+		.left_join(cargo_details)
+		.on(
+			(cargo_details.container_number == transport_assignment.container_number)
+			& (cargo_details.parent == transport_assignment.parent)
+		)
+		.select(
+			get_case_by_joined_table([(main_trip, main_trip.name), (return_trip, return_trip.name)]).as_("trip_no"),
+			get_case_by_joined_table(
+				[(transport_request, transport_request.customer), (import_request, import_request.customer)]
+			).as_("tcustomer"),
+			vehicle.fleet_number.as_("fleet_no"),
+			transport_assignment.vehicle_plate_number.as_("truck_no"),
+			transport_assignment.trailer_plate_number.as_("trailer_no"),
+			transport_assignment.driver_name.as_("driver"),
+			transport_assignment.passport_number.as_("passport_no"),
+			get_case_by_joined_table(
+				[
+					(transport_request, transport_request.cargo_description),
+					(import_request, import_request.cargo_description),
+				]
+			).as_("cargo_description"),
+			get_quantity_case(requests, cargo_details, transport_assignment).as_("quantity"),
+			get_route_step_case(trips, "loading_date").as_("loading_date"),
+			get_route_step_case(trips, "departure_date").as_("departure_date"),
+			get_case_by_joined_table(
+				[(trip, get_border_step_query(trip, leg, "arrival_date")) for trip, leg in trips]
+			).as_("ata_border"),
+			get_case_by_joined_table(
+				[(trip, get_border_step_query(trip, leg, "departure_date")) for trip, leg in trips]
+			).as_("departure_border"),
+			get_route_step_case(trips, "offloading_date").as_("offloading_date"),
+			get_case_by_joined_table(
+				[(trip, get_trip_location_query(trip, leg)) for trip, leg in trips]
+			).as_("current_position"),
+			get_case_by_joined_table(
+				[
+					(trip, get_latest_reporting_status_query(trip.name, "Vehicle Trip", f"{leg}_reporting_status"))
+					for trip, leg in trips
+				]
+			).as_("remarks"),
+		)
+		.where(transport_assignment.expected_loading_date.between(from_date, to_date))
+	)
+
+
+def get_quantity_case(requests, cargo_details, transport_assignment):
+	case = Case()
+	for request in requests:
+		case = case.when(
+			request.name.isnotnull()
+			& (request.cargo_type == "Container")
+			& cargo_details.net_weight.isnotnull()
+			& (cargo_details.net_weight > 0),
+			cargo_details.net_weight / 1000,
+		).when(
+			request.name.isnotnull() & (request.cargo_type == "Loose Cargo") & (request.unit == "TONNES"),
+			transport_assignment.amount,
+		)
+	return case
+
+
+def get_route_step_case(trips, fieldname):
+	route_steps = frappe.qb.DocType("Route Steps Table")
+	case = Case()
+	for trip, leg in trips:
+		first_step_value = (
+			frappe.qb.from_(route_steps)
+			.select(route_steps[fieldname])
+			.where(
+				(route_steps.parent == trip.name)
+				& (route_steps.parentfield == f"{leg}_route_steps")
+				& route_steps[fieldname].isnotnull()
+			)
+			.limit(1)
+		)
+		case = case.when(trip.name.isnotnull(), first_step_value)
+	return case
+
+
+def get_border_step_query(trip, leg, fieldname):
+	route_steps = frappe.qb.DocType("Route Steps Table")
+	return (
+		frappe.qb.from_(route_steps)
+		.select(route_steps[fieldname])
+		.where(
+			(route_steps.parent == trip.name)
+			& (route_steps.parentfield == f"{leg}_route_steps")
+			& (route_steps.location_type == "BORDER")
+		)
+		.orderby(route_steps[fieldname], order=Order.asc)
+		.limit(1)
+	)

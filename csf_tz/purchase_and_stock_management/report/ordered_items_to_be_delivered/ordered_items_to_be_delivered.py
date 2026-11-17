@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.query_builder import CustomFunction
+from frappe.query_builder.functions import CurDate, IfNull
 
 
 def execute(filters=None):
@@ -139,57 +141,53 @@ def execute(filters=None):
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 
-	where_filter = {"from_date": filters.from_date,"to_date": filters.to_date,}
-	where = ""
+	sales_order = frappe.qb.DocType("Sales Order")
+	sales_order_item = frappe.qb.DocType("Sales Order Item")
+	stock_bin = frappe.qb.DocType("Bin")
+	date_diff = CustomFunction("DATEDIFF", ["end_date", "start_date"])
+	qty_to_deliver = sales_order_item.qty - IfNull(sales_order_item.delivered_qty, 0)
+	query = (
+		frappe.qb.from_(sales_order)
+		.join(sales_order_item)
+		.on(sales_order_item.parent == sales_order.name)
+		.left_join(stock_bin)
+		.on((stock_bin.item_code == sales_order_item.item_code) & (stock_bin.warehouse == sales_order_item.warehouse))
+		.select(
+			sales_order.name,
+			sales_order.customer,
+			sales_order.customer_name,
+			sales_order.transaction_date,
+			sales_order.project,
+			sales_order_item.item_code,
+			sales_order_item.qty,
+			sales_order_item.delivered_qty,
+			qty_to_deliver.as_("qty_to_deliver"),
+			sales_order_item.base_rate,
+			sales_order_item.base_amount,
+			(qty_to_deliver * sales_order_item.base_rate).as_("amount_to_deliver"),
+			stock_bin.actual_qty,
+			stock_bin.projected_qty,
+			sales_order_item.delivery_date,
+			date_diff(CurDate(), sales_order_item.delivery_date).as_("delay_days"),
+			sales_order_item.item_name,
+			sales_order_item.description,
+			sales_order_item.item_group,
+			sales_order_item.warehouse,
+		)
+		.where(sales_order.docstatus == 1)
+		.where(sales_order.status.notin(["Stopped", "Closed"]))
+		.where(IfNull(sales_order_item.delivered_qty, 0) < IfNull(sales_order_item.qty, 0))
+	)
+
 	if filters.sales_order:
-		where += '  AND tso.name = %(sales_order)s '
-		where_filter.update({"sales_order": filters.sales_order})
+		query = query.where(sales_order.name == filters.sales_order)
 	if filters.item_code:
-		where += '  AND so_itm.item_code = %(item_code)s '
-		where_filter.update({"item_code": filters.item_code})
+		query = query.where(sales_order_item.item_code == filters.item_code)
 	if filters.customer:
-		where += '  AND tso.customer = %(customer)s '
-		where_filter.update({"customer": filters.customer})
+		query = query.where(sales_order.customer == filters.customer)
 	if filters.warehouse:
-		where += '  AND so_itm.warehouse = %(warehouse)s '
-		where_filter.update({"warehouse": filters.warehouse})
+		query = query.where(sales_order_item.warehouse == filters.warehouse)
 
-
-	data = frappe.db.sql('''SELECT 
-								tso.name,
-								tso.customer,
-								tso.customer_name,
-								tso.transaction_date,
-								tso.project,
-								so_itm.item_code,
-								so_itm.qty,
-								so_itm.delivered_qty,
-								(so_itm.qty - ifnull(so_itm.delivered_qty, 0)) AS qty_to_deliver,
-								so_itm.base_rate,
-								so_itm.base_amount,
-								((so_itm.qty - ifnull(so_itm.delivered_qty, 0))* so_itm.base_rate) 
-								AS amount_to_deliver,
-								bin.actual_qty,
-								bin.projected_qty,
-								so_itm.delivery_date,
-								DATEDIFF(CURDATE(),so_itm.delivery_date) AS delay_days,
-								so_itm.item_name,
-								so_itm.description,
-								so_itm.item_group,
-								so_itm.warehouse
-							FROM 
-								(`tabSales Order` tso) JOIN (`tabSales Order Item` so_itm)
-							LEFT JOIN 
-								(tabBin AS bin ) ON (bin.item_code = so_itm.item_code
- 							and bin.warehouse = so_itm.warehouse)
-							WHERE
-								so_itm.parent = tso.name
-							AND tso.docstatus = 1
-							AND tso.status not in ("Stopped", "Closed")
-							AND ifnull(so_itm.delivered_qty, 0) < ifnull(so_itm.qty, 0)							
-/*							ORDER BY tso.transaction_date
-*/							 '''+ where,
-								where_filter, as_dict=1,as_list=1
-							);
+	data = query.run(as_dict=1)
 
 	return columns, data

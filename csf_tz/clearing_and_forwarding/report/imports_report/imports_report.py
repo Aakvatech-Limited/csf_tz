@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt, getdate, cstr
 from frappe import _
+from frappe.query_builder.functions import Concat, Count, Sum
+from csf_tz.utils.query_builder import get_expenses_total_query, get_latest_reporting_status_query
 import ast
 from datetime import datetime
 from frappe.desk.reportview import export_query
@@ -145,60 +147,53 @@ def execute(filters=None):
 		}
 	]
 	
-	where = ''
-	where_filter = {"from_date": filters.from_date, "to_date": filters.to_date, "status": filters.status}
+	import_doc = frappe.qb.DocType("Import")
+	query = get_imports_query(import_doc).where(import_doc.documents_received_date[filters.from_date:filters.to_date])
 	
 	if filters.status:
-		where += " AND tabImport.status = %(status)s "
-		where_filter.update({'status': filters.status})
+		query = query.where(import_doc.status == filters.status)
 			
 	if filters.loading_date_from:
-		where += " AND tabImport.loading_date >= %(loading_date_from)s "
-		where_filter.update({'loading_date_from': filters.loading_date_from})
+		query = query.where(import_doc.loading_date >= filters.loading_date_from)
 		
 	if filters.loading_date_to:
-		where += " AND tabImport.loading_date <= %(loading_date_to)s "
-		where_filter.update({'loading_date_to': filters.loading_date_to})
+		query = query.where(import_doc.loading_date <= filters.loading_date_to)
 	
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
 	
-	data = frappe.db.sql('''SELECT
-					tabImport.name AS reference,
-					tabImport.customer,
-					tabImport.bl_number AS bl_number,
-					CONCAT(tabImport.cargo, " - ", tabImport.cargo_description) AS cargo,
-					count(`tabCargo Details`.name) AS number_of_containers,
-					SUM(`tabCargo Details`.net_weight) AS total_weight,
-					SUM(`tabCargo Details`.bond_value) AS cargo_value,
-					tabImport.shipping_line AS shipper,
-					tabImport.vessel_name AS vessel_name,
-					tabImport.import_type AS import_type,
-					tabImport.eta AS shipping_eta,
-					tabImport.ata AS shipping_ata,
-					CONCAT(tabImport.cargo_destination_country, " - ", tabImport.cargo_destination_city) AS destination,
-					tabImport.manifest_date,
-					tabImport.tansad_date,
-					tabImport.manifest_comparison_date AS manifest_comparison,
-					tabImport.loading_date,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-							WHERE parenttype = 'Import' AND parent = `tabImport`.name AND expense_currency = 'USD'
-					) AS import_expenses_usd,
-					(SELECT SUM(expense_amount) FROM `tabExpenses`
-							WHERE parenttype = 'Import' AND parent = `tabImport`.name AND expense_currency = 'TZS'
-					) AS import_expenses_tzs,
-					(SELECT `tabReporting Status Table`.status FROM `tabReporting Status Table` WHERE `tabReporting Status Table`.parenttype = 'Import' \
-						AND `tabReporting Status Table`.parent = `tabImport`.name ORDER BY `tabReporting Status Table`.datetime DESC LIMIT 1) AS remarks
-				FROM
-					`tabImport`
-				LEFT OUTER JOIN
-					`tabCargo Details` ON `tabCargo Details`.parent = `tabImport`.name AND `tabCargo Details`.parenttype = 'Import'
-				WHERE 
-					tabImport.documents_received_date BETWEEN %(from_date)s AND %(to_date)s ''' + where + 
-				''' GROUP BY 
-					tabImport.name''', 
-				where_filter, as_dict=1)
+	data = query.groupby(import_doc.name).run(as_dict=True)
 	
 	return columns, data
 
 	
+
+
+def get_imports_query(import_doc):
+	cargo = frappe.qb.DocType("Cargo Details")
+	return (
+		frappe.qb.from_(import_doc)
+		.left_join(cargo).on((cargo.parent == import_doc.name) & (cargo.parenttype == 'Import'))
+		.select(
+			import_doc.name.as_("reference"),
+			import_doc.customer,
+			import_doc.bl_number,
+			Concat(import_doc.cargo, " - ", import_doc.cargo_description).as_("cargo"),
+			Count(cargo.name).as_("number_of_containers"),
+			Sum(cargo.net_weight).as_("total_weight"),
+			Sum(cargo.bond_value).as_("cargo_value"),
+			import_doc.shipping_line.as_("shipper"),
+			import_doc.vessel_name,
+			import_doc.import_type,
+			import_doc.eta.as_("shipping_eta"),
+			import_doc.ata.as_("shipping_ata"),
+			Concat(import_doc.cargo_destination_country, " - ", import_doc.cargo_destination_city).as_("destination"),
+			import_doc.manifest_date,
+			import_doc.tansad_date,
+			import_doc.manifest_comparison_date.as_("manifest_comparison"),
+			import_doc.loading_date,
+			get_expenses_total_query(import_doc.name, "Import", "USD").as_("import_expenses_usd"),
+			get_expenses_total_query(import_doc.name, "Import", "TZS").as_("import_expenses_tzs"),
+			get_latest_reporting_status_query(import_doc.name, "Import").as_("remarks"),
+		)
+	)
