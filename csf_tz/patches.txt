@@ -1,4 +1,5 @@
 [pre_model_sync]
+csf_tz.patches.delete_trade_in_module_def
 
 [post_model_sync]
 
