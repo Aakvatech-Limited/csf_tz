@@ -24,8 +24,8 @@ class ReceivablePayableReport(object):
         )
 
     def run(self, args):
-        party_naming_by = frappe.db.get_value(
-            args.get("naming_by")[0], None, args.get("naming_by")[1]
+        party_naming_by = frappe.db.get_single_value(
+            args.get("naming_by")[0], args.get("naming_by")[1]
         )
         columns = self.get_columns(party_naming_by, args)
         data = self.get_data(party_naming_by, args)
