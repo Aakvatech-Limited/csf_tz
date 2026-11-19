@@ -1,6 +1,6 @@
-import frappe
 import json
 
+import frappe
 from frappe.query_builder.functions import Concat
 
 
@@ -38,16 +38,36 @@ def get_json(main_ancestor, ancestor_type="Accounts"):
     )
 
     doc_list = docfield_query.union_all(custom_field_query).run(as_dict=True)
-    
+
     for doc in doc_list:
-        docfield_list = frappe.get_all("DocField", filters={"parent": doc.doctype_name, "fieldtype": "Link"}, fields="options", group_by="options")
-        custom_field_list = frappe.get_all("Custom Field", filters={"parent": doc.doctype_name, "fieldtype": "Link"}, fields="options", group_by="options")
+        docfield_list = frappe.get_all(
+            "DocField",
+            filters={"parent": doc.doctype_name, "fieldtype": "Link"},
+            fields="options",
+            group_by="options",
+        )
+        custom_field_list = frappe.get_all(
+            "Custom Field",
+            filters={"parent": doc.doctype_name, "fieldtype": "Link"},
+            fields="options",
+            group_by="options",
+        )
         doc["imports"] = []
         for options in docfield_list:
-            options_string = "erpnext." + frappe.get_value("DocType", doc.doctype_name, "module") + "." + options.get("options")
+            options_string = (
+                "erpnext."
+                + frappe.get_value("DocType", doc.doctype_name, "module")
+                + "."
+                + options.get("options")
+            )
             doc["imports"].append(options_string)
         for options in custom_field_list:
-            options_string = "erpnext." + frappe.get_value("DocType", doc.doctype_name, "module") + "." + options.get("options")
+            options_string = (
+                "erpnext."
+                + frappe.get_value("DocType", doc.doctype_name, "module")
+                + "."
+                + options.get("options")
+            )
             doc["imports"].append(options_string)
 
     return json.dumps(doc_list)
