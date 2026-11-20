@@ -61,9 +61,11 @@ def execute():
 
     # ANALYZE (~20 ms) first: stats lag badly after a bulk delete, enough that on 200k rows
     # `data_length` briefly reported 10 MB *more* than before it.
-    frappe.db.sql("analyze table tabVersion")
+    frappe.db.sql_ddl("ANALYZE TABLE `tabVersion`")
     print(table_space())
-    print("The file itself does not shrink until the table is rebuilt: reclaim_space().")
+    print(
+        "The file itself does not shrink until the table is rebuilt: reclaim_space()."
+    )
 
 
 def estimate():
@@ -91,7 +93,11 @@ def estimate():
     # No table_space() here: nothing was written, so it would only show the current size,
     # which says nothing about what the cleanup would free. `matched_mb` is that estimate.
 
-    return {"scanned": total, "matched": matched, "matched_mb": round(matched_bytes / 1024**2, 1)}
+    return {
+        "scanned": total,
+        "matched": matched,
+        "matched_mb": round(matched_bytes / 1024**2, 1),
+    }
 
 
 def delete_sync_versions():
@@ -203,7 +209,9 @@ def get_version_table_query():
     """`information_schema.tables` row of `tabVersion` in the current database."""
     return (
         frappe.qb.from_(information_schema_tables)
-        .where(information_schema_tables.table_schema == CustomFunction("DATABASE", [])())
+        .where(
+            information_schema_tables.table_schema == CustomFunction("DATABASE", [])()
+        )
         .where(information_schema_tables.table_name == "tabVersion")
     )
 
@@ -218,7 +226,10 @@ def table_space() -> str:
     tables = information_schema_tables
     row = (
         get_version_table_query()
-        .select(Round(tables.data_length / 1024 / 1024, 1), Round(tables.data_free / 1024 / 1024, 1))
+        .select(
+            Round(tables.data_length / 1024 / 1024, 1),
+            Round(tables.data_free / 1024 / 1024, 1),
+        )
         .run()
     )
     if not row:
@@ -231,7 +242,11 @@ def table_space() -> str:
 
 def _table_size_mb() -> float:
     """Just the on-disk size, for before/after comparison."""
-    row = get_version_table_query().select(information_schema_tables.data_length / 1024 / 1024).run()
+    row = (
+        get_version_table_query()
+        .select(information_schema_tables.data_length / 1024 / 1024)
+        .run()
+    )
 
     return float(row[0][0]) if row else 0.0
 
@@ -259,16 +274,22 @@ def reclaim_space():
     before = _table_size_mb()
 
     try:
-        frappe.db.sql_ddl("alter table `tabVersion` force, algorithm=inplace, lock=none")
+        frappe.db.sql_ddl(
+            "alter table `tabVersion` force, algorithm=inplace, lock=none"
+        )
     except Exception as e:
         print(f"  !! SKIPPED: {e}")
-        print("  !! table unchanged and safe; rows are deleted but the file did not shrink.")
+        print(
+            "  !! table unchanged and safe; rows are deleted but the file did not shrink."
+        )
         return
 
     # ANALYZE is ~20 ms (InnoDB samples 20 index pages, so it does not scale with the
     # table) and without it the "after" size is stale enough to read as growth.
-    frappe.db.sql("analyze table tabVersion")
+    frappe.db.sql_ddl("ANALYZE TABLE `tabVersion`")
     after = _table_size_mb()
     reclaimed = before - after
     print(f"  {before:.1f} MB -> {after:.1f} MB", end="")
-    print(f" (reclaimed {reclaimed:.1f} MB)" if reclaimed > 0 else " (nothing to reclaim)")
+    print(
+        f" (reclaimed {reclaimed:.1f} MB)" if reclaimed > 0 else " (nothing to reclaim)"
+    )

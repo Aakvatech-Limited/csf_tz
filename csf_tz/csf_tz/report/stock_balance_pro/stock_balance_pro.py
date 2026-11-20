@@ -2,20 +2,21 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+
 import erpnext
+import frappe
+from erpnext.stock.report.stock_ledger.stock_ledger import get_item_group_condition
+from erpnext.stock.utils import add_additional_uom_columns
 from frappe import _
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Count
-from frappe.utils import flt, cint, getdate
-from erpnext.stock.utils import add_additional_uom_columns
-from erpnext.stock.report.stock_ledger.stock_ledger import get_item_group_condition
+from frappe.utils import cint, flt, getdate
 from pypika.terms import ExistsCriterion, ValueWrapper
-
-from csf_tz.csf_tz.report.excise_duty_stock.excise_duty_stock import get_excisable_entries_query
-
-
 from six import iteritems
+
+from csf_tz.csf_tz.report.excise_duty_stock.excise_duty_stock import (
+    get_excisable_entries_query,
+)
 
 
 def execute(filters=None):
@@ -28,7 +29,8 @@ def execute(filters=None):
         company_currency = erpnext.get_company_currency(filters.get("company"))
     else:
         company_currency = frappe.db.get_single_value(
-            "Global Defaults", "default_currency")
+            "Global Defaults", "default_currency"
+        )
 
     include_uom = filters.get("include_uom")
     columns = get_columns(filters)
@@ -45,23 +47,23 @@ def execute(filters=None):
     data = []
     conversion_factors = {}
 
-    def _func(x): return x[1]
+    def _func(x):
+        return x[1]
 
-    for (company, item) in sorted(iwb_map):
+    for company, item in sorted(iwb_map):
         if item_map.get(item):
             qty_dict = iwb_map[(company, item)]
 
             report_data = {
-                'currency': company_currency,
-                'item_code': item,
-                'company': company,
+                "currency": company_currency,
+                "item_code": item,
+                "company": company,
             }
             report_data.update(item_map[item])
             report_data.update(qty_dict)
 
             if include_uom:
-                conversion_factors.setdefault(
-                    item, item_map[item].conversion_factor)
+                conversion_factors.setdefault(item, item_map[item].conversion_factor)
 
             data.append(report_data)
 
@@ -72,30 +74,77 @@ def execute(filters=None):
 def get_columns(filters):
     """return columns"""
     columns = [
-        {"label": _("Item"), "fieldname": "item_code",
-        "fieldtype": "Link", "options": "Item", "width": 100},
+        {
+            "label": _("Item"),
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "options": "Item",
+            "width": 100,
+        },
         {"label": _("Item Name"), "fieldname": "item_name", "width": 150},
-        {"label": _("Item Group"), "fieldname": "item_group",
-        "fieldtype": "Link", "options": "Item Group", "width": 100},
-        {"label": _("Stock UOM"), "fieldname": "stock_uom",
-        "fieldtype": "Link", "options": "UOM", "width": 90},
-        {"label": _("Balance Qty"), "fieldname": "bal_qty",
-        "fieldtype": "Float", "width": 100, "convertible": "qty"},
-        {"label": _("Opening Qty"), "fieldname": "opening_qty",
-        "fieldtype": "Float", "width": 100, "convertible": "qty"},
-        {"label": _("In Qty"), "fieldname": "in_qty",
-        "fieldtype": "Float", "width": 80, "convertible": "qty"},
-        {"label": _("Out Qty"), "fieldname": "out_qty",
-        "fieldtype": "Float", "width": 80, "convertible": "qty"},
-        {"label": _("Excise Qty"), "fieldname": "excise_stock",
-        "fieldtype": "Float", "width": 100, "convertible": "qty"},
-        {"label": _("Company"), "fieldname": "company",
-        "fieldtype": "Link", "options": "Company", "width": 100}
+        {
+            "label": _("Item Group"),
+            "fieldname": "item_group",
+            "fieldtype": "Link",
+            "options": "Item Group",
+            "width": 100,
+        },
+        {
+            "label": _("Stock UOM"),
+            "fieldname": "stock_uom",
+            "fieldtype": "Link",
+            "options": "UOM",
+            "width": 90,
+        },
+        {
+            "label": _("Balance Qty"),
+            "fieldname": "bal_qty",
+            "fieldtype": "Float",
+            "width": 100,
+            "convertible": "qty",
+        },
+        {
+            "label": _("Opening Qty"),
+            "fieldname": "opening_qty",
+            "fieldtype": "Float",
+            "width": 100,
+            "convertible": "qty",
+        },
+        {
+            "label": _("In Qty"),
+            "fieldname": "in_qty",
+            "fieldtype": "Float",
+            "width": 80,
+            "convertible": "qty",
+        },
+        {
+            "label": _("Out Qty"),
+            "fieldname": "out_qty",
+            "fieldtype": "Float",
+            "width": 80,
+            "convertible": "qty",
+        },
+        {
+            "label": _("Excise Qty"),
+            "fieldname": "excise_stock",
+            "fieldtype": "Float",
+            "width": 100,
+            "convertible": "qty",
+        },
+        {
+            "label": _("Company"),
+            "fieldname": "company",
+            "fieldtype": "Link",
+            "options": "Company",
+            "width": 100,
+        },
     ]
 
-    if filters.get('show_variant_attributes'):
-        columns += [{'label': att_name, 'fieldname': att_name, 'width': 100}
-                    for att_name in get_variants_attributes()]
+    if filters.get("show_variant_attributes"):
+        columns += [
+            {"label": att_name, "fieldname": att_name, "width": 100}
+            for att_name in get_variants_attributes()
+        ]
 
     return columns
 
@@ -157,7 +206,6 @@ def get_stock_ledger_entries(filters, items):
 
     stock_entry_query = get_excisable_entries_query(
         frappe.qb.from_(sle)
-        .force_index("posting_sort_index")
         .inner_join(stock_entry)
         .on((sle.voucher_type == "Stock Entry") & (stock_entry.name == sle.voucher_no)),
         ValueWrapper(0),
@@ -165,14 +213,16 @@ def get_stock_ledger_entries(filters, items):
     ).where(stock_entry.purpose != "Material Transfer")
     sales_invoice_query = get_excisable_entries_query(
         frappe.qb.from_(sle)
-        .force_index("posting_sort_index")
         .inner_join(sales_invoice)
-        .on((sle.voucher_type == "Sales Invoice") & (sales_invoice.name == sle.voucher_no)),
+        .on(
+            (sle.voucher_type == "Sales Invoice")
+            & (sales_invoice.name == sle.voucher_no)
+        ),
         sle.actual_qty * sales_invoice.excise_duty_applicable,
         conditions,
     )
     other_voucher_query = get_excisable_entries_query(
-        frappe.qb.from_(sle).force_index("posting_sort_index"), ValueWrapper(0), conditions
+        frappe.qb.from_(sle), ValueWrapper(0), conditions
     ).where(sle.voucher_type.notin(["Stock Entry", "Sales Invoice"]))
 
     return (
@@ -192,13 +242,15 @@ def get_item_warehouse_map(filters, sle):
     for d in sle:
         key = (d.company, d.item_code)
         if key not in iwb_map:
-            iwb_map[key] = frappe._dict({
-                "opening_qty": 0.0,
-                "in_qty": 0.0,
-                "out_qty": 0.0,
-                "excise_stock": 0.0,
-                "bal_qty": 0.0
-            })
+            iwb_map[key] = frappe._dict(
+                {
+                    "opening_qty": 0.0,
+                    "in_qty": 0.0,
+                    "out_qty": 0.0,
+                    "excise_stock": 0.0,
+                    "bal_qty": 0.0,
+                }
+            )
 
         qty_dict = iwb_map[(d.company, d.item_code)]
 
@@ -225,7 +277,7 @@ def get_item_warehouse_map(filters, sle):
 
 
 def filter_items_with_no_transactions(iwb_map, float_precision):
-    for (company, item) in sorted(iwb_map):
+    for company, item in sorted(iwb_map):
         qty_dict = iwb_map[(company, item)]
 
         no_transactions = True
@@ -297,10 +349,11 @@ def get_item_details(items, sle, filters):
     for item in res:
         item_details.setdefault(item.name, item)
 
-    if filters.get('show_variant_attributes', 0) == 1:
+    if filters.get("show_variant_attributes", 0) == 1:
         variant_values = get_variant_values_for(list(item_details))
-        item_details = {k: v.update(variant_values.get(k, {}))
-                        for k, v in iteritems(item_details)}
+        item_details = {
+            k: v.update(variant_values.get(k, {})) for k, v in iteritems(item_details)
+        }
 
     return item_details
 
@@ -311,16 +364,19 @@ def validate_filters(filters):
         sle_count = flt(frappe.qb.from_(sle).select(Count(sle.name)).run()[0][0])
         if sle_count > 500000:
             frappe.throw(
-                _("Please set filter based on Item or Warehouse due to a large amount of entries."))
+                _(
+                    "Please set filter based on Item or Warehouse due to a large amount of entries."
+                )
+            )
 
 
 def get_variants_attributes():
-    '''Return all item variant attributes.'''
-    return [i.name for i in frappe.get_all('Item Attribute')]
+    """Return all item variant attributes."""
+    return [i.name for i in frappe.get_all("Item Attribute")]
 
 
 def get_variant_values_for(items):
-    '''Returns variant values for items.'''
+    """Returns variant values for items."""
     attribute_map = {}
     variant_attribute = frappe.qb.DocType("Item Variant Attribute")
     for attr in (
@@ -333,8 +389,9 @@ def get_variant_values_for(items):
         .where(variant_attribute.parent.isin(items))
         .run(as_dict=True)
     ):
-        attribute_map.setdefault(attr['parent'], {})
-        attribute_map[attr['parent']].update(
-            {attr['attribute']: attr['attribute_value']})
+        attribute_map.setdefault(attr["parent"], {})
+        attribute_map[attr["parent"]].update(
+            {attr["attribute"]: attr["attribute_value"]}
+        )
 
     return attribute_map

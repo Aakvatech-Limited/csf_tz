@@ -20,13 +20,13 @@ class SQLProcess(Document):
             .run(as_dict=True)
         )
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])
     def kill_process(self, pid):
         frappe.msgprint(
             "Killing process {}".format(pid), alert=True, indicator="orange"
         )
         try:
-            frappe.db.sql("""Kill {0}""".format(pid))
+            frappe.db.sql_ddl("KILL {0}".format(int(pid)))
         except Exception:
             frappe.msgprint("Process not found", alert=True, indicator="red")
             return False
