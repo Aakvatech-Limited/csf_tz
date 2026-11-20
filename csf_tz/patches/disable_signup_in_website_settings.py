@@ -1,7 +1,5 @@
-# import frappe
+import frappe
 
 
 def execute():
-	from frappe import db
-
-	db.set_value("Website Settings", None, "disable_signup", 1)
+	frappe.db.set_single_value("Website Settings", "disable_signup", 1)

@@ -10,8 +10,8 @@ from frappe.utils import flt
 
 class InterCompanyStockTransfer(Document):
 	def validate(self):
-		allow_inter_company_stock_transfer = frappe.db.get_value(
-			"CSF TZ Settings", "CSF TZ Settings", "allow_inter_company_stock_transfer"
+		allow_inter_company_stock_transfer = frappe.db.get_single_value(
+			"CSF TZ Settings", "allow_inter_company_stock_transfer"
 		)
 		if not allow_inter_company_stock_transfer:
 			frappe.throw(

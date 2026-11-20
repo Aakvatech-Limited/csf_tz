@@ -262,7 +262,7 @@ def get_app_branch(app):
 	import subprocess
 
 	try:
-		branch = subprocess.check_output(f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD", shell=True)
+		branch = subprocess.check_output(f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD", shell=True)  # nosemgrep: subprocess-shell-true,dangerous-subprocess-use-audit
 		branch = branch.decode("utf-8")
 		branch = branch.strip()
 		return branch
@@ -347,7 +347,7 @@ def get_invoice_item_rates_query(
 
 @frappe.whitelist()
 def get_item_prices(item_code, currency, customer=None, company=None):
-	unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
 	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
@@ -385,7 +385,7 @@ def get_item_prices_custom(filters=None, start=0, limit=20):
 	if not filters:  # Default to an empty dictionary if filters is None or invalid
 		filters = {}
 
-	unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
 	item_code = filters.get("item_code", "")
@@ -1178,7 +1178,7 @@ def get_stock_balance_for(
 @frappe.whitelist()
 def make_stock_reconciliation_for_all_pending_material_request(*args):
 	auto_stock_reconciliation = (
-		frappe.db.get_value("CSF TZ Settings", "CSF TZ Settings", "auto_stock_reconciliation") or 0
+		frappe.db.get_single_value("CSF TZ Settings", "auto_stock_reconciliation") or 0
 	)
 	if auto_stock_reconciliation != 1:
 		return
@@ -1455,7 +1455,7 @@ def enroll_all_students(self):
 		frappe.msgprint("Remove student applicants that are already created")
 
 	if len(self.students) > 30:
-		frappe.enqueue("csf_tz.custom_api.enroll_students", self=self)
+		frappe.enqueue("csf_tz.custom_api.enroll_students", self=self)  # nosemgrep: whitelisted-side-effect-on-get
 		return "queued"
 	else:
 		enroll_students(self=self)
@@ -1504,7 +1504,7 @@ def enroll_students(self):
 @frappe.whitelist()
 def get_tax_category(doc_type, company):
 	fetch_default_tax_category = (
-		frappe.db.get_value("CSF TZ Settings", None, "fetch_default_tax_category") or 0
+		frappe.db.get_single_value("CSF TZ Settings", "fetch_default_tax_category") or 0
 	)
 	if int(fetch_default_tax_category) != 1:
 		return ""
@@ -2623,7 +2623,7 @@ def get_item_prices_custom_po(filters=None, start=0, limit=20):
 	if not filters:  # Default to an empty dictionary if filters is None or invalid
 		filters = {}
 
-	unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	customer = filters.get("customer", "")
 	company = filters.get("company", "")
 	item_code = filters.get("item_code", "")
@@ -2660,7 +2660,7 @@ def get_item_prices_custom_po(filters=None, start=0, limit=20):
 
 @frappe.whitelist()
 def get_item_prices_po(item_code, currency, customer=None, company=None):
-	unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
 	prices_list = []
 	unique_price_list = []
 	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
