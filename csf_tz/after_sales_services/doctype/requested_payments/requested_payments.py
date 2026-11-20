@@ -228,7 +228,7 @@ def validate_requested_funds(doc):
                 open_request.set("request_status", "Requested")
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def request_funds(**args):
     args = frappe._dict(args)
 
@@ -266,7 +266,7 @@ def request_funds(**args):
         return "Request Inserted"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def recommend_request(**args):
     args = frappe._dict(args)
 
@@ -279,7 +279,7 @@ def recommend_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def recommend_against_request(**args):
     args = frappe._dict(args)
 
@@ -292,7 +292,7 @@ def recommend_against_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def approve_request(**args):
     args = frappe._dict(args)
 
@@ -305,7 +305,7 @@ def approve_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def reject_request(**args):
     args = frappe._dict(args)
 
@@ -318,7 +318,7 @@ def reject_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def accounts_approval(**args):
     args = frappe._dict(args)
     local = json.loads(args.local)
@@ -374,7 +374,7 @@ def accounts_approval(**args):
             return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def accounts_cancel(**args):
     args = frappe._dict(args)
 
@@ -691,7 +691,7 @@ def update_payment_status(doc):
         )
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def reference_payment(**args):
     args = frappe._dict(args)
 
@@ -716,7 +716,7 @@ def reference_payment(**args):
     return "inserted"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def make_payment(source_name, target_doc=None, ignore_permissions=False):
     pe = frappe.new_doc("Payment Entry")
     pe.payment_type = "Pay"
