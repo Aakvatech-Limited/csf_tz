@@ -3,17 +3,13 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
-import time
+
 import datetime
+import time
+
+import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
-import json
-from frappe.utils import encode, cstr, cint, flt, comma_or
-from frappe import _
-from csf_tz.after_sales_services.doctype.requested_payments.requested_payments import (
-    validate_requested_funds,
-)
 
 
 class VehicleTrip(Document):
@@ -272,9 +268,8 @@ class VehicleTrip(Document):
             self.set_onload("return_shipper_addr_list", {"addr_list": address_list})
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def create_vehicle_trip(**args):
-
     args = frappe._dict(args)
 
     existing_vehicle_trip = frappe.db.get_value(
@@ -330,7 +325,7 @@ def create_vehicle_trip(**args):
         return trip
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def create_return_trip(**args):
     args = frappe._dict(args)
 
@@ -380,7 +375,6 @@ def create_return_trip(**args):
 
 @frappe.whitelist()
 def make_vehicle_inspection(source_name, target_doc=None, ignore_permissions=False):
-
     docs = get_mapped_doc(
         "Vehicle Trip",
         source_name,
@@ -405,7 +399,7 @@ def make_vehicle_inspection(source_name, target_doc=None, ignore_permissions=Fal
     return docs
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def check_trip_status(**args):
     args = frappe._dict(args)
     frappe.msgprint("ok")
@@ -435,7 +429,7 @@ def check_trip_status(**args):
         )
 
 
-"""@frappe.whitelist(allow_guest=True)
+"""@frappe.whitelist()
 def validate_route_inputs(**args):
 	args = frappe._dict(args)
 
