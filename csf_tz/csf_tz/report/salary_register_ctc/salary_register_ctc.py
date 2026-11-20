@@ -1,19 +1,26 @@
 # Copyright (c) 2013, Aakvatech and contributors
 # For license information, please see license.txt
 
-import frappe
 import erpnext
-from frappe.utils import flt
-from frappe import _, msgprint
+import frappe
+from frappe import _
 from frappe.query_builder import Criterion
+from frappe.utils import flt
+
 from csf_tz.csf_tz.report.salary_slip_conditions import (
     get_currency_and_department_conditions,
 )
 
 
+def validate_filters(filters):
+    if not (filters or {}).get("docstatus"):
+        frappe.throw(_("Docstatus is required."))
+
+
 def execute(filters=None):
     if not filters:
         filters = {}
+    validate_filters(filters)
     currency = None
     if filters.get("currency"):
         currency = filters.get("currency")
@@ -26,7 +33,7 @@ def execute(filters=None):
     ss_earning_map = get_ss_earning_map(salary_slips, currency, company_currency)
     ss_ded_map = get_ss_ded_map(salary_slips, currency, company_currency)
     doj_map = get_employee_doj_map()
-    
+
     data = []
     for ss in salary_slips:
         CTC = ss.gross_pay
@@ -79,11 +86,11 @@ def execute(filters=None):
             amount = flt(ss_ded_map.get(ss.name, {}).get(d_ctc))
             CTC = CTC + amount
             row.append(amount)
-            
+
         row.append(CTC)
         row.append(currency or company_currency)
         data.append(row)
-    
+
     columns += [_("CTC") + ":Currency:120"]
 
     return columns, data
@@ -144,10 +151,17 @@ def get_columns(salary_slips):
     )
     for entry in company_expenses:
         components[_(entry.type)].append(entry.salary_component)
-    
-    columns = (columns + [(d_ctc + ":Currency:120") for d_ctc in components[_("Deduction")]])
 
-    return columns, salary_components[_("Earning")], salary_components[_("Deduction")], components[_("Deduction")]
+    columns = columns + [
+        (d_ctc + ":Currency:120") for d_ctc in components[_("Deduction")]
+    ]
+
+    return (
+        columns,
+        salary_components[_("Earning")],
+        salary_components[_("Deduction")],
+        components[_("Deduction")],
+    )
 
 
 def get_salary_components(salary_slips, do_not_include_in_total, component_type=None):
@@ -265,14 +279,15 @@ def get_ss_ded_map(salary_slips, currency, company_currency):
             )
         else:
             ss_ded_map[d.parent][d.salary_component] = flt(d.amount)
-        
+
     return ss_ded_map
 
 
 @frappe.whitelist()
 def approve(data):
-    from frappe.utils.background_jobs import enqueue
     import json
+
+    from frappe.utils.background_jobs import enqueue
 
     data = json.loads(data)
     enqueue(
@@ -300,4 +315,3 @@ def enqueue_approve(kwargs):
                 frappe.db.commit()
             except Exception as e:
                 frappe.log_error(e)
-
