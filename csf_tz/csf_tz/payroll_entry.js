@@ -17,6 +17,9 @@ frappe.ui.form.on("Payroll Entry", {
             }).addClass('btn-primary');
         }
 
+      // An unsaved Payroll Entry has no persisted salary slips to summarize.
+      if (frm.is_new()) return;
+
       frappe.call({
         method: 'csf_tz.csftz_hooks.payroll.get_amounts_summary',
         args: {
