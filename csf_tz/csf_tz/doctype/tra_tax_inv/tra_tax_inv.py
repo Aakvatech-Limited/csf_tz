@@ -2,10 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.model.document import Document
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from frappe.model.document import Document
 
 
 class TRATAXInv(Document):
@@ -173,7 +172,6 @@ def fetch_tra_verification(verification_code):
         response.raise_for_status()
 
         if "Please provide your Receipt time" in response.text:
-
             verification_url = (
                 f"https://verify.tra.go.tz/Verify/Verified?Secret={receipt_time}"
             )
@@ -673,21 +671,21 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
             try:
                 subtotal_str = str(totals.get("subtotal", "0")).replace(",", "")
                 doc.subtotal = float(subtotal_str)
-            except:
+            except Exception:
                 pass
 
         if totals.get("total_tax"):
             try:
                 total_tax_str = str(totals.get("total_tax", "0")).replace(",", "")
                 doc.total_tax = float(total_tax_str)
-            except:
+            except Exception:
                 pass
 
         if totals.get("grand_total"):
             try:
                 grand_total_str = str(totals.get("grand_total", "0")).replace(",", "")
                 doc.grand_total = float(grand_total_str)
-            except:
+            except Exception:
                 pass
 
         # Populate items
@@ -700,7 +698,7 @@ def create_tra_tax_inv_document(verification_code, receipt_data, verification_re
                 try:
                     amount_str = str(item.get("amount", "0")).replace(",", "")
                     item_row.amount = float(amount_str)
-                except:
+                except Exception:
                     item_row.amount = 0
 
         # Save the document
@@ -763,14 +761,14 @@ def create_tra_tax_inv_document_safe(
             company_info = receipt_data.get("company_info", {})
             if company_info.get("name"):
                 doc.company_name = company_info.get("name", "")
-        except:
+        except Exception:
             pass
 
         try:
             receipt_info = receipt_data.get("receipt_info", {})
             if receipt_info.get("receipt_number"):
                 doc.receipt_number = receipt_info.get("receipt_number", "")
-        except:
+        except Exception:
             pass
 
         # Populate customer information if available
@@ -784,7 +782,7 @@ def create_tra_tax_inv_document_safe(
                 doc.customer_id = customer_info.get("id", "")
             if customer_info.get("mobile"):
                 doc.customer_mobile = customer_info.get("mobile", "")
-        except:
+        except Exception:
             pass
 
         # Populate totals if available
@@ -794,14 +792,14 @@ def create_tra_tax_inv_document_safe(
                 try:
                     subtotal_str = str(totals.get("subtotal", "0")).replace(",", "")
                     doc.subtotal = float(subtotal_str)
-                except:
+                except Exception:
                     pass
 
             if totals.get("total_tax"):
                 try:
                     total_tax_str = str(totals.get("total_tax", "0")).replace(",", "")
                     doc.total_tax = float(total_tax_str)
-                except:
+                except Exception:
                     pass
 
             if totals.get("grand_total"):
@@ -810,9 +808,9 @@ def create_tra_tax_inv_document_safe(
                         ",", ""
                     )
                     doc.grand_total = float(grand_total_str)
-                except:
+                except Exception:
                     pass
-        except:
+        except Exception:
             pass
 
         # Populate items if available
@@ -827,11 +825,11 @@ def create_tra_tax_inv_document_safe(
                         try:
                             amount_str = str(item.get("amount", "0")).replace(",", "")
                             item_row.amount = float(amount_str)
-                        except:
+                        except Exception:
                             item_row.amount = 0
-                except:
+                except Exception:
                     continue
-        except:
+        except Exception:
             pass
 
         # Save the document
@@ -858,7 +856,6 @@ def create_tra_tax_inv_document_safe(
         }
 
     except Exception as e:
-
         return {
             "success": False,
             "message": f"Error creating TRA TAX Inv: {str(e)}",
