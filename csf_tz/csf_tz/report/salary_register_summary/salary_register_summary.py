@@ -2,31 +2,35 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+
 import erpnext
-from frappe.utils import flt
-from frappe import _, msgprint
+import frappe
+from frappe import _
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Sum
+
 from csf_tz.csf_tz.report.salary_slip_conditions import (
     get_currency_and_department_conditions,
     get_salary_component_totals_query,
 )
 
 
+def validate_filters(filters):
+    if not (filters or {}).get("docstatus"):
+        frappe.throw(_("Docstatus is required."))
+
+
 def execute(filters=None):
-    columns = [{
-        "fieldname": "salary_component",
-        "label": _("Salary Component"),
-        "fieldtype": "Data",
-        "width": 300
-    },
+    validate_filters(filters)
+    columns = [
         {
-        "fieldname": "total",
-        "label": _("Total"),
-        "fieldtype": "Float",
-        "width": 300
-    }]
+            "fieldname": "salary_component",
+            "label": _("Salary Component"),
+            "fieldtype": "Data",
+            "width": 300,
+        },
+        {"fieldname": "total", "label": _("Total"), "fieldtype": "Float", "width": 300},
+    ]
     data = get_data(filters)
     return columns, data
 
@@ -36,8 +40,8 @@ def get_data(filters=None):
         filters = {}
     currency = None
     data = []
-    if filters.get('currency'):
-        currency = filters.get('currency')
+    if filters.get("currency"):
+        currency = filters.get("currency")
     company_currency = erpnext.get_company_currency(filters.get("company"))
     salary_slips = get_salary_slips(filters, company_currency)
     if not salary_slips:
@@ -45,9 +49,11 @@ def get_data(filters=None):
 
     blank_line = {"salary_component": "", "total": ""}
     total_employees = len(salary_slips)
-    #frappe.msgprint(str(total_employees))
+    # frappe.msgprint(str(total_employees))
     total_employee_record = {
-        "salary_component": "Total Employees", "total": total_employees}
+        "salary_component": "Total Employees",
+        "total": total_employees,
+    }
     data.append(total_employee_record)
     data.append(blank_line)
 
@@ -58,12 +64,12 @@ def get_data(filters=None):
         t_basic = t_basic + basic["total"]
 
     ss_earning_map = get_ss_earning_map(salary_slips, currency, company_currency)
-    #data.extend(ss_earning_map)
-    
-    #frappe.msgprint(str(ss_earning_map))
+    # data.extend(ss_earning_map)
+
+    # frappe.msgprint(str(ss_earning_map))
     total_earnings = 0
     for earning in ss_earning_map:
-         total_earnings = total_earnings + earning["total"]
+        total_earnings = total_earnings + earning["total"]
     te_record = {"salary_component": "Total Allowances", "total": total_earnings}
     data.append(te_record)
 
@@ -72,12 +78,12 @@ def get_data(filters=None):
     data.append(gp_record)
 
     ss_deduction_map = get_ss_ded_map(salary_slips, currency, company_currency)
-    #data.extend(ss_deduction_map)
+    # data.extend(ss_deduction_map)
 
     total_deduction = 0
     for deduction in ss_deduction_map:
         total_deduction = total_deduction + deduction["total"]
-        
+
     ded_record = {"salary_component": "Total Deductions", "total": total_deduction}
     data.append(ded_record)
 
@@ -91,8 +97,9 @@ def get_data(filters=None):
 
 
 def get_salary_slips(filters, company_currency):
-    filters.update({"from_date": filters.get("from_date"),
-                    "to_date": filters.get("to_date")})
+    filters.update(
+        {"from_date": filters.get("from_date"), "to_date": filters.get("to_date")}
+    )
     salary_slip = frappe.qb.DocType("Salary Slip")
     salary_slips = (
         frappe.qb.from_(salary_slip)
@@ -115,7 +122,6 @@ def get_ss_basic_map(salary_slips, currency, company_currency):
     )
 
     return ss_basic
-
 
 
 def get_ss_earning_map(salary_slips, currency, company_currency):
