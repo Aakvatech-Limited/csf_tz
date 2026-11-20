@@ -262,7 +262,10 @@ def get_app_branch(app):
 	import subprocess
 
 	try:
-		branch = subprocess.check_output(f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD", shell=True)  # nosemgrep: subprocess-shell-true,dangerous-subprocess-use-audit
+		branch = subprocess.check_output(  # nosemgrep: dangerous-subprocess-use-audit
+			f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD",
+			shell=True,  # nosemgrep: subprocess-shell-true
+		)
 		branch = branch.decode("utf-8")
 		branch = branch.strip()
 		return branch
@@ -1455,7 +1458,10 @@ def enroll_all_students(self):
 		frappe.msgprint("Remove student applicants that are already created")
 
 	if len(self.students) > 30:
-		frappe.enqueue("csf_tz.custom_api.enroll_students", self=self)  # nosemgrep: whitelisted-side-effect-on-get
+		frappe.enqueue(  # nosemgrep: whitelisted-side-effect-on-get
+			"csf_tz.custom_api.enroll_students",
+			self=self,
+		)
 		return "queued"
 	else:
 		enroll_students(self=self)
