@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestAVReportExtension(unittest.TestCase):
 	pass

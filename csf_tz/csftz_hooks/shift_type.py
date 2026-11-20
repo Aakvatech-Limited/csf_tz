@@ -9,28 +9,28 @@ RESOURCE_PATHS = ("/api/resource/", "/api/v1/resource/", "/api/v2/document/")
 
 
 def skip_version_on_checkin_sync(doc, method=None):
-    """Skip version creation when a PUT only updates `last_sync_of_checkin`.
+	"""Skip version creation when a PUT only updates `last_sync_of_checkin`.
 
-    The biometric checkin sync updates this timestamp on every run, which would
-    otherwise create a Version record for each sync.
-    """
-    if not doc.has_value_changed(CHECKIN_SYNC_FIELD):
-        return
+	The biometric checkin sync updates this timestamp on every run, which would
+	otherwise create a Version record for each sync.
+	"""
+	if not doc.has_value_changed(CHECKIN_SYNC_FIELD):
+		return
 
-    if not _is_checkin_sync_request():
-        return
+	if not _is_checkin_sync_request():
+		return
 
-    doc.flags.ignore_version = True
+	doc.flags.ignore_version = True
 
 
 def _is_checkin_sync_request():
-    request = getattr(frappe.local, "request", None)
-    if not request or request.method != "PUT":
-        return False
+	request = getattr(frappe.local, "request", None)
+	if not request or request.method != "PUT":
+		return False
 
-    if not request.path.startswith(RESOURCE_PATHS):
-        return False
+	if not request.path.startswith(RESOURCE_PATHS):
+		return False
 
-    data = get_request_form_data()
+	data = get_request_form_data()
 
-    return isinstance(data, dict) and list(data) == [CHECKIN_SYNC_FIELD]
+	return isinstance(data, dict) and list(data) == [CHECKIN_SYNC_FIELD]

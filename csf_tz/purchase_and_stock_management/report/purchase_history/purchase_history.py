@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.query_builder.functions import IfNull
@@ -16,56 +16,19 @@ def execute(filters=None):
 			"fieldtype": "Link",
 			"options": "Item",
 		},
-		{
-			"fieldname": "item_name",
-			"label": _("Item Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "item_name", "label": _("Item Name"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "item_group",
 			"label": _("Item Group"),
 			"fieldtype": "Link",
 			"options": "Item Group",
 		},
-		{
-			"fieldname": "description",
-			"label": _("Description"),
-			"fieldtype": "Data",
-			"width": 200
-		},
-		{
-			"fieldname": "qty",
-			"label": _("Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "uom",
-			"label": _("UOM"),
-			"fieldtype": "Link",
-			"options": "UOM",
-			"width": 80
-
-		},
-		{
-			"fieldname": "base_rate",
-			"label": _("Rate"),
-			"fieldtype": "Currency",
-			"width": 80
-		},
-		{
-			"fieldname": "base_amount",
-			"label": _("Amount"),
-			"fieldtype": "Currency",
-			"width": 80
-		},
-		{
-			"fieldname": "name",
-			"label" : _("Purchase Order"),
-			"fieldtype": "Link",
-			"options": "Purchase Order"
-		},
+		{"fieldname": "description", "label": _("Description"), "fieldtype": "Data", "width": 200},
+		{"fieldname": "qty", "label": _("Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "uom", "label": _("UOM"), "fieldtype": "Link", "options": "UOM", "width": 80},
+		{"fieldname": "base_rate", "label": _("Rate"), "fieldtype": "Currency", "width": 80},
+		{"fieldname": "base_amount", "label": _("Amount"), "fieldtype": "Currency", "width": 80},
+		{"fieldname": "name", "label": _("Purchase Order"), "fieldtype": "Link", "options": "Purchase Order"},
 		{
 			"fieldname": "transaction_date",
 			"label": _("Date "),
@@ -77,32 +40,16 @@ def execute(filters=None):
 			"fieldtype": "Link",
 			"options": "Supplier",
 		},
-		{
-			"fieldname": "supplier_name",
-			"label": _("Supplier Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "project",
-			"label": _("Project"),
-			"fieldtype": "Data",
-			"width": 150
-		},	
-		{
-			"fieldname": "received_qty",
-			"label": _("Received Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
+		{"fieldname": "supplier_name", "label": _("Supplier Name"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "project", "label": _("Project"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "received_qty", "label": _("Received Qty"), "fieldtype": "Float", "width": 150},
 		{
 			"fieldname": "company",
 			"label": _("Company"),
 			"fieldtype": "Link",
 			"options": "Company",
-			"width": 150
+			"width": 150,
 		},
-		
 	]
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
@@ -133,7 +80,7 @@ def execute(filters=None):
 			IfNull(purchase_order_item.received_qty, 0).as_("received_qty"),
 			purchase_order.company,
 		)
-		.where(purchase_order.transaction_date[filters.from_date:filters.to_date])
+		.where(purchase_order.transaction_date[filters.from_date : filters.to_date])
 		.where(purchase_order.docstatus == 1)
 	)
 

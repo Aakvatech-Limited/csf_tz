@@ -1,34 +1,38 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import time
+
 import datetime
 import json
+import time
+
+import frappe
+from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
+from erpnext.accounts.general_ledger import process_gl_map, save_entries
+from erpnext.accounts.utils import (
+	get_account_currency,
+	get_fiscal_years,
+)
+from erpnext.controllers.accounts_controller import set_balance_in_account_currency
+from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, comma_or, nowdate
-from frappe import msgprint, _
 from frappe.query_builder import Case
 from frappe.query_builder.functions import IfNull, Sum
-from erpnext.accounts.general_ledger import process_gl_map, save_entries
-from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_account_currency
-from erpnext.controllers.accounts_controller import set_balance_in_account_currency
-from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
+from frappe.utils import formatdate, nowdate
+
 
 class RequestedPayments(Document):
 	def onload(self):
 		pass
-	
+
 	def get_all_children(self, parenttype=None):
-		#For getting children
-		return self.get('payments_reference')
-		
+		# For getting children
+		return self.get("payments_reference")
+
 	def update_children(self):
-		'''update child tables'''
-		self.update_child_table('payments_reference')
-		
+		"""update child tables"""
+		self.update_child_table("payments_reference")
+
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
@@ -46,68 +50,117 @@ class RequestedPayments(Document):
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
 			if not d:
-				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
+				frappe.throw(
+					_("{0} {1} not found").format(_(self.doctype), self.name),
+					frappe.DoesNotExistError,
+				)
 
 			super(Document, self).__init__(d)
 
-		if self.name=="DocType" and self.doctype=="DocType":
+		if self.name == "DocType" and self.doctype == "DocType":
 			from frappe.model.meta import doctype_table_fields
+
 			table_fields = doctype_table_fields
 		else:
 			table_fields = self.meta.get_table_fields()
 
 		for df in table_fields:
-			#Load details for payments already paid
+			# Load details for payments already paid
 			if df.fieldname == "payments_reference":
-				children = frappe.db.get_values(df.options,
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-					"*", as_dict=True, order_by="idx asc")
+				children = frappe.db.get_values(
+					df.options,
+					{
+						"parent": self.name,
+						"parenttype": self.doctype,
+						"parentfield": df.fieldname,
+					},
+					"*",
+					as_dict=True,
+					order_by="idx asc",
+				)
 				if children:
 					self.set(df.fieldname, children)
 				else:
 					self.set(df.fieldname, [])
-			elif df.fieldname == "requested_funds": #Load requests which are not approved nor rejected
-				children = frappe.db.get_values(df.options,
-					{"parent": ["=", self.get('reference_docname')], "parenttype": ["=", self.get('reference_doctype')], "parentfield": ["in", ("requested_funds", "main_requested_funds", "return_requested_funds")], "request_status": ["in", ("open", "Requested", "Recommended")]},
-					"*", as_dict=True, order_by="idx asc")
+			elif df.fieldname == "requested_funds":  # Load requests which are not approved nor rejected
+				children = frappe.db.get_values(
+					df.options,
+					{
+						"parent": ["=", self.get("reference_docname")],
+						"parenttype": ["=", self.get("reference_doctype")],
+						"parentfield": [
+							"in",
+							(
+								"requested_funds",
+								"main_requested_funds",
+								"return_requested_funds",
+							),
+						],
+						"request_status": ["in", ("open", "Requested", "Recommended")],
+					},
+					"*",
+					as_dict=True,
+					order_by="idx asc",
+				)
 				if children:
 					self.set(df.fieldname, children)
 				else:
 					self.set(df.fieldname, [])
 			elif df.fieldname == "accounts_approval":
-				children = frappe.db.get_values("Requested Funds Details",
-					{"parent": ["=", self.get('reference_docname')], "parenttype": ["=", self.get('reference_doctype')], "parentfield": ["in", ("requested_funds", "main_requested_funds", "return_requested_funds")], "request_status": ["in", ("Approved", "Rejected", "Accounts Approved", "Accounts Rejected", "Accounts Cancelled")]},
-					"*", as_dict=True, order_by="idx asc")
+				children = frappe.db.get_values(
+					"Requested Funds Details",
+					{
+						"parent": ["=", self.get("reference_docname")],
+						"parenttype": ["=", self.get("reference_doctype")],
+						"parentfield": [
+							"in",
+							(
+								"requested_funds",
+								"main_requested_funds",
+								"return_requested_funds",
+							),
+						],
+						"request_status": [
+							"in",
+							(
+								"Approved",
+								"Rejected",
+								"Accounts Approved",
+								"Accounts Rejected",
+								"Accounts Cancelled",
+							),
+						],
+					},
+					"*",
+					as_dict=True,
+					order_by="idx asc",
+				)
 				if children:
 					for child in children:
 						child.reference = child.name
 					self.set(df.fieldname, children)
 				else:
-					self.set(df.fieldname, [])				
+					self.set(df.fieldname, [])
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):
 			self.__setup__()
-			
-			
-		
+
+
 def get_outstanding_payments(self, account_currency):
-	#Timestamp
-	ts = time.time()
-	
-	#Initialize values
+	# Initialize values
 	total_amount = outstanding_amount = 0
 	due_date = datetime.datetime.now().date()
-	
+
 	requested_from = frappe.get_doc(self.reference_doctype, self.reference_docname)
-	if self.reference_doctype == 'Vehicle Trip':
+	if self.reference_doctype == "Vehicle Trip":
 		for request in requested_from.main_requested_funds:
 			if request.request_status == "Approved" and request.request_currency == account_currency:
 				total_amount = total_amount + request.request_amount
-				#request_date = datetime.datetime.strptime(request.request_date, '%Y-%m-%d')
+				# request_date = datetime.datetime.strptime(request.request_date, '%Y-%m-%d')
 				if request.request_date < due_date:
 					due_date = request.request_date
-					
+
 		for request in requested_from.return_requested_funds:
 			if request.request_status == "Approved" and request.request_currency == account_currency:
 				total_amount = total_amount + request.request_amount
@@ -119,7 +172,7 @@ def get_outstanding_payments(self, account_currency):
 				total_amount = total_amount + request.request_amount
 				if request.request_date < due_date:
 					due_date = request.request_date
-					
+
 	gl_entry = frappe.qb.DocType("GL Entry")
 	debit_total = Sum(gl_entry.debit_in_account_currency)
 	paid_amount = (
@@ -127,19 +180,22 @@ def get_outstanding_payments(self, account_currency):
 		.select(Case().when(debit_total > 0, debit_total).else_(0).as_("paid_amount"))
 		.where(gl_entry.debit_in_account_currency > 0)
 		.where(gl_entry.account_currency == account_currency)
-		.where(gl_entry.voucher_type == 'Requested Payments')
-		.where(gl_entry.voucher == self.name)
+		.where(gl_entry.voucher_type == "Requested Payments")
+		.where(gl_entry.voucher_no == self.name)
 	).run(as_dict=True)
-	#frappe.msgprint(paid_amount[0].paid_amount)
+	# frappe.msgprint(paid_amount[0].paid_amount)
 	outstanding_amount = total_amount - float(paid_amount[0].paid_amount)
-	
-	return frappe._dict({
-		"due_date": due_date,
-		"total_amount": total_amount,
-		"outstanding_amount": outstanding_amount,
-		"exchange_rate": 1
-	})
-	
+
+	return frappe._dict(
+		{
+			"due_date": due_date,
+			"total_amount": total_amount,
+			"outstanding_amount": outstanding_amount,
+			"exchange_rate": 1,
+		}
+	)
+
+
 def validate_requested_funds(doc):
 	make_request = False
 	open_requests = []
@@ -147,28 +203,36 @@ def validate_requested_funds(doc):
 		if requested_fund.request_status == "open":
 			make_request = True
 			open_requests.append(requested_fund)
-			
+
 	if make_request:
-		args = {"reference_doctype": doc.doctype, "reference_docname": doc.name, "company": doc.company}
-		request_status = request_funds(reference_doctype = doc.doctype, reference_docname = doc.name, company = doc.company)
+		request_status = request_funds(
+			reference_doctype=doc.doctype,
+			reference_docname=doc.name,
+			company=doc.company,
+		)
 		if request_status == "Request Inserted" or request_status == "Request Updated":
 			for open_request in open_requests:
 				open_request.set("request_status", "Requested")
-		
-	
-@frappe.whitelist(allow_guest=True)
+
+
+@frappe.whitelist()
 def request_funds(**args):
 	args = frappe._dict(args)
-	
-	existing_payment_request = frappe.db.get_value("Requested Payments", 
-		{"reference_doctype": args.reference_doctype, "reference_docname": args.reference_docname})
-	
-	#Timestamp
+
+	existing_payment_request = frappe.db.get_value(
+		"Requested Payments",
+		{
+			"reference_doctype": args.reference_doctype,
+			"reference_docname": args.reference_docname,
+		},
+	)
+
+	# Timestamp
 	ts = time.time()
-	timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-		
+	timestamp = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+
 	if existing_payment_request:
-		#Mark the request as open
+		# Mark the request as open
 		doc = frappe.get_doc("Requested Payments", existing_payment_request)
 		doc.db_set("approval_status", "Waiting Approval")
 		doc.db_set("modified", timestamp)
@@ -176,36 +240,38 @@ def request_funds(**args):
 		return "Request Updated"
 	else:
 		request = frappe.new_doc("Requested Payments")
-		request.update({
-			"reference_doctype":args.reference_doctype,
-			"reference_docname": args.reference_docname,
-			"company": args.company,
-			"approval_status": "Waiting Approval",
-			"payment_status": "Waiting Approval"
-		})
+		request.update(
+			{
+				"reference_doctype": args.reference_doctype,
+				"reference_docname": args.reference_docname,
+				"company": args.company,
+				"approval_status": "Waiting Approval",
+				"payment_status": "Waiting Approval",
+			}
+		)
 		request.insert(ignore_permissions=True)
 		return "Request Inserted"
-		
 
-@frappe.whitelist(allow_guest=True)
+
+@frappe.whitelist()
 def recommend_request(**args):
 	args = frappe._dict(args)
-	
-	#return args.request_docname
-	#Mark the request as open 
+
+	# return args.request_docname
+	# Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
 	doc.db_set("request_status", "Recommended")
 	doc.db_set("request_hidden_status", "0")
 	doc.db_set("recommended_by", args.user)
 	return "Request Updated"
 
-	
-@frappe.whitelist(allow_guest=True)
+
+@frappe.whitelist()
 def recommend_against_request(**args):
 	args = frappe._dict(args)
-	
-	#return args.request_docname
-	#Mark the request as open 
+
+	# return args.request_docname
+	# Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
 	doc.db_set("request_status", "Recommended Against")
 	doc.db_set("request_hidden_status", "0")
@@ -213,39 +279,40 @@ def recommend_against_request(**args):
 	return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def approve_request(**args):
 	args = frappe._dict(args)
-	
-	#return args.request_docname
-	#Mark the request as open 
+
+	# return args.request_docname
+	# Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
 	doc.db_set("request_status", "Approved")
 	doc.db_set("request_hidden_status", "1")
 	doc.db_set("approved_by", args.user)
 	return "Request Updated"
-	
-@frappe.whitelist(allow_guest=True)
+
+
+@frappe.whitelist()
 def reject_request(**args):
 	args = frappe._dict(args)
-	
-	#return "OK"
-	#Mark the request as open
+
+	# return "OK"
+	# Mark the request as open
 	doc = frappe.get_doc("Requested Funds Details", args.request_docname)
 	doc.db_set("request_status", "Rejected")
 	doc.db_set("request_hidden_status", "2")
 	doc.db_set("approved_by", args.user)
 	return "Request Updated"
-	
-	
-@frappe.whitelist(allow_guest=True)
+
+
+@frappe.whitelist()
 def accounts_approval(**args):
 	args = frappe._dict(args)
 	local = json.loads(args.local)
-	
+
 	if args.reference:
 		reference = frappe.get_doc("Requested Funds Details", args.reference)
-		if reference.request_status in ['Approved', 'Accounts Cancelled']:
+		if reference.request_status in ["Approved", "Accounts Cancelled"]:
 			to_validate = [
 				{"fieldname": "posting_date", "label": "Posting Date"},
 				{"fieldname": "cost_center", "label": "Cost Center"},
@@ -256,47 +323,79 @@ def accounts_approval(**args):
 			]
 			for field in to_validate:
 				if not local.get(field["fieldname"]):
-					frappe.throw('Error: Please enter ' + field["label"] + ' for all rows')
-			
-			
-			#Save changes made to accounts info
-			to_save = ['expense_account', 'payable_account', 'party_type', 'expense_type', 'party', 'invoice_number', 'expense_account_currency',
-						'conversion_rate', 'payable_account_currency', 'cost_center', 'posting_date', 'accounts_approved_by', 'accounts_approved_on', 'accounts_approver_comment']
+					frappe.throw("Error: Please enter " + field["label"] + " for all rows")
+
+			# Save changes made to accounts info
+			to_save = [
+				"expense_account",
+				"payable_account",
+				"party_type",
+				"expense_type",
+				"party",
+				"invoice_number",
+				"expense_account_currency",
+				"conversion_rate",
+				"payable_account_currency",
+				"cost_center",
+				"posting_date",
+				"accounts_approved_by",
+				"accounts_approved_on",
+				"accounts_approver_comment",
+			]
 			for field in to_save:
 				reference.db_set(field, local.get(field))
-				
-			#Make GL Entries
-			gl_entries = get_gl_entries(reference, args.parent_doctype, args.parent_docname)	
+
+			# Make GL Entries
+			gl_entries = get_gl_entries(reference, args.parent_doctype, args.parent_docname)
 			make_gl_entries(gl_entries)
-			
+
 			reference.db_set("request_status", "Accounts Approved")
 			reference.db_set("request_hidden_status", "1")
 			reference.db_set("accounts_approved_by", args.user)
 			parent = frappe.get_doc("Requested Payments", args.parent_docname)
 			update_payment_status(parent)
 			return "Request Updated"
-		
-		
-@frappe.whitelist(allow_guest=True)
+
+
+@frappe.whitelist()
 def accounts_cancel(**args):
 	args = frappe._dict(args)
-	local = json.loads(args.local)
-	
+
 	if args.reference:
 		reference = frappe.get_doc("Requested Funds Details", args.reference)
-		
-		if reference.request_status == 'Accounts Approved':
-			paid_amount = get_paid_amount(args.parent_doctype, args.parent_docname, reference.party_type, reference.party, reference.payable_account)
-			total_approved = get_total_approved(args.parent_doctype, args.parent_docname, reference.party_type, reference.party, reference.payable_account)
+
+		if reference.request_status == "Accounts Approved":
+			paid_amount = get_paid_amount(
+				args.parent_doctype,
+				args.parent_docname,
+				reference.party_type,
+				reference.party,
+				reference.payable_account,
+			)
+			total_approved = get_total_approved(
+				args.parent_doctype,
+				args.parent_docname,
+				reference.party_type,
+				reference.party,
+				reference.payable_account,
+			)
 			in_account_currency = reference.request_amount * reference.conversion_rate
-			
+
 			if (total_approved - (paid_amount + in_account_currency)) < 0:
-				frappe.throw('Unable to cancel. Payment has already been made against the account. Please cancel the payment entry first.' + 'Paid: ' + str(paid_amount) + ' Total Approved: ' + str(total_approved) + ' Account Currency: ' + str(in_account_currency))
+				frappe.throw(
+					"Unable to cancel. Payment has already been made against the account. Please cancel the payment entry first."
+					+ "Paid: "
+					+ str(paid_amount)
+					+ " Total Approved: "
+					+ str(total_approved)
+					+ " Account Currency: "
+					+ str(in_account_currency)
+				)
 			else:
-				#Make GL Entries
-				gl_entries = get_gl_entries(reference, args.parent_doctype, args.parent_docname)	
+				# Make GL Entries
+				gl_entries = get_gl_entries(reference, args.parent_doctype, args.parent_docname)
 				make_gl_entries(gl_entries, True)
-				
+
 				reference.db_set("request_status", "Accounts Cancelled")
 				reference.db_set("request_hidden_status", "1")
 				reference.db_set("accounts_approved_by", args.user)
@@ -304,10 +403,10 @@ def accounts_cancel(**args):
 				update_payment_status(parent)
 				return "Request Updated"
 
-		
+
 def get_paid_amount(dt, dn, party_type, party, account):
 	gl_entry = frappe.qb.DocType("GL Entry")
-	if party_type=="Customer":
+	if party_type == "Customer":
 		dr_or_cr = gl_entry.credit_in_account_currency - gl_entry.debit_in_account_currency
 	else:
 		dr_or_cr = gl_entry.debit_in_account_currency - gl_entry.credit_in_account_currency
@@ -324,7 +423,8 @@ def get_paid_amount(dt, dn, party_type, party, account):
 	).run()
 
 	return paid_amount[0][0] if paid_amount else 0
-	
+
+
 def get_total_approved(dt, dn, party_type, party, account):
 	gl_entry = frappe.qb.DocType("GL Entry")
 	total_approved = (
@@ -339,106 +439,143 @@ def get_total_approved(dt, dn, party_type, party, account):
 
 	return total_approved[0][0] if total_approved else 0
 
-		
+
 def get_gl_entries(data, reference_doctype, reference_docname):
 	gl_entry = []
 	doc = frappe.get_doc(reference_doctype, reference_docname)
-	company_currency = frappe.db.get_value('Company', doc.company, "default_currency")
-	
+	company_currency = frappe.db.get_value("Company", doc.company, "default_currency")
+
 	# payable entry
-	payable_account_currency = get_account_currency(data.payable_account)	
+	payable_account_currency = get_account_currency(data.payable_account)
 	gl_entry.append(
-		get_gl_dict(doc, data,
+		get_gl_dict(
+			doc,
+			data,
 			{
 				"account": data.payable_account,
 				"credit": data.request_amount,
-				"credit_in_account_currency": data.request_amount \
-					if payable_account_currency==company_currency else data.request_amount/data.conversion_rate,
+				"credit_in_account_currency": data.request_amount
+				if payable_account_currency == company_currency
+				else data.request_amount / data.conversion_rate,
 				"against": data.name,
 				"party_type": data.party_type,
 				"party": data.party,
 				"against_voucher_type": doc.doctype,
-				"against_voucher": doc.name
-			}
+				"against_voucher": doc.name,
+			},
 		)
 	)
 
 	# expense entries
-	expense_account_currency = get_account_currency(data.expense_account)	
+	expense_account_currency = get_account_currency(data.expense_account)
 	gl_entry.append(
-		get_gl_dict(doc, data,
+		get_gl_dict(
+			doc,
+			data,
 			{
 				"account": data.expense_account,
 				"debit": data.request_amount,
-				"debit_in_account_currency": data.request_amount \
-					if expense_account_currency==company_currency else data.request_amount/data.conversion_rate,
+				"debit_in_account_currency": data.request_amount
+				if expense_account_currency == company_currency
+				else data.request_amount / data.conversion_rate,
 				"against": data.name,
 				"cost_center": data.cost_center,
-				'against_voucher_type': doc.doctype,
-				'against_voucher': doc.name
-			}
+				"against_voucher_type": doc.doctype,
+				"against_voucher": doc.name,
+			},
 		)
 	)
 
 	return gl_entry
-	
+
+
 def get_gl_dict(doc, data, args, account_currency=None):
 	"""this method populates the common properties of a gl entry record"""
 
 	fiscal_years = get_fiscal_years(data.request_date, company=doc.company)
 	if len(fiscal_years) > 1:
-		frappe.throw(_("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(formatdate(self.posting_date)))
+		frappe.throw(
+			_("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(
+				formatdate(data.request_date)
+			)
+		)
 	else:
 		fiscal_year = fiscal_years[0][0]
 
-	gl_dict = frappe._dict({
-		'company': doc.company,
-		'posting_date': data.posting_date,
-		'fiscal_year': fiscal_year,
-		'voucher_type': doc.doctype,
-		'voucher_no': doc.name,
-		'remarks': data.get("remarks"),
-		'debit': 0,
-		'credit': 0,
-		'debit_in_account_currency': 0,
-		'credit_in_account_currency': 0,
-		'is_opening': "No",
-		'party_type': None,
-		'party': None,
-		'project': data.get("project")
-	})
+	gl_dict = frappe._dict(
+		{
+			"company": doc.company,
+			"posting_date": data.posting_date,
+			"fiscal_year": fiscal_year,
+			"voucher_type": doc.doctype,
+			"voucher_no": doc.name,
+			"remarks": data.get("remarks"),
+			"debit": 0,
+			"credit": 0,
+			"debit_in_account_currency": 0,
+			"credit_in_account_currency": 0,
+			"is_opening": "No",
+			"party_type": None,
+			"party": None,
+			"project": data.get("project"),
+		}
+	)
 	gl_dict.update(args)
-	
-	company_currency = frappe.db.get_value('Company', doc.company, "default_currency")
+
+	company_currency = frappe.db.get_value("Company", doc.company, "default_currency")
 
 	if not account_currency:
 		account_currency = get_account_currency(gl_dict.account)
 
-	if gl_dict.account and doc.doctype not in ["Journal Entry",
-		"Period Closing Voucher", "Payment Entry"]:
-
-		#self.validate_account_currency(gl_dict.account, account_currency)
-		set_balance_in_account_currency(gl_dict, account_currency, data.get("conversion_rate"), company_currency)
+	if gl_dict.account and doc.doctype not in [
+		"Journal Entry",
+		"Period Closing Voucher",
+		"Payment Entry",
+	]:
+		# self.validate_account_currency(gl_dict.account, account_currency)
+		set_balance_in_account_currency(
+			gl_dict, account_currency, data.get("conversion_rate"), company_currency
+		)
 
 	return gl_dict
-	
-def make_gl_entries(gl_map, cancel=False, adv_adj=False, merge_entries=True, update_outstanding='Yes', from_repost=False):
+
+
+def make_gl_entries(
+	gl_map,
+	cancel=False,
+	adv_adj=False,
+	merge_entries=True,
+	update_outstanding="Yes",
+	from_repost=False,
+):
 	if gl_map:
 		if not cancel:
 			gl_map = process_gl_map(gl_map, merge_entries)
 			if gl_map and len(gl_map) > 1:
 				save_entries(gl_map, adv_adj, update_outstanding, from_repost)
 			else:
-				frappe.throw(_("Incorrect number of General Ledger Entries found. You might have selected a wrong Account in the transaction."))
+				frappe.throw(
+					_(
+						"Incorrect number of General Ledger Entries found. You might have selected a wrong Account in the transaction."
+					)
+				)
 		else:
 			delete_gl_entries(gl_map, adv_adj=adv_adj, update_outstanding=update_outstanding)
-			
-			
-def delete_gl_entries(gl_entries=None, voucher_type=None, voucher_no=None,
-		adv_adj=False, update_outstanding="Yes"):
 
-	from erpnext.accounts.doctype.gl_entry.gl_entry import validate_balance_type, \
-		check_freezing_date, update_outstanding_amt, validate_frozen_account
+
+def delete_gl_entries(
+	gl_entries=None,
+	voucher_type=None,
+	voucher_no=None,
+	adv_adj=False,
+	update_outstanding="Yes",
+):
+	from erpnext.accounts.doctype.gl_entry.gl_entry import (
+		update_outstanding_amt,
+		validate_balance_type,
+		validate_frozen_account,
+	)
+	from erpnext.accounts.general_ledger import check_freezing_date
 
 	gl_entry = frappe.qb.DocType("GL Entry")
 	if not gl_entries:
@@ -473,64 +610,80 @@ def delete_gl_entries(gl_entries=None, voucher_type=None, voucher_no=None,
 			.where(gl_entry.voucher_no == entry.voucher_no)
 			.where(gl_entry.against == entry.against)
 		).run()
-		
+
 		validate_frozen_account(entry["account"], adv_adj)
 		validate_balance_type(entry["account"], adv_adj)
 		if not adv_adj:
 			validate_expense_against_budget(entry)
-		
-		if entry.get("against_voucher") and update_outstanding == 'Yes' and not adv_adj:
-			update_outstanding_amt(entry["account"], entry.get("party_type"), entry.get("party"), entry.get("against_voucher_type"),
-				entry.get("against_voucher"), on_cancel=True)
-				
-				
+
+		if entry.get("against_voucher") and update_outstanding == "Yes" and not adv_adj:
+			update_outstanding_amt(
+				entry["account"],
+				entry.get("party_type"),
+				entry.get("party"),
+				entry.get("against_voucher_type"),
+				entry.get("against_voucher"),
+				on_cancel=True,
+			)
+
+
 def update_payment_status(doc):
 	gl_entry = frappe.qb.DocType("GL Entry")
 	paid_amount = (
-		frappe.qb.from_(gl_entry)
-		.select(IfNull(Sum(gl_entry.debit_in_account_currency), 0).as_("amt"))
-		.where(gl_entry.against_voucher_type == 'Requested Payments')
-		.where(gl_entry.against_voucher == doc.name)
-		.where(gl_entry.voucher_type != 'Requested Payments')
-	).run(as_dict=1)[0].amt
-		
+		(
+			frappe.qb.from_(gl_entry)
+			.select(IfNull(Sum(gl_entry.debit_in_account_currency), 0).as_("amt"))
+			.where(gl_entry.against_voucher_type == "Requested Payments")
+			.where(gl_entry.against_voucher == doc.name)
+			.where(gl_entry.voucher_type != "Requested Payments")
+		)
+		.run(as_dict=1)[0]
+		.amt
+	)
+
 	total_approved = (
-		frappe.qb.from_(gl_entry)
-		.select(IfNull(Sum(gl_entry.credit_in_account_currency), 0).as_("total_approved"))
-		.where(gl_entry.against_voucher_type == 'Requested Payments')
-		.where(gl_entry.against_voucher == doc.name)
-	).run(as_dict=1)[0].total_approved
-	
+		(
+			frappe.qb.from_(gl_entry)
+			.select(IfNull(Sum(gl_entry.credit_in_account_currency), 0).as_("total_approved"))
+			.where(gl_entry.against_voucher_type == "Requested Payments")
+			.where(gl_entry.against_voucher == doc.name)
+		)
+		.run(as_dict=1)[0]
+		.total_approved
+	)
+
 	if paid_amount >= total_approved:
 		frappe.db.set_value("Requested Payments", doc.name, "payment_status", "Paid")
 	else:
 		frappe.db.set_value("Requested Payments", doc.name, "payment_status", "Waiting Payment")
 
-	
-	
-@frappe.whitelist(allow_guest=True)
+
+@frappe.whitelist()
 def reference_payment(**args):
 	args = frappe._dict(args)
-	
+
 	request = frappe.new_doc("Reference Payment Table")
-	request.update({
-		"parent":args.parent,
-		"parentfield": args.parentfield,
-		"parenttype": args.parenttype,
-		"date_of_payment": args.date_of_payment,
-		"accounting_system": args.accounting_system,
-		"amount": args.amount,
-		"currency": args.currency,
-		"reference_no": args.reference_no,
-		"status": "paid"
-	})
+	request.update(
+		{
+			"parent": args.parent,
+			"parentfield": args.parentfield,
+			"parenttype": args.parenttype,
+			"date_of_payment": args.date_of_payment,
+			"accounting_system": args.accounting_system,
+			"amount": args.amount,
+			"currency": args.currency,
+			"reference_no": args.reference_no,
+			"status": "paid",
+		}
+	)
 	request.insert(ignore_permissions=True)
-	
-	parent = frappe.get_doc('Requested Payments', args.parent)
+
+	parent = frappe.get_doc("Requested Payments", args.parent)
 	parent.db_set("payment_status", args.payment_status)
 	return "inserted"
-	
-@frappe.whitelist(allow_guest=True)
+
+
+@frappe.whitelist()
 def make_payment(source_name, target_doc=None, ignore_permissions=False):
 	pe = frappe.new_doc("Payment Entry")
 	pe.payment_type = "Pay"
@@ -540,9 +693,3 @@ def make_payment(source_name, target_doc=None, ignore_permissions=False):
 	pe.allocate_payment_amount = 1
 
 	return pe
-	
-
-	
-	
-	
-

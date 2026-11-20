@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from frappe import _
 
 
@@ -30,7 +29,9 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Open Invoice Exchange Rate Revaluation",
-					"description": _("Open Invoice Exchange Rate Revaluation for period end P & L visibility."),
+					"description": _(
+						"Open Invoice Exchange Rate Revaluation for period end P & L visibility."
+					),
 				},
 			],
 		},
@@ -61,55 +62,55 @@ def get_data():
 					"type": "report",
 					"name": "TRA Input VAT Returns eFiling",
 					"doctype": "Purchase Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Withholding Tax Summary on Sales",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Withholding Tax Summary on Sales",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Withholding Tax Payment Summary",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "ITX 230.01.E – Withholding Tax Statement",
 					"doctype": "Purchase Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Output VAT Reconciliation",
 					"doctype": "EFD Z Report",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Credit Note List",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Purchase Reports by Tax Category",
 					"doctype": "Purchase Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Purchases by Tax Category Summary",
 					"doctype": "Purchase Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 			],
 		},
@@ -120,7 +121,7 @@ def get_data():
 					"type": "report",
 					"name": "Employment History",
 					"doctype": "Employee",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 			],
 		},
@@ -131,45 +132,45 @@ def get_data():
 					"type": "report",
 					"name": "Multi-Currency Ledger",
 					"doctype": "GL Entry",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Trial Balance Report in USD",
 					"doctype": "GL Entry",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Itemwise Stock Movement",
 					"doctype": "Stock Ledger Entry",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Warehouse wise Item Balance and Value",
 					"doctype": "Stock Ledger Entry",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Accounts Receivable Multi Currency",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Stock Balance pivot warehouse",
 					"doctype": "Stock Ledger Entry",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Accounts Receivable Summary Multi Currency",
 					"doctype": "Sales Invoice",
-					"is_query_report": True
+					"is_query_report": True,
 				},
-			]
+			],
 		},
 		{
 			"label": _("System Analytics"),
@@ -178,13 +179,13 @@ def get_data():
 					"type": "report",
 					"name": "Master Data Statistics",
 					"doctype": "Electronic Fiscal Device",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 				{
 					"type": "report",
 					"name": "Transaction Statistics",
 					"doctype": "Electronic Fiscal Device",
-					"is_query_report": True
+					"is_query_report": True,
 				},
 			],
 		},
@@ -194,7 +195,9 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Special Closing Balance",
-					"description": _("Special Closing Balance recording and generating Material Receipts for reverse calculated productions."),
+					"description": _(
+						"Special Closing Balance recording and generating Material Receipts for reverse calculated productions."
+					),
 				},
 				{
 					"type": "doctype",

@@ -7,6 +7,6 @@
 # 			{
 # 				'label': _('Delivery and Installation'),
 # 				'items': ['Delivery Note', 'Installation Note']
-# 			},	
+# 			},
 # 		]
 # 	}

@@ -1,3070 +1,2899 @@
-from __future__ import unicode_literals
-from erpnext.setup.utils import get_exchange_rate
+import base64
+import io
+import json
+import traceback
+
 import frappe
-from frappe import _
 import frappe.permissions
 import frappe.share
-import traceback
 import pyqrcode
-import io
-import base64
-from frappe.utils import (
-    flt,
-    cint,
-    getdate,
-    get_datetime,
-    nowdate,
-    nowtime,
-    add_days,
-    unique,
-    create_batch
-)
-from frappe.model.mapper import get_mapped_doc
-from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
-from erpnext.stock.utils import get_stock_balance, get_latest_stock_qty
+from erpnext.setup.utils import get_exchange_rate
 from erpnext.stock.doctype.batch.batch import get_batch_qty
-from erpnext.accounts.utils import get_account_currency
-import csf_tz
-from csf_tz import console
-import json
+from erpnext.stock.utils import get_stock_balance
+from frappe import _
+from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
+from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder import AliasedQuery, Criterion, DocType, Field, Order
 from frappe.query_builder.functions import Coalesce, Date, IfNull, Max, Sum
+from frappe.utils import (
+	add_days,
+	cint,
+	flt,
+	getdate,
+	nowdate,
+	nowtime,
+	unique,
+)
 from pypika.analytics import RowNumber
 from pypika.terms import ExistsCriterion
-from frappe.utils.background_jobs import enqueue
+
+from csf_tz import console
 
 
 @frappe.whitelist()
 def generate_qrcode(qrcode_data):
-    c = pyqrcode.create(qrcode_data)
-    s = io.BytesIO()
-    c.png(s, scale=3)
-    encoded = "data:image/png;base64," + base64.b64encode(s.getvalue()).decode("ASCII")
-    return encoded
+	c = pyqrcode.create(qrcode_data)
+	s = io.BytesIO()
+	c.png(s, scale=3)
+	encoded = "data:image/png;base64," + base64.b64encode(s.getvalue()).decode("ASCII")
+	return encoded
 
 
 @frappe.whitelist()
 def app_error_log(title, error):
-    frappe.log(traceback.format_exc())
+	frappe.log(traceback.format_exc())
 
 
 @frappe.whitelist()
 def getInvoiceExchangeRate(date, currency):
-    try:
-        exchange_rate = get_exchange_rate(
-            currency, frappe.defaults.get_global_default("currency"), str(date)
-        )
-        return exchange_rate
+	try:
+		exchange_rate = get_exchange_rate(currency, frappe.defaults.get_global_default("currency"), str(date))
+		return exchange_rate
 
-    except Exception as e:
-        error_log = app_error_log(frappe.session.user, str(e))
+	except Exception as e:
+		app_error_log(frappe.session.user, str(e))
 
 
 @frappe.whitelist()
 def getInvoice(currency, name):
-    try:
-        doc = frappe.get_doc("Open Invoice Exchange Rate Revaluation", name)
-        # company_currency = frappe.get_value("Company",doc.company,"default_currency")
-        sinv_details = frappe.get_all(
-            "Sales Invoice",
-            filters=[
-                ["Sales Invoice", "currency", "=", str(currency)],
-                ["Sales Invoice", "party_account_currency", "!=", str(currency)],
-                ["Sales Invoice", "company", "=", doc.company],
-                ["Sales Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "customer",
-            ],
-        )
-        pinv_details = frappe.get_all(
-            "Purchase Invoice",
-            filters=[
-                ["Purchase Invoice", "currency", "=", str(currency)],
-                ["Purchase Invoice", "party_account_currency", "!=", str(currency)],
-                ["Purchase Invoice", "company", "=", doc.company],
-                ["Purchase Invoice", "status", "in", ["Unpaid", "Overdue"]],
-            ],
-            fields=[
-                "name",
-                "grand_total",
-                "conversion_rate",
-                "currency",
-                "party_account_currency",
-                "supplier",
-            ],
-        )
-        doc.inv_err_detail = []
-        doc.save()
-        if sinv_details:
-            count = 1
-            for sinv in sinv_details:
-                if not flt(sinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        sinv.name,
-                        "Sales Invoice",
-                        sinv.conversion_rate,
-                        sinv.currency,
-                        sinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        if pinv_details:
-            for pinv in pinv_details:
-                if not flt(pinv.conversion_rate) == flt(
-                    doc.exchange_rate_to_company_currency
-                ):
-                    addChildItem(
-                        name,
-                        pinv.name,
-                        "Purchase Invoice",
-                        pinv.conversion_rate,
-                        pinv.currency,
-                        pinv.grand_total,
-                        doc.exchange_rate_to_company_currency,
-                        count,
-                    )
-                    count += 1
-        return sinv_details
+	try:
+		doc = frappe.get_doc("Open Invoice Exchange Rate Revaluation", name)
+		# company_currency = frappe.get_value("Company",doc.company,"default_currency")
+		sinv_details = frappe.get_all(
+			"Sales Invoice",
+			filters=[
+				["Sales Invoice", "currency", "=", str(currency)],
+				["Sales Invoice", "party_account_currency", "!=", str(currency)],
+				["Sales Invoice", "company", "=", doc.company],
+				["Sales Invoice", "status", "in", ["Unpaid", "Overdue"]],
+			],
+			fields=[
+				"name",
+				"grand_total",
+				"conversion_rate",
+				"currency",
+				"party_account_currency",
+				"customer",
+			],
+		)
+		pinv_details = frappe.get_all(
+			"Purchase Invoice",
+			filters=[
+				["Purchase Invoice", "currency", "=", str(currency)],
+				["Purchase Invoice", "party_account_currency", "!=", str(currency)],
+				["Purchase Invoice", "company", "=", doc.company],
+				["Purchase Invoice", "status", "in", ["Unpaid", "Overdue"]],
+			],
+			fields=[
+				"name",
+				"grand_total",
+				"conversion_rate",
+				"currency",
+				"party_account_currency",
+				"supplier",
+			],
+		)
+		doc.inv_err_detail = []
+		doc.save()
+		if sinv_details:
+			count = 1
+			for sinv in sinv_details:
+				if not flt(sinv.conversion_rate) == flt(doc.exchange_rate_to_company_currency):
+					addChildItem(
+						name,
+						sinv.name,
+						"Sales Invoice",
+						sinv.conversion_rate,
+						sinv.currency,
+						sinv.grand_total,
+						doc.exchange_rate_to_company_currency,
+						count,
+					)
+					count += 1
+		if pinv_details:
+			for pinv in pinv_details:
+				if not flt(pinv.conversion_rate) == flt(doc.exchange_rate_to_company_currency):
+					addChildItem(
+						name,
+						pinv.name,
+						"Purchase Invoice",
+						pinv.conversion_rate,
+						pinv.currency,
+						pinv.grand_total,
+						doc.exchange_rate_to_company_currency,
+						count,
+					)
+					count += 1
+		return sinv_details
 
-    except Exception as e:
-        app_error_log(frappe.session.user, str(e))
+	except Exception as e:
+		app_error_log(frappe.session.user, str(e))
 
 
 def addChildItem(
-    name,
-    inv_no,
-    invoice_type,
-    invoice_exchange_rate,
-    invoice_currency,
-    invoice_amount,
-    current_exchange,
-    idx,
+	name,
+	inv_no,
+	invoice_type,
+	invoice_exchange_rate,
+	invoice_currency,
+	invoice_amount,
+	current_exchange,
+	idx,
 ):
-    gain_loss = (flt(invoice_amount) * flt(invoice_exchange_rate)) - (
-        flt(invoice_amount) * flt(current_exchange)
-    )
-    child_doc = frappe.get_doc(
-        dict(
-            doctype="Inv ERR Detail",
-            parent=name,
-            parenttype="Open Invoice Exchange Rate Revaluation",
-            parentfield="inv_err_detail",
-            invoice_number=inv_no,
-            invoice_type=invoice_type,
-            invoice_exchange_rate=invoice_exchange_rate,
-            invoice_currency=invoice_currency,
-            invoice_gain_or_loss=gain_loss,
-            invoice_amount=invoice_amount,
-            idx=idx,
-        )
-    ).insert()
+	gain_loss = (flt(invoice_amount) * flt(invoice_exchange_rate)) - (
+		flt(invoice_amount) * flt(current_exchange)
+	)
+	frappe.get_doc(
+		dict(
+			doctype="Inv ERR Detail",
+			parent=name,
+			parenttype="Open Invoice Exchange Rate Revaluation",
+			parentfield="inv_err_detail",
+			invoice_number=inv_no,
+			invoice_type=invoice_type,
+			invoice_exchange_rate=invoice_exchange_rate,
+			invoice_currency=invoice_currency,
+			invoice_gain_or_loss=gain_loss,
+			invoice_amount=invoice_amount,
+			idx=idx,
+		)
+	).insert()
 
 
 @frappe.whitelist()
 def print_out(message, alert=False, add_traceback=False, to_error_log=False):
-    if not message:
-        return
+	if not message:
+		return
 
-    def out(mssg):
-        if message:
-            frappe.errprint(str(mssg))
-            if to_error_log:
-                frappe.log_error(str(mssg))
-            if add_traceback:
-                if len(frappe.utils.get_traceback()) > 20:
-                    frappe.errprint(frappe.utils.get_traceback())
-            if alert:
-                frappe.msgprint(str(mssg))
+	def out(mssg):
+		if message:
+			frappe.errprint(str(mssg))
+			if to_error_log:
+				frappe.log_error(str(mssg))
+			if add_traceback:
+				if len(frappe.utils.get_traceback()) > 20:
+					frappe.errprint(frappe.utils.get_traceback())
+			if alert:
+				frappe.msgprint(str(mssg))
 
-    def check_msg(msg):
-        if isinstance(msg, str):
-            msg = str(msg)
+	def check_msg(msg):
+		if isinstance(msg, str):
+			msg = str(msg)
 
-        elif isinstance(msg, int):
-            msg = str(msg)
+		elif isinstance(msg, int):
+			msg = str(msg)
 
-        elif isinstance(msg, float):
-            msg = str(msg)
+		elif isinstance(msg, float):
+			msg = str(msg)
 
-        elif isinstance(msg, dict):
-            msg = frappe._dict(msg)
+		elif isinstance(msg, dict):
+			msg = frappe._dict(msg)
 
-        elif isinstance(msg, list):
-            for item in msg:
-                check_msg(item)
-            msg = ""
+		elif isinstance(msg, list):
+			for item in msg:
+				check_msg(item)
+			msg = ""
 
-        elif isinstance(msg, object):
-            msg = str(msg.__dict__)
+		elif isinstance(msg, object):
+			msg = str(msg.__dict__)
 
-        else:
-            msg = str(msg)
-        out(msg)
+		else:
+			msg = str(msg)
+		out(msg)
 
-    check_msg(message)
+	check_msg(message)
 
 
 def get_stock_ledger_entries(item_code):
-    stock_ledger_entry = DocType("Stock Ledger Entry")
-    latest_entry = DocType("Stock Ledger Entry")
-    latest_entry_batch_no = IfNull(latest_entry.batch_no, "")
-    latest_entries = (
-        frappe.qb.from_(latest_entry)
-        .select(
-            latest_entry_batch_no.as_("batch_no"),
-            latest_entry.item_code,
-            latest_entry.warehouse,
-            Max(latest_entry.posting_datetime).as_("posting_datetime"),
-        )
-        .groupby(latest_entry_batch_no, latest_entry.item_code, latest_entry.warehouse)
-    ).as_("sle_max")
+	stock_ledger_entry = DocType("Stock Ledger Entry")
+	latest_entry = DocType("Stock Ledger Entry")
+	latest_entry_batch_no = IfNull(latest_entry.batch_no, "")
+	latest_entries = (
+		frappe.qb.from_(latest_entry)
+		.select(
+			latest_entry_batch_no.as_("batch_no"),
+			latest_entry.item_code,
+			latest_entry.warehouse,
+			Max(latest_entry.posting_datetime).as_("posting_datetime"),
+		)
+		.groupby(latest_entry_batch_no, latest_entry.item_code, latest_entry.warehouse)
+	).as_("sle_max")
 
-    query = (
-        frappe.qb.from_(stock_ledger_entry)
-        .inner_join(latest_entries)
-        .on(
-            (IfNull(stock_ledger_entry.batch_no, "") == latest_entries.batch_no)
-            & (stock_ledger_entry.item_code == latest_entries.item_code)
-            & (stock_ledger_entry.warehouse == latest_entries.warehouse)
-            & (stock_ledger_entry.posting_datetime == latest_entries.posting_datetime)
-        )
-        .select(
-            stock_ledger_entry.batch_no,
-            stock_ledger_entry.item_code,
-            stock_ledger_entry.warehouse,
-            stock_ledger_entry.qty_after_transaction.as_("actual_qty"),
-        )
-        .where(stock_ledger_entry.docstatus == 1)
-        .where(stock_ledger_entry.item_code == item_code)
-        .orderby(
-            stock_ledger_entry.warehouse,
-            stock_ledger_entry.item_code,
-            stock_ledger_entry.batch_no,
-        )
-    )
-    if get_version() != 12:
-        query = query.where(stock_ledger_entry.is_cancelled == 0)
-    return query.run(as_dict=True)
+	query = (
+		frappe.qb.from_(stock_ledger_entry)
+		.inner_join(latest_entries)
+		.on(
+			(IfNull(stock_ledger_entry.batch_no, "") == latest_entries.batch_no)
+			& (stock_ledger_entry.item_code == latest_entries.item_code)
+			& (stock_ledger_entry.warehouse == latest_entries.warehouse)
+			& (stock_ledger_entry.posting_datetime == latest_entries.posting_datetime)
+		)
+		.select(
+			stock_ledger_entry.batch_no,
+			stock_ledger_entry.item_code,
+			stock_ledger_entry.warehouse,
+			stock_ledger_entry.qty_after_transaction.as_("actual_qty"),
+		)
+		.where(stock_ledger_entry.docstatus == 1)
+		.where(stock_ledger_entry.item_code == item_code)
+		.orderby(
+			stock_ledger_entry.warehouse,
+			stock_ledger_entry.item_code,
+			stock_ledger_entry.batch_no,
+		)
+	)
+	if get_version() != 12:
+		query = query.where(stock_ledger_entry.is_cancelled == 0)
+	return query.run(as_dict=True)
 
 
 def get_version():
-    branch_name = get_app_branch("erpnext")
-    if "12" in branch_name:
-        return 12
-    elif "13" in branch_name:
-        return 13
-    else:
-        return 13
+	branch_name = get_app_branch("erpnext")
+	if "12" in branch_name:
+		return 12
+	elif "13" in branch_name:
+		return 13
+	else:
+		return 13
 
 
 def get_app_branch(app):
-    """Returns branch of an app"""
-    import subprocess
+	"""Returns branch of an app"""
+	import subprocess
 
-    try:
-        branch = subprocess.check_output(
-            "cd ../apps/{0} && git rev-parse --abbrev-ref HEAD".format(app), shell=True
-        )
-        branch = branch.decode("utf-8")
-        branch = branch.strip()
-        return branch
-    except Exception:
-        return ""
+	try:
+		branch = subprocess.check_output(  # nosemgrep: dangerous-subprocess-use-audit
+			f"cd ../apps/{app} && git rev-parse --abbrev-ref HEAD",
+			shell=True,  # nosemgrep: subprocess-shell-true
+		)
+		branch = branch.decode("utf-8")
+		branch = branch.strip()
+		return branch
+	except Exception:
+		return ""
 
 
 @frappe.whitelist()
 def get_item_info(item_code):
-    sle = get_stock_ledger_entries(item_code)
-    iwb_map = {}
-    float_precision = cint(frappe.db.get_default("float_precision")) or 3
+	sle = get_stock_ledger_entries(item_code)
+	iwb_map = {}
+	float_precision = cint(frappe.db.get_default("float_precision")) or 3
 
-    for d in sle:
-        iwb_map.setdefault(d.item_code, {}).setdefault(d.warehouse, {}).setdefault(
-            d.batch_no, frappe._dict({"bal_qty": 0.0})
-        )
-        qty_dict = iwb_map[d.item_code][d.warehouse][d.batch_no]
+	for d in sle:
+		iwb_map.setdefault(d.item_code, {}).setdefault(d.warehouse, {}).setdefault(
+			d.batch_no, frappe._dict({"bal_qty": 0.0})
+		)
+		qty_dict = iwb_map[d.item_code][d.warehouse][d.batch_no]
 
-        expiry_date_unicode = frappe.db.get_value("Batch", d.batch_no, "expiry_date")
+		expiry_date_unicode = frappe.db.get_value("Batch", d.batch_no, "expiry_date")
 
-        if expiry_date_unicode:
-            qty_dict.expires_on = expiry_date_unicode
-            exp_date = frappe.utils.data.getdate(expiry_date_unicode)
-            qty_dict.expires_on = exp_date
-            expires_in_days = (exp_date - frappe.utils.datetime.date.today()).days
-            if expires_in_days > 0:
-                qty_dict.expiry_status = expires_in_days
-            else:
-                qty_dict.expiry_status = 0
+		if expiry_date_unicode:
+			qty_dict.expires_on = expiry_date_unicode
+			exp_date = frappe.utils.data.getdate(expiry_date_unicode)
+			qty_dict.expires_on = exp_date
+			expires_in_days = (exp_date - frappe.utils.datetime.date.today()).days
+			if expires_in_days > 0:
+				qty_dict.expiry_status = expires_in_days
+			else:
+				qty_dict.expiry_status = 0
 
-        qty_dict.actual_qty = flt(qty_dict.actual_qty, float_precision) + flt(
-            d.actual_qty, float_precision
-        )
+		qty_dict.actual_qty = flt(qty_dict.actual_qty, float_precision) + flt(d.actual_qty, float_precision)
 
-    iwd_list = []
-    for key1, value1 in iwb_map.items():
-        for key2, value2 in value1.items():
-            for key3, value3 in value2.items():
-                lin_dict = {"item_code": key1, "warehouse": key2, "batch_no": key3}
-                lin_dict.update(value3)
-                iwd_list.append(lin_dict)
-    return iwd_list
+	iwd_list = []
+	for key1, value1 in iwb_map.items():
+		for key2, value2 in value1.items():
+			for key3, value3 in value2.items():
+				lin_dict = {"item_code": key1, "warehouse": key2, "batch_no": key3}
+				lin_dict.update(value3)
+				iwd_list.append(lin_dict)
+	return iwd_list
 
 
 def get_invoice_item_rates_query(
-    invoice_doctype, party_field, item_code, currency, company, party=None, posting_date_filter=None
+	invoice_doctype,
+	party_field,
+	item_code,
+	currency,
+	company,
+	party=None,
+	posting_date_filter=None,
 ):
-    """Submitted, non-return invoice rows of an item, newest first."""
-    invoice = DocType(invoice_doctype)
-    invoice_item = DocType(f"{invoice_doctype} Item")
-    query = (
-        frappe.qb.from_(invoice)
-        .inner_join(invoice_item)
-        .on(invoice_item.parent == invoice.name)
-        .select(
-            invoice.name,
-            invoice.posting_date,
-            invoice[party_field],
-            invoice_item.item_code,
-            invoice_item.qty,
-            invoice_item.rate,
-        )
-        .where(invoice_item.item_code == item_code)
-        .where(invoice.docstatus == 1)
-        .where(invoice.currency == currency)
-        .where(invoice.is_return != 1)
-        .where(invoice.company == company)
-        .orderby(invoice.posting_date, order=Order.desc)
-    )
-    if posting_date_filter is not None:
-        from_date, to_date = posting_date_filter[1][0], posting_date_filter[1][1]
-        query = query.where(Date(invoice.posting_date).between(from_date, to_date))
-    if party:
-        query = query.where(invoice[party_field] == party)
-    return query
+	"""Submitted, non-return invoice rows of an item, newest first."""
+	invoice = DocType(invoice_doctype)
+	invoice_item = DocType(f"{invoice_doctype} Item")
+	query = (
+		frappe.qb.from_(invoice)
+		.inner_join(invoice_item)
+		.on(invoice_item.parent == invoice.name)
+		.select(
+			invoice.name,
+			invoice.posting_date,
+			invoice[party_field],
+			invoice_item.item_code,
+			invoice_item.qty,
+			invoice_item.rate,
+		)
+		.where(invoice_item.item_code == item_code)
+		.where(invoice.docstatus == 1)
+		.where(invoice.currency == currency)
+		.where(invoice.is_return != 1)
+		.where(invoice.company == company)
+		.orderby(invoice.posting_date, order=Order.desc)
+	)
+	if posting_date_filter is not None:
+		from_date, to_date = posting_date_filter[1][0], posting_date_filter[1][1]
+		query = query.where(Date(invoice.posting_date).between(from_date, to_date))
+	if party:
+		query = query.where(invoice[party_field] == party)
+	return query
 
 
 @frappe.whitelist()
 def get_item_prices(item_code, currency, customer=None, company=None):
-    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
-    prices_list = []
-    unique_price_list = []
-    max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
-    items = get_invoice_item_rates_query(
-        "Sales Invoice", "customer", item_code, currency, company, party=customer
-    ).run(as_dict=True)
-    for item in items:
-        item_dict = {
-            "name": item.item_code,
-            "item_code": item.item_code,
-            "price": item.rate,
-            "date": item.posting_date,
-            "invoice": item.name,
-            "customer": item.customer,
-            "qty": item.qty,
-        }
-        if (
-            unique_records == 1
-            and item.rate not in unique_price_list
-            and len(prices_list) <= max_records
-        ):
-            unique_price_list.append(item.rate)
-            prices_list.append(item_dict)
-        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
-            prices_list.append(item_dict)
-    return prices_list
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
+	prices_list = []
+	unique_price_list = []
+	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
+	items = get_invoice_item_rates_query(
+		"Sales Invoice", "customer", item_code, currency, company, party=customer
+	).run(as_dict=True)
+	for item in items:
+		item_dict = {
+			"name": item.item_code,
+			"item_code": item.item_code,
+			"price": item.rate,
+			"date": item.posting_date,
+			"invoice": item.name,
+			"customer": item.customer,
+			"qty": item.qty,
+		}
+		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
+			unique_price_list.append(item.rate)
+			prices_list.append(item_dict)
+		elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+			prices_list.append(item_dict)
+	return prices_list
+
 
 @frappe.whitelist()
 def get_item_prices_custom(filters=None, start=0, limit=20):
-    if isinstance(filters, str):  # If filters is a string, deserialize it
-        import json
-        try:
-            filters = json.loads(filters)
-        except json.JSONDecodeError:
-            frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
+	if isinstance(filters, str):  # If filters is a string, deserialize it
+		import json
 
-    if not filters:  # Default to an empty dictionary if filters is None or invalid
-        filters = {}
+		try:
+			filters = json.loads(filters)
+		except json.JSONDecodeError:
+			frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
 
-    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
-    customer = filters.get("customer", "")
-    company = filters.get("company", "")
-    item_code = filters.get("item_code", "")
-    currency = filters.get("currency", "")
-    prices_list = []
-    unique_price_list = []
-    max_records = int(start) + int(limit)
-    items = get_invoice_item_rates_query(
-        "Sales Invoice",
-        "customer",
-        item_code,
-        currency,
-        company,
-        party=customer,
-        posting_date_filter=filters.get("posting_date"),
-    ).run(as_dict=True)
-    for item in items:
-        item_dict = {
-            "name": item.item_code,
-            "item_code": item.item_code,
-            "rate": item.rate,
-            "posting_date": item.posting_date,
-            "invoice": item.name,
-            "customer": item.customer,
-            "qty": item.qty,
-        }
-        if (
-            unique_records == 1
-            and item.rate not in unique_price_list
-            and len(prices_list) <= max_records
-        ):
-            unique_price_list.append(item.rate)
-            prices_list.append(item_dict)
-        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
-            prices_list.append(item_dict)
-    return prices_list
+	if not filters:  # Default to an empty dictionary if filters is None or invalid
+		filters = {}
+
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
+	customer = filters.get("customer", "")
+	company = filters.get("company", "")
+	item_code = filters.get("item_code", "")
+	currency = filters.get("currency", "")
+	prices_list = []
+	unique_price_list = []
+	max_records = int(start) + int(limit)
+	items = get_invoice_item_rates_query(
+		"Sales Invoice",
+		"customer",
+		item_code,
+		currency,
+		company,
+		party=customer,
+		posting_date_filter=filters.get("posting_date"),
+	).run(as_dict=True)
+	for item in items:
+		item_dict = {
+			"name": item.item_code,
+			"item_code": item.item_code,
+			"rate": item.rate,
+			"posting_date": item.posting_date,
+			"invoice": item.name,
+			"customer": item.customer,
+			"qty": item.qty,
+		}
+		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
+			unique_price_list.append(item.rate)
+			prices_list.append(item_dict)
+		elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+			prices_list.append(item_dict)
+	return prices_list
 
 
 @frappe.whitelist()
 def get_repack_template(template_name, qty):
-    template_doc = frappe.get_doc("Repack Template", template_name)
-    rows = []
-    rows.append(
-        {
-            "item_code": template_doc.item_code,
-            "item_uom": template_doc.item_uom,
-            "qty": cint(qty),
-            "item_template": 1,
-            "s_warehouse": template_doc.default_warehouse,
-        }
-    )
-    for i in template_doc.repack_template_details:
-        rows.append(
-            {
-                "item_code": i.item_code,
-                "item_uom": i.item_uom,
-                "qty": cint(float(i.qty / template_doc.qty) * float(qty)),
-                "item_template": 0,
-                "t_warehouse": i.default_target_warehouse,
-            }
-        )
-    return rows
+	template_doc = frappe.get_doc("Repack Template", template_name)
+	rows = []
+	rows.append(
+		{
+			"item_code": template_doc.item_code,
+			"item_uom": template_doc.item_uom,
+			"qty": cint(qty),
+			"item_template": 1,
+			"s_warehouse": template_doc.default_warehouse,
+		}
+	)
+	for i in template_doc.repack_template_details:
+		rows.append(
+			{
+				"item_code": i.item_code,
+				"item_uom": i.item_uom,
+				"qty": cint(float(i.qty / template_doc.qty) * float(qty)),
+				"item_template": 0,
+				"t_warehouse": i.default_target_warehouse,
+			}
+		)
+	return rows
 
 
 @frappe.whitelist()
 def create_delivery_note(doc=None, method=None, doc_name=None):
-    if not doc:
-        doc = frappe.get_doc("Sales Invoice", doc_name)
-    if not doc:
-        frappe.throw("Sales Invoice doc required")
-    if not doc.enabled_auto_create_delivery_notes:
-        return
-    if doc.update_stock:
-        return
-    from_delivery_note = False
-    i = 0
-    msg = ""
-    warehouses_list = []
-    space = "<br>"
-    for item in doc.items:
-        pending_qty = flt(item.stock_qty) - get_delivery_note_item_count(
-            item.name, item.parent
-        )
-        if (
-            item.warehouse not in warehouses_list
-            and check_item_is_maintain(item.item_code)
-            and pending_qty != 0
-        ):
-            warehouses_list.append(item.warehouse)
-        if item.delivery_note or item.delivered_by_supplier:
-            from_delivery_note = True
-        if check_item_is_maintain(item.item_code):
-            i += 1
-    if from_delivery_note or i == 0:
-        return
+	if not doc:
+		doc = frappe.get_doc("Sales Invoice", doc_name)
+	if not doc:
+		frappe.throw("Sales Invoice doc required")
+	if not doc.enabled_auto_create_delivery_notes:
+		return
+	if doc.update_stock:
+		return
+	from_delivery_note = False
+	i = 0
+	warehouses_list = []
+	for item in doc.items:
+		pending_qty = flt(item.stock_qty) - get_delivery_note_item_count(item.name, item.parent)
+		if (
+			item.warehouse not in warehouses_list
+			and check_item_is_maintain(item.item_code)
+			and pending_qty != 0
+		):
+			warehouses_list.append(item.warehouse)
+		if item.delivery_note or item.delivered_by_supplier:
+			from_delivery_note = True
+		if check_item_is_maintain(item.item_code):
+			i += 1
+	if from_delivery_note or i == 0:
+		return
 
-    # Do not block Sales Invoice submission when automatic delivery is unsafe.
-    # ERPNext requires the same customer across the Delivery Note and its references.
-    conflicts = []
-    sales_orders = sorted({item.sales_order for item in doc.items if item.sales_order})
-    for sales_order in sales_orders:
-        order_customer = frappe.db.get_value("Sales Order", sales_order, "customer")
-        if order_customer != doc.customer:
-            conflicts.append(
-                "Sales Order {}: {} (invoice customer: {})".format(
-                    sales_order, order_customer or "<missing>", doc.customer
-                )
-            )
-    if conflicts:
-        message = (
-            "Automatic Delivery Note skipped for Sales Invoice {} because the linked "
-            "Sales Order customer does not match: {}. Correct the source "
-            "references and create the Delivery Note manually."
-        ).format(doc.name, "; ".join(conflicts))
-        frappe.log_error(title="Automatic Delivery Note skipped: customer mismatch", message=message)
-        frappe.msgprint(message, title="Automatic Delivery Note not created", indicator="orange")
-        return
-    for warehouse in warehouses_list:
-        if not doc.is_new():
-            check = get_list_pending_sales_invoice(doc.name, warehouse)
-            if warehouse and len(check) == 0:
-                return
-        delivery_doc = frappe.get_doc(make_delivery_note(doc.name, None, warehouse))
-        delivery_doc.set_warehouse = warehouse
-        delivery_doc.form_sales_invoice = doc.name
-        delivery_doc.flags.ignore_permissions = True
-        delivery_doc.flags.ignore_account_permission = True
-        delivery_doc.save()
-        if method:
-            url = frappe.utils.get_url_to_form(delivery_doc.doctype, delivery_doc.name)
-            msgprint = "Delivery Note Created as Draft at <a href='{0}'>{1}</a>".format(
-                url, delivery_doc.name
-            )
-            frappe.msgprint(
-                _(msgprint), title="Delivery Note Created", indicator="green"
-            )
+	# Do not block Sales Invoice submission when automatic delivery is unsafe.
+	# ERPNext requires the same customer across the Delivery Note and its references.
+	conflicts = []
+	sales_orders = sorted({item.sales_order for item in doc.items if item.sales_order})
+	for sales_order in sales_orders:
+		order_customer = frappe.db.get_value("Sales Order", sales_order, "customer")
+		if order_customer != doc.customer:
+			conflicts.append(
+				"Sales Order {}: {} (invoice customer: {})".format(
+					sales_order, order_customer or "<missing>", doc.customer
+				)
+			)
+	if conflicts:
+		message = (
+			"Automatic Delivery Note skipped for Sales Invoice {} because the linked "
+			"Sales Order customer does not match: {}. Correct the source "
+			"references and create the Delivery Note manually."
+		).format(doc.name, "; ".join(conflicts))
+		frappe.log_error(title="Automatic Delivery Note skipped: customer mismatch", message=message)
+		frappe.msgprint(message, title="Automatic Delivery Note not created", indicator="orange")
+		return
+	for warehouse in warehouses_list:
+		if not doc.is_new():
+			check = get_list_pending_sales_invoice(doc.name, warehouse)
+			if warehouse and len(check) == 0:
+				return
+		delivery_doc = frappe.get_doc(make_delivery_note(doc.name, None, warehouse))
+		delivery_doc.set_warehouse = warehouse
+		delivery_doc.form_sales_invoice = doc.name
+		delivery_doc.flags.ignore_permissions = True
+		delivery_doc.flags.ignore_account_permission = True
+		delivery_doc.save()
+		if method:
+			url = frappe.utils.get_url_to_form(delivery_doc.doctype, delivery_doc.name)
+			msgprint = f"Delivery Note Created as Draft at <a href='{url}'>{delivery_doc.name}</a>"
+			frappe.msgprint(_(msgprint), title="Delivery Note Created", indicator="green")
 
 
 def check_item_is_maintain(item_name):
-    is_stock_item = frappe.get_value("Item", item_name, "is_stock_item")
-    if is_stock_item != 1:
-        return False
-    else:
-        return True
+	is_stock_item = frappe.get_value("Item", item_name, "is_stock_item")
+	if is_stock_item != 1:
+		return False
+	else:
+		return True
 
 
 @frappe.whitelist()
 def make_delivery_note(source_name, target_doc=None, set_warehouse=None):
-    def warehouse_condition(doc):
-        if set_warehouse:
-            return doc.warehouse == set_warehouse
-        else:
-            return True
+	def warehouse_condition(doc):
+		if set_warehouse:
+			return doc.warehouse == set_warehouse
+		else:
+			return True
 
-    def set_missing_values(source, target):
-        target.ignore_pricing_rule = 1
-        target.run_method("set_missing_values")
-        target.run_method("calculate_taxes_and_totals")
+	def set_missing_values(source, target):
+		target.ignore_pricing_rule = 1
+		target.run_method("set_missing_values")
+		target.run_method("calculate_taxes_and_totals")
 
-    def get_qty(source_doc):
-        delivery_note_item_count = get_delivery_note_item_count(
-            source_doc.name, source_doc.parent
-        )
-        return flt(source_doc.stock_qty) - delivery_note_item_count
+	def get_qty(source_doc):
+		delivery_note_item_count = get_delivery_note_item_count(source_doc.name, source_doc.parent)
+		return flt(source_doc.stock_qty) - delivery_note_item_count
 
-    def update_item(source_doc, target_doc, source_parent):
-        target_doc.stock_qty = get_qty(source_doc)
-        target_doc.qty = target_doc.stock_qty / flt(source_doc.conversion_factor)
-        target_doc.base_amount = target_doc.qty * flt(source_doc.base_rate)
-        target_doc.amount = target_doc.qty * flt(source_doc.rate)
+	def update_item(source_doc, target_doc, source_parent):
+		target_doc.stock_qty = get_qty(source_doc)
+		target_doc.qty = target_doc.stock_qty / flt(source_doc.conversion_factor)
+		target_doc.base_amount = target_doc.qty * flt(source_doc.base_rate)
+		target_doc.amount = target_doc.qty * flt(source_doc.rate)
 
-    doclist = get_mapped_doc(
-        "Sales Invoice",
-        source_name,
-        {
-            "Sales Invoice": {
-                "doctype": "Delivery Note",
-                "validation": {"docstatus": ["=", 1]},
-            },
-            "Sales Invoice Item": {
-                "doctype": "Delivery Note Item",
-                "field_map": {
-                    "name": "si_detail",
-                    "parent": "against_sales_invoice",
-                    "serial_no": "serial_no",
-                    "sales_order": "against_sales_order",
-                    "so_detail": "so_detail",
-                    "cost_center": "cost_center",
-                    "Warehouse": "warehouse",
-                },
-                "postprocess": update_item,
-                "condition": lambda doc: check_item_is_maintain(doc.item_code),
-                "condition": lambda doc: warehouse_condition(doc),
-            },
-            "Sales Taxes and Charges": {
-                "doctype": "Sales Taxes and Charges",
-                "add_if_empty": True,
-            },
-            "Sales Team": {
-                "doctype": "Sales Team",
-                "field_map": {"incentives": "incentives"},
-                "add_if_empty": True,
-            },
-        },
-        target_doc,
-        set_missing_values,
-        ignore_permissions=True,
-    )
+	doclist = get_mapped_doc(
+		"Sales Invoice",
+		source_name,
+		{
+			"Sales Invoice": {
+				"doctype": "Delivery Note",
+				"validation": {"docstatus": ["=", 1]},
+			},
+			"Sales Invoice Item": {
+				"doctype": "Delivery Note Item",
+				"field_map": {
+					"name": "si_detail",
+					"parent": "against_sales_invoice",
+					"serial_no": "serial_no",
+					"sales_order": "against_sales_order",
+					"so_detail": "so_detail",
+					"cost_center": "cost_center",
+					"Warehouse": "warehouse",
+				},
+				"postprocess": update_item,
+				"condition": lambda doc: check_item_is_maintain(doc.item_code) and warehouse_condition(doc),
+			},
+			"Sales Taxes and Charges": {
+				"doctype": "Sales Taxes and Charges",
+				"add_if_empty": True,
+			},
+			"Sales Team": {
+				"doctype": "Sales Team",
+				"field_map": {"incentives": "incentives"},
+				"add_if_empty": True,
+			},
+		},
+		target_doc,
+		set_missing_values,
+		ignore_permissions=True,
+	)
 
-    items_list = []
-    for it in doclist.items:
-        if float(it.qty) != 0.0 and check_item_is_maintain(it.item_code):
-            items_list.append(it)
-    doclist.items = items_list
+	items_list = []
+	for it in doclist.items:
+		if float(it.qty) != 0.0 and check_item_is_maintain(it.item_code):
+			items_list.append(it)
+	doclist.items = items_list
 
-    return doclist
+	return doclist
 
 
 def create_indirect_expense_item(doc, method=None):
-    if frappe.local.flags.ignore_root_company_validation:
-        return
+	if frappe.local.flags.ignore_root_company_validation:
+		return
 
-    if (
-        not doc.parent_account
-        or doc.is_group
-        or not check_expenses_in_parent_accounts(doc.name)
-        or not doc.company
-    ):
-        return
-    if (
-        not doc.parent_account
-        and not check_expenses_in_parent_accounts(doc.account_name)
-        and doc.item
-    ):
-        doc.item = ""
-        return
-    indirect_expenses_group = frappe.db.exists("Item Group", "Indirect Expenses")
-    if not indirect_expenses_group:
-        indirect_expenses_group = frappe.get_doc(
-            dict(
-                doctype="Item Group",
-                item_group_name="Indirect Expenses",
-            )
-        )
-        indirect_expenses_group.flags.ignore_permissions = True
-        frappe.flags.ignore_account_permission = True
-        indirect_expenses_group.save()
-    item = frappe.db.exists("Item", doc.account_name)
-    if item:
-        item = frappe.get_doc("Item", doc.account_name)
-        doc.item = item.name
-        company_list = []
-        for i in item.item_defaults:
-            if doc.company not in company_list:
-                if i.company == doc.company:
-                    company_list.append(doc.company)
-                    if i.expense_account != doc.name:
-                        i.expense_account == doc.name
-                        item.save()
-        if doc.company not in company_list:
-            row = item.append("item_defaults", {})
-            row.company = doc.company
-            row.expense_account = doc.name
-            item.save()
-            company_list.append(doc.company)
-            doc.db_update()
-        return item.name
-    new_item = frappe.get_doc(
-        dict(
-            doctype="Item",
-            item_code=doc.account_name,
-            item_group="Indirect Expenses",
-            is_stock_item=0,
-            is_sales_item=0,
-            stock_uom="Nos",
-            include_item_in_manufacturing=0,
-            item_defaults=[
-                {
-                    "company": doc.company,
-                    "expense_account": doc.name,
-                    "default_warehouse": "",
-                }
-            ],
-        )
-    )
-    new_item.flags.ignore_permissions = True
-    frappe.flags.ignore_account_permission = True
-    new_item.save()
-    if new_item.name:
-        url = frappe.utils.get_url_to_form(new_item.doctype, new_item.name)
-        msgprint = "New Item is Created <a href='{0}'>{1}</a>".format(
-            url, new_item.name
-        )
-        frappe.msgprint(_(msgprint))
-        doc.item = new_item.name
-    doc.db_update()
-    return new_item.name
+	if (
+		not doc.parent_account
+		or doc.is_group
+		or not check_expenses_in_parent_accounts(doc.name)
+		or not doc.company
+	):
+		return
+	if not doc.parent_account and not check_expenses_in_parent_accounts(doc.account_name) and doc.item:
+		doc.item = ""
+		return
+	indirect_expenses_group = frappe.db.exists("Item Group", "Indirect Expenses")
+	if not indirect_expenses_group:
+		indirect_expenses_group = frappe.get_doc(
+			dict(
+				doctype="Item Group",
+				item_group_name="Indirect Expenses",
+			)
+		)
+		indirect_expenses_group.flags.ignore_permissions = True
+		frappe.flags.ignore_account_permission = True
+		indirect_expenses_group.save()
+	item = frappe.db.exists("Item", doc.account_name)
+	if item:
+		item = frappe.get_doc("Item", doc.account_name)
+		doc.item = item.name
+		company_list = []
+		for i in item.item_defaults:
+			if doc.company not in company_list:
+				if i.company == doc.company:
+					company_list.append(doc.company)
+					if i.expense_account != doc.name:
+						i.expense_account = doc.name
+						item.save()
+		if doc.company not in company_list:
+			row = item.append("item_defaults", {})
+			row.company = doc.company
+			row.expense_account = doc.name
+			item.save()
+			company_list.append(doc.company)
+			doc.db_update()
+		return item.name
+	new_item = frappe.get_doc(
+		dict(
+			doctype="Item",
+			item_code=doc.account_name,
+			item_group="Indirect Expenses",
+			is_stock_item=0,
+			is_sales_item=0,
+			stock_uom="Nos",
+			include_item_in_manufacturing=0,
+			item_defaults=[
+				{
+					"company": doc.company,
+					"expense_account": doc.name,
+					"default_warehouse": "",
+				}
+			],
+		)
+	)
+	new_item.flags.ignore_permissions = True
+	frappe.flags.ignore_account_permission = True
+	new_item.save()
+	if new_item.name:
+		url = frappe.utils.get_url_to_form(new_item.doctype, new_item.name)
+		msgprint = f"New Item is Created <a href='{url}'>{new_item.name}</a>"
+		frappe.msgprint(_(msgprint))
+		doc.item = new_item.name
+	doc.db_update()
+	return new_item.name
 
 
 def check_expenses_in_parent_accounts(account_name):
-    parent_account_1 = frappe.get_value("Account", account_name, "parent_account")
-    if "Indirect Expenses" in str(parent_account_1):
-        return True
-    else:
-        parent_account_2 = frappe.get_value(
-            "Account", parent_account_1, "parent_account"
-        )
-        if "Indirect Expenses" in str(parent_account_2):
-            return True
-        else:
-            parent_account_3 = frappe.get_value(
-                "Account", parent_account_2, "parent_account"
-            )
-            if "Indirect Expenses" in str(parent_account_3):
-                return True
-            else:
-                return False
-    return False
+	parent_account_1 = frappe.get_value("Account", account_name, "parent_account")
+	if "Indirect Expenses" in str(parent_account_1):
+		return True
+	else:
+		parent_account_2 = frappe.get_value("Account", parent_account_1, "parent_account")
+		if "Indirect Expenses" in str(parent_account_2):
+			return True
+		else:
+			parent_account_3 = frappe.get_value("Account", parent_account_2, "parent_account")
+			if "Indirect Expenses" in str(parent_account_3):
+				return True
+			else:
+				return False
+	return False
 
 
 @frappe.whitelist()
 def add_indirect_expense_item(account_name):
-    account = frappe.get_doc("Account", account_name)
-    return create_indirect_expense_item(account)
+	account = frappe.get_doc("Account", account_name)
+	return create_indirect_expense_item(account)
 
 
 def get_linked_docs_info(doctype, docname):
-    linkinfo = get_linked_doctypes(doctype)
-    linked_doc = get_linked_docs(doctype, docname, linkinfo)
-    linked_doc_list = []
-    if linked_doc:
-        for key, value in linked_doc.items():
-            if key != "Activity Log":
-                for val in value:
-                    dco_info = {
-                        "doctype": key,
-                        "docname": val.name,
-                        "docstatus": val.docstatus,
-                    }
-                    linked_doc_list.append(dco_info)
-    return linked_doc_list
+	linkinfo = get_linked_doctypes(doctype)
+	linked_doc = get_linked_docs(doctype, docname, linkinfo)
+	linked_doc_list = []
+	if linked_doc:
+		for key, value in linked_doc.items():
+			if key != "Activity Log":
+				for val in value:
+					dco_info = {
+						"doctype": key,
+						"docname": val.name,
+						"docstatus": val.docstatus,
+					}
+					linked_doc_list.append(dco_info)
+	return linked_doc_list
 
 
 def cancle_linked_docs(doc_list):
-    for doc_info in doc_list:
-        if doc_info["docstatus"] == 1:
-            linked_doc_list = get_linked_docs_info(
-                doc_info["doctype"], doc_info["docname"]
-            )
-            if len(linked_doc_list) > 0:
-                cancle_linked_docs(linked_doc_list)
-            cancel_doc(doc_info["doctype"], doc_info["docname"])
+	for doc_info in doc_list:
+		if doc_info["docstatus"] == 1:
+			linked_doc_list = get_linked_docs_info(doc_info["doctype"], doc_info["docname"])
+			if len(linked_doc_list) > 0:
+				cancle_linked_docs(linked_doc_list)
+			cancel_doc(doc_info["doctype"], doc_info["docname"])
 
 
 def delete_linked_docs(doc_list):
-    for doc_info in doc_list:
-        linked_doc_list = get_linked_docs_info(doc_info["doctype"], doc_info["docname"])
-        if len(linked_doc_list) > 0:
-            delete_linked_docs(linked_doc_list)
-        delete_doc(doc_info["doctype"], doc_info["docname"])
+	for doc_info in doc_list:
+		linked_doc_list = get_linked_docs_info(doc_info["doctype"], doc_info["docname"])
+		if len(linked_doc_list) > 0:
+			delete_linked_docs(linked_doc_list)
+		delete_doc(doc_info["doctype"], doc_info["docname"])
 
 
 def cancel_doc(doctype, docname):
-    doc = frappe.get_doc(doctype, docname)
-    if doc.docstatus == 1:
-        doc.flags.ignore_permissions = True
-        doc.cancel()
-        doc = frappe.get_doc(doctype, docname)
-        if doc.docstatus == 2:
-            frappe.msgprint(_("{0} {1} is Canceled").format("Stock Entry", doc.name))
-        else:
-            frappe.msgprint(
-                _("{0} {1} is Not Canceled").format("Stock Entry", doc.name)
-            )
+	doc = frappe.get_doc(doctype, docname)
+	if doc.docstatus == 1:
+		doc.flags.ignore_permissions = True
+		doc.cancel()
+		doc = frappe.get_doc(doctype, docname)
+		if doc.docstatus == 2:
+			frappe.msgprint(_("{0} {1} is Canceled").format("Stock Entry", doc.name))
+		else:
+			frappe.msgprint(_("{0} {1} is Not Canceled").format("Stock Entry", doc.name))
 
 
 def delete_doc(doctype, docname):
-    doc = frappe.get_doc(doctype, docname)
-    if doc.docstatus == 1:
-        doc.flags.ignore_permissions = True
-        doc.cancel()
-        doc = frappe.get_doc(doctype, docname)
-        if doc.docstatus == 2:
-            frappe.msgprint(_("{0} {1} is Canceled").format("Stock Entry", doc.name))
-            doc.flags.ignore_permissions = True
-            doc.delete()
-            frappe.db.commit()
-            frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
-        else:
-            frappe.msgprint(
-                _("{0} {1} is Not Canceled").format("Stock Entry", doc.name)
-            )
-    elif doc.docstatus == 0 or doc.docstatus == 2:
-        doc.flags.ignore_permissions = True
-        doc.delete()
-        frappe.db.commit()
-        frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
+	doc = frappe.get_doc(doctype, docname)
+	if doc.docstatus == 1:
+		doc.flags.ignore_permissions = True
+		doc.cancel()
+		doc = frappe.get_doc(doctype, docname)
+		if doc.docstatus == 2:
+			frappe.msgprint(_("{0} {1} is Canceled").format("Stock Entry", doc.name))
+			doc.flags.ignore_permissions = True
+			doc.delete()
+			frappe.db.commit()
+			frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
+		else:
+			frappe.msgprint(_("{0} {1} is Not Canceled").format("Stock Entry", doc.name))
+	elif doc.docstatus == 0 or doc.docstatus == 2:
+		doc.flags.ignore_permissions = True
+		doc.delete()
+		frappe.db.commit()
+		frappe.msgprint(_("{0} {1} is Deleted").format("Stock Entry", doc.name))
 
 
 def get_pending_si_delivery_item_count(item_code, company, warehouse):
-    sales_invoice = DocType("Sales Invoice")
-    sales_invoice_item = DocType("Sales Invoice Item")
-    counts = (
-        frappe.qb.from_(sales_invoice)
-        .inner_join(sales_invoice_item)
-        .on(sales_invoice.name == sales_invoice_item.parent)
-        .select(
-            Sum(sales_invoice_item.delivered_qty).as_("delivered_count"),
-            Sum(sales_invoice_item.stock_qty).as_("sold_count"),
-        )
-        .where(sales_invoice_item.item_code == item_code)
-        .where(sales_invoice.docstatus == 1)
-        .where(sales_invoice.company == company)
-        .where(sales_invoice_item.warehouse == warehouse)
-        .where(sales_invoice_item.so_detail.isnull())
-        .where(
-            sales_invoice_item.so_detail.isnotnull()
-            & sales_invoice_item.delivery_note.isnotnull()
-        )
-        .where(sales_invoice.update_stock == 0)
-        .where(sales_invoice_item.is_ignored_in_pending_qty != 1)
-        .where(sales_invoice_item.delivered_qty != sales_invoice_item.stock_qty)
-    ).run(as_dict=True)
-    if len(counts) > 0:
-        if not counts[0]["sold_count"]:
-            counts[0]["sold_count"] = 0
-        if not counts[0]["delivered_count"]:
-            counts[0]["delivered_count"] = 0
-        return counts[0]["sold_count"] - counts[0]["delivered_count"]
+	sales_invoice = DocType("Sales Invoice")
+	sales_invoice_item = DocType("Sales Invoice Item")
+	counts = (
+		frappe.qb.from_(sales_invoice)
+		.inner_join(sales_invoice_item)
+		.on(sales_invoice.name == sales_invoice_item.parent)
+		.select(
+			Sum(sales_invoice_item.delivered_qty).as_("delivered_count"),
+			Sum(sales_invoice_item.stock_qty).as_("sold_count"),
+		)
+		.where(sales_invoice_item.item_code == item_code)
+		.where(sales_invoice.docstatus == 1)
+		.where(sales_invoice.company == company)
+		.where(sales_invoice_item.warehouse == warehouse)
+		.where(
+			sales_invoice_item.so_detail.isnull()
+			| (sales_invoice_item.so_detail.isnotnull() & sales_invoice_item.delivery_note.isnull())
+		)
+		.where(sales_invoice.update_stock == 0)
+		.where(sales_invoice_item.is_ignored_in_pending_qty != 1)
+		.where(sales_invoice_item.delivered_qty != sales_invoice_item.stock_qty)
+	).run(as_dict=True)
+	if len(counts) > 0:
+		if not counts[0]["sold_count"]:
+			counts[0]["sold_count"] = 0
+		if not counts[0]["delivered_count"]:
+			counts[0]["delivered_count"] = 0
+		return counts[0]["sold_count"] - counts[0]["delivered_count"]
 
 
 def get_pending_delivery_item_count(item_code, company, warehouse):
-    sales_order = DocType("Sales Order")
-    sales_order_item = DocType("Sales Order Item")
-    counts = (
-        frappe.qb.from_(sales_order)
-        .inner_join(sales_order_item)
-        .on(sales_order.name == sales_order_item.parent)
-        .select(
-            Sum(sales_order_item.delivered_qty).as_("delivered_count"),
-            Sum(sales_order_item.stock_qty).as_("sold_count"),
-        )
-        .where(sales_order_item.item_code == item_code)
-        .where(sales_order.docstatus == 1)
-        .where(sales_order.company == company)
-        .where(sales_order_item.warehouse == warehouse)
-        .where(sales_order.status.notin(["Closed", "On Hold", "Cancelled", "Completed"]))
-    ).run(as_dict=True)
-    if len(counts) > 0:
-        if not counts[0]["sold_count"]:
-            counts[0]["sold_count"] = 0
-        if not counts[0]["delivered_count"]:
-            counts[0]["delivered_count"] = 0
-        return counts[0]["sold_count"] - counts[0]["delivered_count"]
-    else:
-        return 0
+	sales_order = DocType("Sales Order")
+	sales_order_item = DocType("Sales Order Item")
+	counts = (
+		frappe.qb.from_(sales_order)
+		.inner_join(sales_order_item)
+		.on(sales_order.name == sales_order_item.parent)
+		.select(
+			Sum(sales_order_item.delivered_qty).as_("delivered_count"),
+			Sum(sales_order_item.stock_qty).as_("sold_count"),
+		)
+		.where(sales_order_item.item_code == item_code)
+		.where(sales_order.docstatus == 1)
+		.where(sales_order.company == company)
+		.where(sales_order_item.warehouse == warehouse)
+		.where(sales_order.status.notin(["Closed", "On Hold", "Cancelled", "Completed"]))
+	).run(as_dict=True)
+	if len(counts) > 0:
+		if not counts[0]["sold_count"]:
+			counts[0]["sold_count"] = 0
+		if not counts[0]["delivered_count"]:
+			counts[0]["delivered_count"] = 0
+		return counts[0]["sold_count"] - counts[0]["delivered_count"]
+	else:
+		return 0
 
 
 def get_item_balance(item_code, company, warehouse=None):
-    if company and not warehouse:
-        warehouse = frappe.get_all(
-            "Warehouse", filters={"company": company, "lft": 1}, fields=["name"]
-        )[0]["name"]
-    stock_bin = DocType("Bin")
-    query = (
-        frappe.qb.from_(stock_bin)
-        .select(Sum(stock_bin.actual_qty))
-        .where(stock_bin.item_code == item_code)
-    )
-    if warehouse:
-        lft, rgt, is_group = frappe.db.get_value(
-            "Warehouse", warehouse, ["lft", "rgt", "is_group"]
-        )
+	if company and not warehouse:
+		warehouse = frappe.get_all("Warehouse", filters={"company": company, "lft": 1}, fields=["name"])[0][
+			"name"
+		]
+	stock_bin = DocType("Bin")
+	query = (
+		frappe.qb.from_(stock_bin).select(Sum(stock_bin.actual_qty)).where(stock_bin.item_code == item_code)
+	)
+	if warehouse:
+		lft, rgt, is_group = frappe.db.get_value("Warehouse", warehouse, ["lft", "rgt", "is_group"])
 
-        if is_group:
-            warehouse_table = DocType("Warehouse")
-            query = query.where(
-                ExistsCriterion(
-                    frappe.qb.from_(warehouse_table)
-                    .select(warehouse_table.name)
-                    .where(warehouse_table.name == stock_bin.warehouse)
-                    .where(warehouse_table.lft >= lft)
-                    .where(warehouse_table.rgt <= rgt)
-                )
-            )
+		if is_group:
+			warehouse_table = DocType("Warehouse")
+			query = query.where(
+				ExistsCriterion(
+					frappe.qb.from_(warehouse_table)
+					.select(warehouse_table.name)
+					.where(warehouse_table.name == stock_bin.warehouse)
+					.where(warehouse_table.lft >= lft)
+					.where(warehouse_table.rgt <= rgt)
+				)
+			)
 
-        else:
-            query = query.where(stock_bin.warehouse == warehouse)
+		else:
+			query = query.where(stock_bin.warehouse == warehouse)
 
-    actual_qty = query.run()[0][0]
+	actual_qty = query.run()[0][0]
 
-    return actual_qty
+	return actual_qty
 
 
 @frappe.whitelist()
-def validate_item_remaining_qty(
-    item_code, company, warehouse=None, stock_qty=None, so_detail=None
-):
-    if not warehouse or not stock_qty:
-        return
-    if frappe.db.get_single_value("Stock Settings", "allow_negative_stock"):
-        return
-    is_stock_item = frappe.get_value("Item", item_code, "is_stock_item")
-    if is_stock_item == 1:
-        item_balance = get_item_balance(item_code, company, warehouse) or 0
-        if not item_balance:
-            frappe.throw(
-                _(
-                    "<B>{0}</B> item balance is ZERO. Cannot proceed unless Allow Over Sell"
-                ).format(item_code)
-            )
-        pending_delivery_item_count = (
-            get_pending_delivery_item_count(item_code, company, warehouse) or 0
-        )
-        pending_si = (
-            get_pending_si_delivery_item_count(item_code, company, warehouse) or 0
-        )
-        # The float(stock_qty) is removed to allow ignore the item itself
-        if so_detail:
-            if pending_delivery_item_count > float(stock_qty):
-                qty_to_reduce = pending_delivery_item_count
-            else:
-                qty_to_reduce = float(stock_qty)
-        else:
-            qty_to_reduce = pending_delivery_item_count + float(stock_qty)
+def validate_item_remaining_qty(item_code, company, warehouse=None, stock_qty=None, so_detail=None):
+	if not warehouse or not stock_qty:
+		return
+	if frappe.db.get_single_value("Stock Settings", "allow_negative_stock"):
+		return
+	is_stock_item = frappe.get_value("Item", item_code, "is_stock_item")
+	if is_stock_item == 1:
+		item_balance = get_item_balance(item_code, company, warehouse) or 0
+		if not item_balance:
+			frappe.throw(
+				_("<B>{0}</B> item balance is ZERO. Cannot proceed unless Allow Over Sell").format(item_code)
+			)
+		pending_delivery_item_count = get_pending_delivery_item_count(item_code, company, warehouse) or 0
+		pending_si = get_pending_si_delivery_item_count(item_code, company, warehouse) or 0
+		# The float(stock_qty) is removed to allow ignore the item itself
+		if so_detail:
+			if pending_delivery_item_count > float(stock_qty):
+				qty_to_reduce = pending_delivery_item_count
+			else:
+				qty_to_reduce = float(stock_qty)
+		else:
+			qty_to_reduce = pending_delivery_item_count + float(stock_qty)
 
-        item_remaining_qty = item_balance - qty_to_reduce - pending_si
-        if item_remaining_qty < 0:
-            if not frappe.db.get_single_value(
-                "CSF TZ Settings", "item_qty_poppup_message"
-            ):
-                frappe.msgprint(
-                    _(
-                        "Item Balance: '{2}'<br>Pending Sales Order: '{3}'<br>Pending Direct Sales Invoice: {5}<br>Current request is {4}<br><b>Results into balance Qty for '{0}' to '{1}'</b>".format(
-                            item_code,
-                            item_remaining_qty,
-                            item_balance,
-                            pending_delivery_item_count,
-                            float(stock_qty),
-                            pending_si,
-                        )
-                    ),
-                    alert=True,
-                )
+		item_remaining_qty = item_balance - qty_to_reduce - pending_si
+		if item_remaining_qty < 0:
+			if not frappe.db.get_single_value("CSF TZ Settings", "item_qty_poppup_message"):
+				frappe.msgprint(
+					_(
+						f"Item Balance: '{item_balance}'<br>Pending Sales Order: '{pending_delivery_item_count}'<br>Pending Direct Sales Invoice: {pending_si}<br>Current request is {float(stock_qty)}<br><b>Results into balance Qty for '{item_code}' to '{item_remaining_qty}'</b>"
+					),
+					alert=True,
+				)
 
-            else:
-                frappe.throw(
-                    _(
-                        "Item Balance: '{2}'<br>Pending Sales Order: '{3}'<br>Pending Direct Sales Invoice: {5}<br>Current request is {4}<br><b>Results into balance Qty for '{0}' to '{1}'</b>".format(
-                            item_code,
-                            item_remaining_qty,
-                            item_balance,
-                            pending_delivery_item_count,
-                            float(stock_qty),
-                            pending_si,
-                        )
-                    )
-                )
+			else:
+				frappe.throw(
+					_(
+						f"Item Balance: '{item_balance}'<br>Pending Sales Order: '{pending_delivery_item_count}'<br>Pending Direct Sales Invoice: {pending_si}<br>Current request is {float(stock_qty)}<br><b>Results into balance Qty for '{item_code}' to '{item_remaining_qty}'</b>"
+					)
+				)
 
 
 def validate_items_remaining_qty(doc, method):
-    for item in doc.items:
-        if not item.allow_over_sell and not (item.so_detail and item.delivery_note):
-            validate_item_remaining_qty(
-                item.item_code,
-                doc.company,
-                item.warehouse,
-                item.stock_qty,
-                item.so_detail,
-            )
+	for item in doc.items:
+		if not item.allow_over_sell and not (item.so_detail and item.delivery_note):
+			validate_item_remaining_qty(
+				item.item_code,
+				doc.company,
+				item.warehouse,
+				item.stock_qty,
+				item.so_detail,
+			)
 
 
 def on_cancel_fees(doc, method):
-    from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
+	from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
 
-    unlink_ref_doc_from_payment_entries(doc)
-    from csf_tz.bank_api import cancel_invoice
+	unlink_ref_doc_from_payment_entries(doc)
+	from csf_tz.bank_api import cancel_invoice
 
-    cancel_invoice(doc, "before_cancel")
+	cancel_invoice(doc, "before_cancel")
 
 
 def check_validate_delivery_note(doc=None, method=None, doc_name=None):
-    if not doc and doc_name:
-        doc = frappe.get_doc("Sales Invoice", doc_name)
-        doc.to_save = True
-    else:
-        doc.to_save = False
-    if doc.docstatus != 2:
-        doc.delivery_status = "Not Delivered"
-    else:
-        doc.to_save = False
-    if doc.update_stock:
-        return
+	if not doc and doc_name:
+		doc = frappe.get_doc("Sales Invoice", doc_name)
+		doc.to_save = True
+	else:
+		doc.to_save = False
+	if doc.docstatus != 2:
+		doc.delivery_status = "Not Delivered"
+	else:
+		doc.to_save = False
+	if doc.update_stock:
+		return
 
-    part_delivery = False
-    # full_delivery = False
-    items_qty = 0
-    items_delivered_qty = 0
-    i = 0
-    for item in doc.items:
-        if doc.is_new():
-            item.delivery_status = "Not Delivered"
-            item.delivered_qty = 0
-        items_qty += item.stock_qty
-        if item.delivery_note or item.delivered_by_supplier:
-            part_delivery = True
-            i += 1
-        if item.delivered_qty:
-            if item.stock_qty == item.delivered_qty:
-                item.delivery_status = "Delivered"
-            elif item.stock_qty < item.delivered_qty:
-                item.delivery_status = "Over Delivered"
-            elif item.stock_qty > item.delivered_qty and item.delivered_qty > 0:
-                item.delivery_status = "Part Delivered"
-            items_delivered_qty += item.delivered_qty
-    if i == len(doc.items):
-        doc.delivery_status = "Delivered"
-    elif doc.to_save and items_delivered_qty >= items_qty:
-        doc.delivery_status = "Delivered"
-    elif doc.to_save and items_delivered_qty <= items_qty and items_delivered_qty > 0:
-        doc.delivery_status = "Part Delivered"
-    elif part_delivery:
-        doc.delivery_status = "Part Delivered"
-    else:
-        doc.delivery_status = "Not Delivered"
-    if doc.to_save:
-        doc.flags.ignore_permissions = True
-        doc.save()
+	part_delivery = False
+	# full_delivery = False
+	items_qty = 0
+	items_delivered_qty = 0
+	i = 0
+	for item in doc.items:
+		if doc.is_new():
+			item.delivery_status = "Not Delivered"
+			item.delivered_qty = 0
+		items_qty += item.stock_qty
+		if item.delivery_note or item.delivered_by_supplier:
+			part_delivery = True
+			i += 1
+		if item.delivered_qty:
+			if item.stock_qty == item.delivered_qty:
+				item.delivery_status = "Delivered"
+			elif item.stock_qty < item.delivered_qty:
+				item.delivery_status = "Over Delivered"
+			elif item.stock_qty > item.delivered_qty and item.delivered_qty > 0:
+				item.delivery_status = "Part Delivered"
+			items_delivered_qty += item.delivered_qty
+	if i == len(doc.items):
+		doc.delivery_status = "Delivered"
+	elif doc.to_save and items_delivered_qty >= items_qty:
+		doc.delivery_status = "Delivered"
+	elif doc.to_save and items_delivered_qty <= items_qty and items_delivered_qty > 0:
+		doc.delivery_status = "Part Delivered"
+	elif part_delivery:
+		doc.delivery_status = "Part Delivered"
+	else:
+		doc.delivery_status = "Not Delivered"
+	if doc.to_save:
+		doc.flags.ignore_permissions = True
+		doc.save()
 
 
 def check_submit_delivery_note(doc, method):
-    if doc.update_stock:
-        doc.db_set("delivery_status", "Delivered")
-        for item in doc.items:
-            item.db_set("delivered_qty", item.stock_qty)
-            item.db_set("delivery_status", "Delivered")
-    else:
-        part_deivery = False
-        for item in doc.items:
-            if not check_item_is_maintain(item.item_code):
-                item.db_set("delivered_qty", item.stock_qty)
-                item.db_set("delivery_status", "Delivered")
-                part_deivery = True
-        if part_deivery:
-            doc.db_set("delivery_status", "Part Delivered")
+	if doc.update_stock:
+		doc.db_set("delivery_status", "Delivered")
+		for item in doc.items:
+			item.db_set("delivered_qty", item.stock_qty)
+			item.db_set("delivery_status", "Delivered")
+	else:
+		part_deivery = False
+		for item in doc.items:
+			if not check_item_is_maintain(item.item_code):
+				item.db_set("delivered_qty", item.stock_qty)
+				item.db_set("delivery_status", "Delivered")
+				part_deivery = True
+		if part_deivery:
+			doc.db_set("delivery_status", "Part Delivered")
 
 
 def check_cancel_delivery_note(doc, method):
-    if not doc.update_stock:
-        doc.db_set("delivery_status", "Not Delivered")
-        for item in doc.items:
-            item.db_set("delivered_qty", 0)
-            item.db_set("delivery_status", "Not Delivered")
+	if not doc.update_stock:
+		doc.db_set("delivery_status", "Not Delivered")
+		for item in doc.items:
+			item.db_set("delivered_qty", 0)
+			item.db_set("delivery_status", "Not Delivered")
 
 
 def update_delivery_on_sales_invoice(doc, method):
-    sales_invoice_list = []
-    for item in doc.items:
-        if (
-            item.against_sales_invoice
-            and item.against_sales_invoice not in sales_invoice_list
-        ):
-            sales_invoice_list.append(item.against_sales_invoice)
-    for invoice in sales_invoice_list:
-        check_validate_delivery_note(None, None, invoice)
+	sales_invoice_list = []
+	for item in doc.items:
+		if item.against_sales_invoice and item.against_sales_invoice not in sales_invoice_list:
+			sales_invoice_list.append(item.against_sales_invoice)
+	for invoice in sales_invoice_list:
+		check_validate_delivery_note(None, None, invoice)
 
 
 def get_delivery_note_item_count(item_row_name, sales_invoice):
-    delivery_note_item = DocType("Delivery Note Item")
-    counts = (
-        frappe.qb.from_(delivery_note_item)
-        .select(Sum(delivery_note_item.stock_qty).as_("cont"))
-        .where(delivery_note_item.si_detail == item_row_name)
-        .where(delivery_note_item.docstatus != 2)
-        .where(delivery_note_item.against_sales_invoice == sales_invoice)
-    ).run(as_dict=True)
-    if len(counts) > 0 and counts[0]["cont"]:
-        return float(counts[0]["cont"])
-    else:
-        return 0
+	delivery_note_item = DocType("Delivery Note Item")
+	counts = (
+		frappe.qb.from_(delivery_note_item)
+		.select(Sum(delivery_note_item.stock_qty).as_("cont"))
+		.where(delivery_note_item.si_detail == item_row_name)
+		.where(delivery_note_item.docstatus != 2)
+		.where(delivery_note_item.against_sales_invoice == sales_invoice)
+	).run(as_dict=True)
+	if len(counts) > 0 and counts[0]["cont"]:
+		return float(counts[0]["cont"])
+	else:
+		return 0
 
 
 @frappe.whitelist()
 def get_pending_sales_invoice(*args):
-    filters = args[5]
-    start = cint(args[3])
-    page_length = cint(args[4])
-    sales_invoice = DocType("Sales Invoice")
-    sales_invoice_item = DocType("Sales Invoice Item")
-    criteria = [
-        sales_invoice.is_return == 0,
-        sales_invoice.status.notin(["Credit Note Issued", "Internal Transfer"]),
-    ]
-    if args[1] != "":
-        criteria.append(sales_invoice.name == args[1])
-    if "posting_date" in filters:
-        posting_date = filters["posting_date"]
-        criteria.append(
-            Date(sales_invoice.posting_date).between(posting_date[1][0], posting_date[1][1])
-        )
-    if "customer" in filters:
-        criteria.append(sales_invoice.customer == filters["customer"])
-    if "company" in filters:
-        criteria.append(sales_invoice.company == filters["company"])
-    if "set_warehouse" in filters:
-        criteria.append(sales_invoice_item.warehouse == filters["set_warehouse"])
+	filters = args[5]
+	start = cint(args[3])
+	page_length = cint(args[4])
+	sales_invoice = DocType("Sales Invoice")
+	sales_invoice_item = DocType("Sales Invoice Item")
+	criteria = [
+		sales_invoice.is_return == 0,
+		sales_invoice.status.notin(["Credit Note Issued", "Internal Transfer"]),
+	]
+	if args[1] != "":
+		criteria.append(sales_invoice.name == args[1])
+	if "posting_date" in filters:
+		posting_date = filters["posting_date"]
+		criteria.append(Date(sales_invoice.posting_date).between(posting_date[1][0], posting_date[1][1]))
+	if "customer" in filters:
+		criteria.append(sales_invoice.customer == filters["customer"])
+	if "company" in filters:
+		criteria.append(sales_invoice.company == filters["company"])
+	if "set_warehouse" in filters:
+		criteria.append(sales_invoice_item.warehouse == filters["set_warehouse"])
 
-    query = get_pending_delivery_invoices_query(
-        [sales_invoice_item.warehouse.as_("set_warehouse")], criteria
-    )
-    data = query.limit(page_length).offset(start).run(as_dict=True)
-    return data
+	query = get_pending_delivery_invoices_query([sales_invoice_item.warehouse.as_("set_warehouse")], criteria)
+	data = query.limit(page_length).offset(start).run(as_dict=True)
+	return data
 
 
 def get_list_pending_sales_invoice(invoice_name=None, warehouse=None):
-    sales_invoice = DocType("Sales Invoice")
-    sales_invoice_item = DocType("Sales Invoice Item")
-    criteria = [sales_invoice.enabled_auto_create_delivery_notes == 1]
-    if invoice_name:
-        criteria.append(sales_invoice.name == invoice_name)
-    if warehouse:
-        criteria.append(sales_invoice_item.warehouse == warehouse)
+	sales_invoice = DocType("Sales Invoice")
+	sales_invoice_item = DocType("Sales Invoice Item")
+	criteria = [sales_invoice.enabled_auto_create_delivery_notes == 1]
+	if invoice_name:
+		criteria.append(sales_invoice.name == invoice_name)
+	if warehouse:
+		criteria.append(sales_invoice_item.warehouse == warehouse)
 
-    query = get_pending_delivery_invoices_query(
-        [sales_invoice.company, sales_invoice.enabled_auto_create_delivery_notes],
-        criteria,
-    )
-    data = query.run(as_dict=True)
-    return data
+	query = get_pending_delivery_invoices_query(
+		[sales_invoice.company, sales_invoice.enabled_auto_create_delivery_notes],
+		criteria,
+	)
+	data = query.run(as_dict=True)
+	return data
 
 
 def get_pending_delivery_invoices_query(extra_fields, criteria):
-    """First not fully delivered stock item row of each submitted Sales Invoice."""
-    sales_invoice = DocType("Sales Invoice")
-    sales_invoice_item = DocType("Sales Invoice Item")
-    item = DocType("Item")
-    delivery_note_item = DocType("Delivery Note Item")
-    pending_items = (
-        frappe.qb.from_(sales_invoice)
-        .inner_join(sales_invoice_item)
-        .on(sales_invoice_item.parent == sales_invoice.name)
-        .inner_join(item)
-        .on((item.name == sales_invoice_item.item_code) & (item.is_stock_item == 1))
-        .left_join(delivery_note_item)
-        .on(
-            (delivery_note_item.si_detail == sales_invoice_item.name)
-            & (delivery_note_item.docstatus < 2)
-        )
-        .select(
-            sales_invoice_item.stock_qty,
-            sales_invoice_item.delivered_qty,
-            Coalesce(Sum(delivery_note_item.stock_qty), 0).as_("DNI_sum_stock_qty"),
-            sales_invoice.name,
-            sales_invoice.posting_date,
-            sales_invoice.customer,
-            *extra_fields,
-            RowNumber()
-            .over(sales_invoice.name)
-            .orderby(sales_invoice.name)
-            .as_("RN"),
-        )
-        .where(sales_invoice.docstatus == 1)
-        .where(sales_invoice.update_stock != 1)
-        .where(sales_invoice_item.stock_qty != sales_invoice_item.delivered_qty)
-        .where(Criterion.all(criteria))
-        .groupby(sales_invoice.name, sales_invoice_item.name)
-        .having(sales_invoice_item.stock_qty > Field("DNI_sum_stock_qty"))
-    )
-    pending_items_cte = AliasedQuery("CTE")
-    return (
-        frappe.qb.with_(pending_items, "CTE")
-        .from_(pending_items_cte)
-        .select("*")
-        .where(pending_items_cte.RN == 1)
-    )
+	"""First not fully delivered stock item row of each submitted Sales Invoice."""
+	sales_invoice = DocType("Sales Invoice")
+	sales_invoice_item = DocType("Sales Invoice Item")
+	item = DocType("Item")
+	delivery_note_item = DocType("Delivery Note Item")
+	pending_items = (
+		frappe.qb.from_(sales_invoice)
+		.inner_join(sales_invoice_item)
+		.on(sales_invoice_item.parent == sales_invoice.name)
+		.inner_join(item)
+		.on((item.name == sales_invoice_item.item_code) & (item.is_stock_item == 1))
+		.left_join(delivery_note_item)
+		.on((delivery_note_item.si_detail == sales_invoice_item.name) & (delivery_note_item.docstatus < 2))
+		.select(
+			sales_invoice_item.stock_qty,
+			sales_invoice_item.delivered_qty,
+			Coalesce(Sum(delivery_note_item.stock_qty), 0).as_("DNI_sum_stock_qty"),
+			sales_invoice.name,
+			sales_invoice.posting_date,
+			sales_invoice.customer,
+			*extra_fields,
+			RowNumber().over(sales_invoice.name).orderby(sales_invoice.name).as_("RN"),
+		)
+		.where(sales_invoice.docstatus == 1)
+		.where(sales_invoice.update_stock != 1)
+		.where(sales_invoice_item.stock_qty != sales_invoice_item.delivered_qty)
+		.where(Criterion.all(criteria))
+		.groupby(sales_invoice.name, sales_invoice_item.name)
+		.having(sales_invoice_item.stock_qty > Field("DNI_sum_stock_qty"))
+	)
+	pending_items_cte = AliasedQuery("CTE")
+	return (
+		frappe.qb.with_(pending_items, "CTE")
+		.from_(pending_items_cte)
+		.select("*")
+		.where(pending_items_cte.RN == 1)
+	)
 
 
 def create_delivery_note_for_all_pending_sales_invoice(doc=None, method=None):
-    company_list = frappe.get_all(
-        "Company",
-        filters={"enabled_auto_create_delivery_notes": 1},
-        pluck="name",
-    )
+	company_list = frappe.get_all(
+		"Company",
+		filters={"enabled_auto_create_delivery_notes": 1},
+		pluck="name",
+	)
 
-    if not company_list:
-        return
+	if not company_list:
+		return
 
-    invoices = get_list_pending_sales_invoice()
-    for i in invoices:
-        if i.company not in company_list:
-            continue
-        invoice = frappe.get_doc("Sales Invoice", i.name)
-        create_delivery_note(invoice)
+	invoices = get_list_pending_sales_invoice()
+	for i in invoices:
+		if i.company not in company_list:
+			continue
+		invoice = frappe.get_doc("Sales Invoice", i.name)
+		create_delivery_note(invoice)
 
 
 def get_pending_material_request():
-    mat_req_list = frappe.get_all(
-        "Material Request",
-        filters=[["Material Request", "status", "in", ["Pending"]]],
-        fields=["name"],
-    )
-    return mat_req_list
+	mat_req_list = frappe.get_all(
+		"Material Request",
+		filters=[["Material Request", "status", "in", ["Pending"]]],
+		fields=["name"],
+	)
+	return mat_req_list
 
 
 def make_stock_reconciliation(items, company):
-    stock_rec_doc = frappe.get_doc(
-        {
-            "doctype": "Stock Reconciliation",
-            "company": company,
-            "purpose": "Stock Reconciliation",
-            "Posting Date": getdate(),
-            "items": items,
-        }
-    )
-    if stock_rec_doc:
-        stock_rec_doc.flags.ignore_permissions = True
-        stock_rec_doc.flags.ignore_account_permission = True
-        stock_rec_doc.run_method("set_missing_values")
-        stock_rec_doc.save()
-        url = frappe.utils.get_url_to_form(stock_rec_doc.doctype, stock_rec_doc.name)
-        msgprint = (
-            "Stock Reconciliation Created as Draft at <a href='{0}'>{1}</a>".format(
-                url, stock_rec_doc.name
-            )
-        )
-        frappe.msgprint(_(msgprint))
-        return stock_rec_doc.name
+	stock_rec_doc = frappe.get_doc(
+		{
+			"doctype": "Stock Reconciliation",
+			"company": company,
+			"purpose": "Stock Reconciliation",
+			"Posting Date": getdate(),
+			"items": items,
+		}
+	)
+	if stock_rec_doc:
+		stock_rec_doc.flags.ignore_permissions = True
+		stock_rec_doc.flags.ignore_account_permission = True
+		stock_rec_doc.run_method("set_missing_values")
+		stock_rec_doc.save()
+		url = frappe.utils.get_url_to_form(stock_rec_doc.doctype, stock_rec_doc.name)
+		msgprint = f"Stock Reconciliation Created as Draft at <a href='{url}'>{stock_rec_doc.name}</a>"
+		frappe.msgprint(_(msgprint))
+		return stock_rec_doc.name
 
 
 def get_stock_balance_for(
-    item_code,
-    warehouse,
-    posting_date=None,
-    posting_time=None,
-    batch_no=None,
-    with_valuation_rate=True,
+	item_code,
+	warehouse,
+	posting_date=None,
+	posting_time=None,
+	batch_no=None,
+	with_valuation_rate=True,
 ):
-    # frappe.has_permission("Stock Reconciliation", "write", throw = True)
-    if not posting_date:
-        posting_date = nowdate()
-    if not posting_time:
-        posting_time = nowtime()
-    item_dict = frappe.db.get_value(
-        "Item", item_code, ["has_serial_no", "has_batch_no"], as_dict=1
-    )
+	# frappe.has_permission("Stock Reconciliation", "write", throw = True)
+	if not posting_date:
+		posting_date = nowdate()
+	if not posting_time:
+		posting_time = nowtime()
+	item_dict = frappe.db.get_value("Item", item_code, ["has_serial_no", "has_batch_no"], as_dict=1)
 
-    serial_nos = ""
-    with_serial_no = True if item_dict.get("has_serial_no") else False
-    data = get_stock_balance(
-        item_code,
-        warehouse,
-        posting_date,
-        posting_time,
-        with_valuation_rate=with_valuation_rate,
-        with_serial_no=with_serial_no,
-    )
+	serial_nos = ""
+	with_serial_no = True if item_dict.get("has_serial_no") else False
+	data = get_stock_balance(
+		item_code,
+		warehouse,
+		posting_date,
+		posting_time,
+		with_valuation_rate=with_valuation_rate,
+		with_serial_no=with_serial_no,
+	)
 
-    if with_serial_no:
-        qty, rate, serial_nos = data
-    else:
-        qty, rate = data
+	if with_serial_no:
+		qty, rate, serial_nos = data
+	else:
+		qty, rate = data
 
-    if item_dict.get("has_batch_no"):
-        qty = get_batch_qty(batch_no, warehouse) or 0
+	if item_dict.get("has_batch_no"):
+		qty = get_batch_qty(batch_no, warehouse) or 0
 
-    return {"qty": qty, "rate": rate, "serial_nos": serial_nos}
+	return {"qty": qty, "rate": rate, "serial_nos": serial_nos}
 
 
 @frappe.whitelist()
 def make_stock_reconciliation_for_all_pending_material_request(*args):
-    auto_stock_reconciliation = frappe.db.get_value("CSF TZ Settings", "CSF TZ Settings", "auto_stock_reconciliation") or 0
-    if auto_stock_reconciliation != 1:
-        return
-    mat_req_list = get_pending_material_request()
-    data = {}
-    for i in mat_req_list:
-        mat_req_doc = frappe.get_doc("Material Request", i["name"])
+	auto_stock_reconciliation = (
+		frappe.db.get_single_value("CSF TZ Settings", "auto_stock_reconciliation") or 0
+	)
+	if auto_stock_reconciliation != 1:
+		return
+	mat_req_list = get_pending_material_request()
+	data = {}
+	for i in mat_req_list:
+		mat_req_doc = frappe.get_doc("Material Request", i["name"])
 
-        if not data.get(mat_req_doc.company):
-            data[mat_req_doc.company] = {}
+		if not data.get(mat_req_doc.company):
+			data[mat_req_doc.company] = {}
 
-        for item in mat_req_doc.items:
-            if not check_item_is_maintain(item.item_code):
-                continue
-            if (
-                not data.get(mat_req_doc.company).get(item.warehouse)
-                and not item.stock_reconciliation
-            ):
-                data[mat_req_doc.company][item.warehouse] = []
-                item_dict = get_stock_balance_for(item.item_code, item.warehouse)
-                item.valuation_rate = item_dict.get("rate")
-                item_dict = {
-                    "item_code": item.item_code,
-                    "warehouse": item.warehouse,
-                    "valuation_rate": item_dict.get("rate"),
-                    "batch_no": "",
-                    "qty": item_dict.get("qty") + item.stock_qty,
-                    "material_request": i["name"],
-                    "company": mat_req_doc.company,
-                    "row_name": item.name,
-                }
-                data[mat_req_doc.company][item.warehouse].append(item_dict)
+		for item in mat_req_doc.items:
+			if not check_item_is_maintain(item.item_code):
+				continue
+			if not data.get(mat_req_doc.company).get(item.warehouse) and not item.stock_reconciliation:
+				data[mat_req_doc.company][item.warehouse] = []
+				item_dict = get_stock_balance_for(item.item_code, item.warehouse)
+				item.valuation_rate = item_dict.get("rate")
+				item_dict = {
+					"item_code": item.item_code,
+					"warehouse": item.warehouse,
+					"valuation_rate": item_dict.get("rate"),
+					"batch_no": "",
+					"qty": item_dict.get("qty") + item.stock_qty,
+					"material_request": i["name"],
+					"company": mat_req_doc.company,
+					"row_name": item.name,
+				}
+				data[mat_req_doc.company][item.warehouse].append(item_dict)
 
-    for key, value in data.items():
-        for key1, value1 in value.items():
-            if len(value1) > 0:
-                items_list = []
-                items = []
-                for item in value1:
-                    if item["item_code"] not in items_list:
-                        items.append(item)
-                        items_list.append(item["item_code"])
-                if len(items) > 0:
-                    stock_rec_name = make_stock_reconciliation(value1, key)
-                    if stock_rec_name:
-                        for item in items:
-                            frappe.db.set_value(
-                                "Material Request Item",
-                                item["row_name"],
-                                "stock_reconciliation",
-                                stock_rec_name,
-                                update_modified=False,
-                            )
+	for key, value in data.items():
+		for _key, value1 in value.items():
+			if len(value1) > 0:
+				items_list = []
+				items = []
+				for item in value1:
+					if item["item_code"] not in items_list:
+						items.append(item)
+						items_list.append(item["item_code"])
+				if len(items) > 0:
+					stock_rec_name = make_stock_reconciliation(value1, key)
+					if stock_rec_name:
+						for item in items:
+							frappe.db.set_value(
+								"Material Request Item",
+								item["row_name"],
+								"stock_reconciliation",
+								stock_rec_name,
+								update_modified=False,
+							)
 
 
 def calculate_price_reduction(doc, method):
-    price_reduction = 0
-    for item in doc.items:
-        price_reduction += item.qty * item.discount_amount
-    doc.price_reduction = price_reduction
+	price_reduction = 0
+	for item in doc.items:
+		price_reduction += item.qty * item.discount_amount
+	doc.price_reduction = price_reduction
 
 
 def calculate_total_net_weight(doc, method):
-    if doc.meta.get_field("total_net_weight"):
-        doc.total_net_weight = 0.0
-        for d in doc.items:
-            if d.total_weight:
-                doc.total_net_weight += d.total_weight
+	if doc.meta.get_field("total_net_weight"):
+		doc.total_net_weight = 0.0
+		for d in doc.items:
+			if d.total_weight:
+				doc.total_net_weight += d.total_weight
 
 
 @frappe.whitelist()
 def get_warehouse_options(company):
-    warehouses = frappe.get_all(
-        "Warehouse",
-        filters=[
-            ["Warehouse", "company", "=", company],
-            ["Warehouse", "is_group", "=", 0],
-        ],
-        fields=["name"],
-    )
-    warehouses_list = []
-    for warehouse in warehouses:
-        warehouses_list.append(warehouse["name"])
-    return warehouses_list
+	warehouses = frappe.get_all(
+		"Warehouse",
+		filters=[
+			["Warehouse", "company", "=", company],
+			["Warehouse", "is_group", "=", 0],
+		],
+		fields=["name"],
+	)
+	warehouses_list = []
+	for warehouse in warehouses:
+		warehouses_list.append(warehouse["name"])
+	return warehouses_list
 
 
 def validate_net_rate(doc, method):
-    def throw_message(idx, item_name, rate, ref_rate_field):
-        frappe.throw(
-            _(
-                """Row #{}: Net Selling rate for item {} is lower than its {}. Net Selling rate should be atleast above {}"""
-            ).format(idx, item_name, ref_rate_field, rate)
-        )
+	def throw_message(idx, item_name, rate, ref_rate_field):
+		frappe.throw(
+			_(
+				"""Row #{}: Net Selling rate for item {} is lower than its {}. Net Selling rate should be atleast above {}"""
+			).format(idx, item_name, ref_rate_field, rate)
+		)
 
-    if not frappe.db.get_single_value("CSF TZ Settings", "validate_net_rate"):
-        return
+	if not frappe.db.get_single_value("CSF TZ Settings", "validate_net_rate"):
+		return
 
-    if hasattr(doc, "is_return") and doc.is_return:
-        return
+	if hasattr(doc, "is_return") and doc.is_return:
+		return
 
-    stock_ledger_entry = DocType("Stock Ledger Entry")
-    for it in doc.get("items"):
-        if not it.item_code or it.allow_override_net_rate:
-            continue
+	stock_ledger_entry = DocType("Stock Ledger Entry")
+	for it in doc.get("items"):
+		if not it.item_code or it.allow_override_net_rate:
+			continue
 
-        last_purchase_rate, is_stock_item = frappe.get_cached_value(
-            "Item", it.item_code, ["last_purchase_rate", "is_stock_item"]
-        )
-        last_purchase_rate_in_sales_uom = last_purchase_rate / (
-            it.conversion_factor or 1
-        )
-        if flt(it.net_rate) < flt(last_purchase_rate_in_sales_uom):
-            throw_message(
-                it.idx,
-                frappe.bold(it.item_name),
-                last_purchase_rate_in_sales_uom,
-                "last purchase rate",
-            )
+		last_purchase_rate, is_stock_item = frappe.get_cached_value(
+			"Item", it.item_code, ["last_purchase_rate", "is_stock_item"]
+		)
+		last_purchase_rate_in_sales_uom = last_purchase_rate / (it.conversion_factor or 1)
+		if flt(it.net_rate) < flt(last_purchase_rate_in_sales_uom):
+			throw_message(
+				it.idx,
+				frappe.bold(it.item_name),
+				last_purchase_rate_in_sales_uom,
+				"last purchase rate",
+			)
 
-        last_valuation_rate = (
-            frappe.qb.from_(stock_ledger_entry)
-            .select(stock_ledger_entry.valuation_rate)
-            .where(stock_ledger_entry.item_code == it.item_code)
-            .where(stock_ledger_entry.warehouse == it.warehouse)
-            .where(stock_ledger_entry.valuation_rate > 0)
-            .orderby(stock_ledger_entry.posting_date, order=Order.desc)
-            .orderby(stock_ledger_entry.posting_time, order=Order.desc)
-            .orderby(stock_ledger_entry.creation, order=Order.desc)
-            .limit(1)
-        ).run()
-        if last_valuation_rate:
-            last_valuation_rate_in_sales_uom = last_valuation_rate[0][0] / (
-                it.conversion_factor or 1
-            )
-            if (
-                is_stock_item
-                and flt(it.net_rate) < flt(last_valuation_rate_in_sales_uom)
-                and not doc.get("is_internal_customer")
-            ):
-                throw_message(
-                    it.idx,
-                    frappe.bold(it.item_name),
-                    last_valuation_rate_in_sales_uom,
-                    "valuation rate",
-                )
+		last_valuation_rate = (
+			frappe.qb.from_(stock_ledger_entry)
+			.select(stock_ledger_entry.valuation_rate)
+			.where(stock_ledger_entry.item_code == it.item_code)
+			.where(stock_ledger_entry.warehouse == it.warehouse)
+			.where(stock_ledger_entry.valuation_rate > 0)
+			.orderby(stock_ledger_entry.posting_date, order=Order.desc)
+			.orderby(stock_ledger_entry.posting_time, order=Order.desc)
+			.orderby(stock_ledger_entry.creation, order=Order.desc)
+			.limit(1)
+		).run()
+		if last_valuation_rate:
+			last_valuation_rate_in_sales_uom = last_valuation_rate[0][0] / (it.conversion_factor or 1)
+			if (
+				is_stock_item
+				and flt(it.net_rate) < flt(last_valuation_rate_in_sales_uom)
+				and not doc.get("is_internal_customer")
+			):
+				throw_message(
+					it.idx,
+					frappe.bold(it.item_name),
+					last_valuation_rate_in_sales_uom,
+					"valuation rate",
+				)
 
 
 @frappe.whitelist()
 def make_withholding_tax_gl_entries_for_purchase(doc, method):
-    if method == "From Front End":
-        doc = frappe.get_doc(json.loads(doc))
+	if method == "From Front End":
+		doc = frappe.get_doc(json.loads(doc))
 
-    (
-        withholding_payable_account,
-        default_currency,
-        auto_create_for_purchase_withholding,
-    ) = frappe.get_value(
-        "Company",
-        doc.company,
-        [
-            "default_withholding_payable_account",
-            "default_currency",
-            "auto_create_for_purchase_withholding",
-        ],
-    )
-    if not auto_create_for_purchase_withholding:
-        return
-    float_precision = cint(frappe.db.get_default("float_precision")) or 3
-    withholding_payable_account, default_currency = frappe.get_value(
-        "Company",
-        doc.company,
-        ["default_withholding_payable_account", "default_currency"],
-    )
-    if not withholding_payable_account:
-        frappe.throw(
-            _("Please Setup Withholding Payable Account in Company " + str(doc.company))
-        )
-    for item in doc.items:
-        if not item.withholding_tax_rate > 0 or item.csf_tz_wtax_jv_created == 1:
-            continue
-        withholding_payable_account_type = (
-            frappe.get_value("Account", withholding_payable_account, "account_type")
-            or ""
-        )
-        if withholding_payable_account_type != "Payable":
-            frappe.msgprint(_("Withholding Payable Account type not 'Payable'"))
-        if doc.party_account_currency == default_currency:
-            exchange_rate = 1
-        else:
-            exchange_rate = doc.conversion_rate
-        creditor_amount = flt(
-            item.base_net_rate
-            * item.qty
-            * item.withholding_tax_rate
-            / 100
-            / exchange_rate,
-            float_precision,
-        )
-        wtax_base_amount = creditor_amount * exchange_rate
+	(
+		withholding_payable_account,
+		default_currency,
+		auto_create_for_purchase_withholding,
+	) = frappe.get_value(
+		"Company",
+		doc.company,
+		[
+			"default_withholding_payable_account",
+			"default_currency",
+			"auto_create_for_purchase_withholding",
+		],
+	)
+	if not auto_create_for_purchase_withholding:
+		return
+	float_precision = cint(frappe.db.get_default("float_precision")) or 3
+	withholding_payable_account, default_currency = frappe.get_value(
+		"Company",
+		doc.company,
+		["default_withholding_payable_account", "default_currency"],
+	)
+	if not withholding_payable_account:
+		frappe.throw(_("Please Setup Withholding Payable Account in Company " + str(doc.company)))
+	for item in doc.items:
+		if not item.withholding_tax_rate > 0 or item.csf_tz_wtax_jv_created == 1:
+			continue
+		withholding_payable_account_type = (
+			frappe.get_value("Account", withholding_payable_account, "account_type") or ""
+		)
+		if withholding_payable_account_type != "Payable":
+			frappe.msgprint(_("Withholding Payable Account type not 'Payable'"))
+		if doc.party_account_currency == default_currency:
+			exchange_rate = 1
+		else:
+			exchange_rate = doc.conversion_rate
+		creditor_amount = flt(
+			item.base_net_rate * item.qty * item.withholding_tax_rate / 100 / exchange_rate,
+			float_precision,
+		)
+		wtax_base_amount = creditor_amount * exchange_rate
 
-        jl_rows = []
-        debit_row = dict(
-            account=doc.credit_to,
-            party_type="Supplier",
-            party=doc.supplier,
-            debit_in_account_currency=creditor_amount,
-            exchange_rate=exchange_rate,
-            cost_center=item.cost_center,
-            reference_type="Purchase Invoice",
-            reference_name=doc.name,
-        )
-        jl_rows.append(debit_row)
-        credit_row = dict(
-            account=withholding_payable_account,
-            party_type=(
-                "Supplier" if withholding_payable_account_type == "Payable" else ""
-            ),
-            party=doc.supplier if withholding_payable_account_type == "Payable" else "",
-            credit_in_account_currency=wtax_base_amount,
-            cost_center=item.cost_center,
-            account_curremcy=default_currency,
-        )
-        jl_rows.append(credit_row)
-        user_remark = (
-            "Withholding Tax Payable Against Item "
-            + item.item_code
-            + " in "
-            + doc.doctype
-            + " "
-            + doc.name
-            + " of amount "
-            + str(flt(item.net_amount, 2))
-            + " "
-            + doc.currency
-            + " with exchange rate of "
-            + str(doc.conversion_rate)
-        )
-        jv_doc = frappe.get_doc(
-            dict(
-                doctype="Journal Entry",
-                voucher_type="Contra Entry",
-                posting_date=doc.posting_date,
-                accounts=jl_rows,
-                company=doc.company,
-                multi_currency=(
-                    0 if doc.party_account_currency == default_currency else 1
-                ),
-                user_remark=user_remark,
-            )
-        )
-        console(jl_rows)
-        jv_doc.flags.ignore_permissions = True
-        frappe.flags.ignore_account_permission = True
-        jv_doc.save()
-        if (
-            frappe.get_value(
-                "Company", doc.company, "auto_submit_for_purchase_withholding"
-            )
-            or False
-        ):
-            jv_doc.submit()
+		jl_rows = []
+		debit_row = dict(
+			account=doc.credit_to,
+			party_type="Supplier",
+			party=doc.supplier,
+			debit_in_account_currency=creditor_amount,
+			exchange_rate=exchange_rate,
+			cost_center=item.cost_center,
+			reference_type="Purchase Invoice",
+			reference_name=doc.name,
+		)
+		jl_rows.append(debit_row)
+		credit_row = dict(
+			account=withholding_payable_account,
+			party_type=("Supplier" if withholding_payable_account_type == "Payable" else ""),
+			party=doc.supplier if withholding_payable_account_type == "Payable" else "",
+			credit_in_account_currency=wtax_base_amount,
+			cost_center=item.cost_center,
+			account_curremcy=default_currency,
+		)
+		jl_rows.append(credit_row)
+		user_remark = (
+			"Withholding Tax Payable Against Item "
+			+ item.item_code
+			+ " in "
+			+ doc.doctype
+			+ " "
+			+ doc.name
+			+ " of amount "
+			+ str(flt(item.net_amount, 2))
+			+ " "
+			+ doc.currency
+			+ " with exchange rate of "
+			+ str(doc.conversion_rate)
+		)
+		jv_doc = frappe.get_doc(
+			dict(
+				doctype="Journal Entry",
+				voucher_type="Contra Entry",
+				posting_date=doc.posting_date,
+				accounts=jl_rows,
+				company=doc.company,
+				multi_currency=(0 if doc.party_account_currency == default_currency else 1),
+				user_remark=user_remark,
+			)
+		)
+		console(jl_rows)
+		jv_doc.flags.ignore_permissions = True
+		frappe.flags.ignore_account_permission = True
+		jv_doc.save()
+		if frappe.get_value("Company", doc.company, "auto_submit_for_purchase_withholding") or False:
+			jv_doc.submit()
 
-        if jv_doc.get("name"):
-            item.withholding_tax_entry = jv_doc.get("name")
-            item.csf_tz_wtax_jv_created = 1
-            item.db_update()
+		if jv_doc.get("name"):
+			item.withholding_tax_entry = jv_doc.get("name")
+			item.csf_tz_wtax_jv_created = 1
+			item.db_update()
 
-        jv_url = frappe.utils.get_url_to_form(jv_doc.doctype, jv_doc.name)
-        si_msgprint = (
-            "Journal Entry Created for Withholding Tax <a href='{0}'>{1}</a>".format(
-                jv_url, jv_doc.name
-            )
-        )
-        frappe.msgprint(_(si_msgprint))
+		jv_url = frappe.utils.get_url_to_form(jv_doc.doctype, jv_doc.name)
+		si_msgprint = f"Journal Entry Created for Withholding Tax <a href='{jv_url}'>{jv_doc.name}</a>"
+		frappe.msgprint(_(si_msgprint))
 
 
 @frappe.whitelist()
 def set_fee_abbr(doc=None, method=None):
-    doc.company = frappe.get_value("Fee Structure", doc.fee_structure, "company")
-    send_fee_details_to_bank = (
-        frappe.get_value("Company", doc.company, "send_fee_details_to_bank") or 0
-    )
-    if not send_fee_details_to_bank:
-        return
-    doc.abbr = frappe.get_value("Company", doc.company, "abbr")
+	doc.company = frappe.get_value("Fee Structure", doc.fee_structure, "company")
+	send_fee_details_to_bank = frappe.get_value("Company", doc.company, "send_fee_details_to_bank") or 0
+	if not send_fee_details_to_bank:
+		return
+	doc.abbr = frappe.get_value("Company", doc.company, "abbr")
 
 
 @frappe.whitelist()
 def enroll_all_students(self):
-    """Enrolls students or applicants.
+	"""Enrolls students or applicants.
 
-    :param self: Program Enrollment Tool
+	:param self: Program Enrollment Tool
 
-    This is created to allow enqueue of students creation.
-    The default enroll process fails when there are too many enrollments to do at a go
-    """
-    import json
+	This is created to allow enqueue of students creation.
+	The default enroll process fails when there are too many enrollments to do at a go
+	"""
+	import json
 
-    self = json.loads(self)
-    self = frappe.get_doc(dict(self))
+	self = json.loads(self)
+	self = frappe.get_doc(dict(self))
 
-    if self.get_students_from == "Student Applicant":
-        frappe.msgprint("Remove student applicants that are already created")
+	if self.get_students_from == "Student Applicant":
+		frappe.msgprint("Remove student applicants that are already created")
 
-    if len(self.students) > 30:
-        frappe.enqueue("csf_tz.custom_api.enroll_students", self=self)
-        return "queued"
-    else:
-        enroll_students(self=self)
-        return len(self.students)
+	if len(self.students) > 30:
+		frappe.enqueue(  # nosemgrep: whitelisted-side-effect-on-get
+			"csf_tz.custom_api.enroll_students",
+			self=self,
+		)
+		return "queued"
+	else:
+		enroll_students(self=self)
+		return len(self.students)
 
 
 @frappe.whitelist()
 def enroll_students(self):
-    """Enrolls students or applicants.
+	"""Enrolls students or applicants.
 
-    :param self: Program Enrollment Tool
+	:param self: Program Enrollment Tool
 
-    This is a copy of ERPNext function meant to allow loading from custom doctypes and frappe.enqueue
-    Used in csf_tz.custom_api.enroll_students
-    """
-    from education.education.api import enroll_student
+	This is a copy of ERPNext function meant to allow loading from custom doctypes and frappe.enqueue
+	Used in csf_tz.custom_api.enroll_students
+	"""
+	from education.education.api import enroll_student
 
-    total = len(self.students)
-    for i, stud in enumerate(self.students):
-        frappe.publish_realtime(
-            "program_enrollment_tool",
-            dict(progress=[i + 1, total]),
-            user=frappe.session.user,
-        )
-        if stud.student:
-            prog_enrollment = frappe.new_doc("Program Enrollment")
-            prog_enrollment.student = stud.student
-            prog_enrollment.student_name = stud.student_name
-            prog_enrollment.program = self.new_program
-            prog_enrollment.academic_year = self.new_academic_year
-            prog_enrollment.academic_term = self.new_academic_term
-            prog_enrollment.student_batch_name = (
-                stud.student_batch_name
-                if stud.student_batch_name
-                else self.new_student_batch
-            )
-            prog_enrollment.save()
-        elif stud.student_applicant:
-            prog_enrollment = enroll_student(stud.student_applicant)
-            prog_enrollment.academic_year = self.academic_year
-            prog_enrollment.academic_term = self.academic_term
-            prog_enrollment.student_batch_name = (
-                stud.student_batch_name
-                if stud.student_batch_name
-                else self.new_student_batch
-            )
-            prog_enrollment.save()
+	total = len(self.students)
+	for i, stud in enumerate(self.students):
+		frappe.publish_realtime(
+			"program_enrollment_tool",
+			dict(progress=[i + 1, total]),
+			user=frappe.session.user,
+		)
+		if stud.student:
+			prog_enrollment = frappe.new_doc("Program Enrollment")
+			prog_enrollment.student = stud.student
+			prog_enrollment.student_name = stud.student_name
+			prog_enrollment.program = self.new_program
+			prog_enrollment.academic_year = self.new_academic_year
+			prog_enrollment.academic_term = self.new_academic_term
+			prog_enrollment.student_batch_name = (
+				stud.student_batch_name if stud.student_batch_name else self.new_student_batch
+			)
+			prog_enrollment.save()
+		elif stud.student_applicant:
+			prog_enrollment = enroll_student(stud.student_applicant)
+			prog_enrollment.academic_year = self.academic_year
+			prog_enrollment.academic_term = self.academic_term
+			prog_enrollment.student_batch_name = (
+				stud.student_batch_name if stud.student_batch_name else self.new_student_batch
+			)
+			prog_enrollment.save()
 
 
 @frappe.whitelist()
 def get_tax_category(doc_type, company):
-    fetch_default_tax_category = (
-        frappe.db.get_value("CSF TZ Settings", None, "fetch_default_tax_category") or 0
-    )
-    if int(fetch_default_tax_category) != 1:
-        return ""
-    sales_list_types = ["Sales Order", "Sales Invoice", "Delivery Note", "Quotation"]
-    Puchase_list_types = ["Purchase Order", "Purchase Invoice", "Purchase Receipt"]
-    tax_category = []
-    if doc_type in sales_list_types:
-        tax_category = frappe.get_all(
-            "Sales Taxes and Charges Template",
-            filters=[
-                ["Sales Taxes and Charges Template", "company", "=", company],
-                ["Sales Taxes and Charges Template", "is_default", "=", 1],
-            ],
-            fields=["name", "tax_category"],
-        )
-    elif doc_type in Puchase_list_types:
-        tax_category = frappe.get_all(
-            "Purchase Taxes and Charges Template",
-            filters=[
-                ["Purchase Taxes and Charges Template", "company", "=", company],
-                ["Purchase Taxes and Charges Template", "is_default", "=", 1],
-            ],
-            fields=["name", "tax_category"],
-        )
-    return tax_category[0]["tax_category"] if len(tax_category) > 0 else [""]
+	fetch_default_tax_category = (
+		frappe.db.get_single_value("CSF TZ Settings", "fetch_default_tax_category") or 0
+	)
+	if int(fetch_default_tax_category) != 1:
+		return ""
+	sales_list_types = ["Sales Order", "Sales Invoice", "Delivery Note", "Quotation"]
+	Puchase_list_types = ["Purchase Order", "Purchase Invoice", "Purchase Receipt"]
+	tax_category = []
+	if doc_type in sales_list_types:
+		tax_category = frappe.get_all(
+			"Sales Taxes and Charges Template",
+			filters=[
+				["Sales Taxes and Charges Template", "company", "=", company],
+				["Sales Taxes and Charges Template", "is_default", "=", 1],
+			],
+			fields=["name", "tax_category"],
+		)
+	elif doc_type in Puchase_list_types:
+		tax_category = frappe.get_all(
+			"Purchase Taxes and Charges Template",
+			filters=[
+				["Purchase Taxes and Charges Template", "company", "=", company],
+				["Purchase Taxes and Charges Template", "is_default", "=", 1],
+			],
+			fields=["name", "tax_category"],
+		)
+	return tax_category[0]["tax_category"] if len(tax_category) > 0 else [""]
 
 
 @frappe.whitelist()
 def make_withholding_tax_gl_entries_for_sales(doc, method):
-    if method == "From Front End":
-        doc = frappe.get_doc(json.loads(doc))
+	if method == "From Front End":
+		doc = frappe.get_doc(json.loads(doc))
 
-    (
-        withholding_receivable_account,
-        default_currency,
-        auto_create_for_sales_withholding,
-    ) = frappe.get_value(
-        "Company",
-        doc.company,
-        [
-            "default_withholding_receivable_account",
-            "default_currency",
-            "auto_create_for_sales_withholding",
-        ],
-    )
-    if not auto_create_for_sales_withholding:
-        return
-    float_precision = cint(frappe.db.get_default("float_precision")) or 3
-    if not withholding_receivable_account:
-        frappe.throw(
-            _(
-                "Please Setup Withholding Receivable Account in Company "
-                + str(doc.company)
-            )
-        )
-    for item in doc.items:
-        if not item.withholding_tax_rate > 0 or item.csf_tz_wtax_jv_created == 1:
-            continue
-        withholding_receivable_account_type = (
-            frappe.get_value("Account", withholding_receivable_account, "account_type")
-            or ""
-        )
-        if withholding_receivable_account_type != "Receivable":
-            frappe.msgprint(_("Withholding Receivable Account type not 'Receivable'"))
-        if doc.party_account_currency == default_currency:
-            exchange_rate = 1
-        else:
-            exchange_rate = doc.conversion_rate
-        debtor_amount = flt(
-            item.base_net_rate
-            * item.qty
-            * item.withholding_tax_rate
-            / 100
-            / exchange_rate,
-            float_precision,
-        )
-        wtax_base_amount = debtor_amount * exchange_rate
-        jl_rows = []
-        credit_row = dict(
-            account=doc.debit_to,
-            party_type="customer",
-            party=doc.customer,
-            credit_in_account_currency=debtor_amount,
-            account_curremcy=(
-                default_currency
-                if doc.party_account_currency == default_currency
-                else doc.currency
-            ),
-            exchange_rate=exchange_rate,
-            cost_center=item.cost_center,
-            reference_type="Sales Invoice",
-            reference_name=doc.name,
-        )
-        jl_rows.append(credit_row)
+	(
+		withholding_receivable_account,
+		default_currency,
+		auto_create_for_sales_withholding,
+	) = frappe.get_value(
+		"Company",
+		doc.company,
+		[
+			"default_withholding_receivable_account",
+			"default_currency",
+			"auto_create_for_sales_withholding",
+		],
+	)
+	if not auto_create_for_sales_withholding:
+		return
+	float_precision = cint(frappe.db.get_default("float_precision")) or 3
+	if not withholding_receivable_account:
+		frappe.throw(_("Please Setup Withholding Receivable Account in Company " + str(doc.company)))
+	for item in doc.items:
+		if not item.withholding_tax_rate > 0 or item.csf_tz_wtax_jv_created == 1:
+			continue
+		withholding_receivable_account_type = (
+			frappe.get_value("Account", withholding_receivable_account, "account_type") or ""
+		)
+		if withholding_receivable_account_type != "Receivable":
+			frappe.msgprint(_("Withholding Receivable Account type not 'Receivable'"))
+		if doc.party_account_currency == default_currency:
+			exchange_rate = 1
+		else:
+			exchange_rate = doc.conversion_rate
+		debtor_amount = flt(
+			item.base_net_rate * item.qty * item.withholding_tax_rate / 100 / exchange_rate,
+			float_precision,
+		)
+		wtax_base_amount = debtor_amount * exchange_rate
+		jl_rows = []
+		credit_row = dict(
+			account=doc.debit_to,
+			party_type="customer",
+			party=doc.customer,
+			credit_in_account_currency=debtor_amount,
+			account_curremcy=(
+				default_currency if doc.party_account_currency == default_currency else doc.currency
+			),
+			exchange_rate=exchange_rate,
+			cost_center=item.cost_center,
+			reference_type="Sales Invoice",
+			reference_name=doc.name,
+		)
+		jl_rows.append(credit_row)
 
-        debit_row = dict(
-            account=withholding_receivable_account,
-            party_type=(
-                "customer"
-                if withholding_receivable_account_type == "Receivable"
-                else ""
-            ),
-            party=(
-                doc.customer
-                if withholding_receivable_account_type == "Receivable"
-                else ""
-            ),
-            debit_in_account_currency=wtax_base_amount,
-            cost_center=item.cost_center,
-            account_curremcy=default_currency,
-        )
-        jl_rows.append(debit_row)
+		debit_row = dict(
+			account=withholding_receivable_account,
+			party_type=("customer" if withholding_receivable_account_type == "Receivable" else ""),
+			party=(doc.customer if withholding_receivable_account_type == "Receivable" else ""),
+			debit_in_account_currency=wtax_base_amount,
+			cost_center=item.cost_center,
+			account_curremcy=default_currency,
+		)
+		jl_rows.append(debit_row)
 
-        user_remark = (
-            "Withholding Tax Receivable Against Item "
-            + item.item_code
-            + " in "
-            + doc.doctype
-            + " "
-            + doc.name
-            + " of amount "
-            + str(flt(item.net_amount, 2))
-            + " "
-            + doc.currency
-            + " with exchange rate of "
-            + str(doc.conversion_rate)
-        )
-        jv_doc = frappe.get_doc(
-            dict(
-                doctype="Journal Entry",
-                voucher_type="Contra Entry",
-                posting_date=doc.posting_date,
-                accounts=jl_rows,
-                company=doc.company,
-                multi_currency=(
-                    0 if doc.party_account_currency == default_currency else 1
-                ),
-                user_remark=user_remark,
-            )
-        )
-        jv_doc.flags.ignore_permissions = True
-        frappe.flags.ignore_account_permission = True
-        jv_doc.save()
-        if (
-            frappe.get_value(
-                "Company", doc.company, "auto_submit_for_sales_withholding"
-            )
-            or False
-        ):
-            jv_doc.submit()
+		user_remark = (
+			"Withholding Tax Receivable Against Item "
+			+ item.item_code
+			+ " in "
+			+ doc.doctype
+			+ " "
+			+ doc.name
+			+ " of amount "
+			+ str(flt(item.net_amount, 2))
+			+ " "
+			+ doc.currency
+			+ " with exchange rate of "
+			+ str(doc.conversion_rate)
+		)
+		jv_doc = frappe.get_doc(
+			dict(
+				doctype="Journal Entry",
+				voucher_type="Contra Entry",
+				posting_date=doc.posting_date,
+				accounts=jl_rows,
+				company=doc.company,
+				multi_currency=(0 if doc.party_account_currency == default_currency else 1),
+				user_remark=user_remark,
+			)
+		)
+		jv_doc.flags.ignore_permissions = True
+		frappe.flags.ignore_account_permission = True
+		jv_doc.save()
+		if frappe.get_value("Company", doc.company, "auto_submit_for_sales_withholding") or False:
+			jv_doc.submit()
 
-        if jv_doc.get("name"):
-            item.withholding_tax_entry = jv_doc.get("name")
-            item.csf_tz_wtax_jv_created = 1
-            item.db_update()
+		if jv_doc.get("name"):
+			item.withholding_tax_entry = jv_doc.get("name")
+			item.csf_tz_wtax_jv_created = 1
+			item.db_update()
 
-        jv_url = frappe.utils.get_url_to_form(jv_doc.doctype, jv_doc.name)
-        si_msgprint = (
-            "Journal Entry Created for Withholding Tax <a href='{0}'>{1}</a>".format(
-                jv_url, jv_doc.name
-            )
-        )
-        frappe.msgprint(_(si_msgprint))
+		jv_url = frappe.utils.get_url_to_form(jv_doc.doctype, jv_doc.name)
+		si_msgprint = f"Journal Entry Created for Withholding Tax <a href='{jv_url}'>{jv_doc.name}</a>"
+		frappe.msgprint(_(si_msgprint))
 
 
 # Email Salary Slip
 @frappe.whitelist()
 def get_payroll_employees(payroll_entry):
-    payroll_employee_detail = DocType("Payroll Employee Detail")
-    employees = (
-        frappe.qb.from_(payroll_employee_detail)
-        .select(payroll_employee_detail.employee)
-        .where(payroll_employee_detail.parent == payroll_entry)
-    ).run(as_dict=True)
-    return employees
+	payroll_employee_detail = DocType("Payroll Employee Detail")
+	employees = (
+		frappe.qb.from_(payroll_employee_detail)
+		.select(payroll_employee_detail.employee)
+		.where(payroll_employee_detail.parent == payroll_entry)
+	).run(as_dict=True)
+	return employees
 
 
 @frappe.whitelist()
 def validate_payroll_entry_field(payroll_entry):
-    payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
-    if payroll_entry.docstatus != 1:
-        return False
+	payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry)
+	if payroll_entry.docstatus != 1:
+		return False
 
 
 def auto_close_dn():
-    """
-    Mark delivery note as closed per customer, depending on the days specified on customer
+	"""
+	Mark delivery note as closed per customer, depending on the days specified on customer
 
-    This routine will run every day 3:30am at night
-    """
+	This routine will run every day 3:30am at night
+	"""
 
-    dn_list = []
+	dn_list = []
 
-    customer_details = frappe.get_all(
-        "Customer",
-        filters={"csf_tz_is_auto_close_dn": 1},
-        fields=["name", "csf_tz_close_dn_after"],
-    )
+	customer_details = frappe.get_all(
+		"Customer",
+		filters={"csf_tz_is_auto_close_dn": 1},
+		fields=["name", "csf_tz_close_dn_after"],
+	)
 
-    if not customer_details:
-        return
+	if not customer_details:
+		return
 
-    for customer in customer_details:
-        filters = {
-            "docstatus": 1,
-            "customer": customer.name,
-            "status": ["!=", "Closed"],
-            "posting_date": [
-                "<",
-                add_days(nowdate(), days=(-1 * customer.csf_tz_close_dn_after)),
-            ],
-        }
-        dn_list += frappe.get_all(
-            "Delivery Note", filters=filters, fields=["name"], pluck="name"
-        )
+	for customer in customer_details:
+		filters = {
+			"docstatus": 1,
+			"customer": customer.name,
+			"status": ["!=", "Closed"],
+			"posting_date": [
+				"<",
+				add_days(nowdate(), days=(-1 * customer.csf_tz_close_dn_after)),
+			],
+		}
+		dn_list += frappe.get_all("Delivery Note", filters=filters, fields=["name"], pluck="name")
 
-    for dn in dn_list:
-        frappe.db.set_value("Delivery Note", dn, "status", "Closed")
+	for dn in dn_list:
+		frappe.db.set_value("Delivery Note", dn, "status", "Closed")
 
-        frappe.db.commit()
+		frappe.db.commit()
 
 
 def batch_splitting(doc, method):
-    """Splitting of batches before insert of sales invoice
-    this works only if is_return = 0, update_stock = 1 and allow batch splitting is ticked on CSF TZ Settings
-    """
-    if doc.is_return == 1:
-        return
+	"""Splitting of batches before insert of sales invoice
+	this works only if is_return = 0, update_stock = 1 and allow batch splitting is ticked on CSF TZ Settings
+	"""
+	if doc.is_return == 1:
+		return
 
-    if doc.update_stock == 0:
-        return
+	if doc.update_stock == 0:
+		return
 
-    if not frappe.db.get_single_value("CSF TZ Settings", "allow_batch_splitting"):
-        return
+	if not frappe.db.get_single_value("CSF TZ Settings", "allow_batch_splitting"):
+		return
 
-    if not doc.set_warehouse and doc.pos_profile:
-        doc.set_warehouse = frappe.db.get_value(
-            "POS Profile", doc.pos_profile, "warehouse"
-        )
+	if not doc.set_warehouse and doc.pos_profile:
+		doc.set_warehouse = frappe.db.get_value("POS Profile", doc.pos_profile, "warehouse")
 
-    if not doc.set_warehouse:
-        frappe.throw(_("<h4>Please set source warehouse first</h4>"))
+	if not doc.set_warehouse:
+		frappe.throw(_("<h4>Please set source warehouse first</h4>"))
 
-    warehouse = doc.set_warehouse
+	warehouse = doc.set_warehouse
 
-    source_doc = doc
+	source_doc = doc
 
-    fields_to_clear = [
-        "name",
-        "owner",
-        "creation",
-        "modified",
-        "modified_by",
-        "docstatus",
-        "parentfield",
-        "parenttype",
-        "parent",
-        "doctype",
-    ]
+	fields_to_clear = [
+		"name",
+		"owner",
+		"creation",
+		"modified",
+		"modified_by",
+		"docstatus",
+		"parentfield",
+		"parenttype",
+		"parent",
+		"doctype",
+	]
 
-    single_entries, dupl_entries = get_item_duplicates(source_doc)
-    doc.items = []
+	single_entries, dupl_entries = get_item_duplicates(source_doc)
+	doc.items = []
 
-    # allocate batches to items that were not duplicated
-    allocate_batches_for_single_items(doc, single_entries, warehouse, fields_to_clear)
+	# allocate batches to items that were not duplicated
+	allocate_batches_for_single_items(doc, single_entries, warehouse, fields_to_clear)
 
-    # allocate batches to a duplicated items
-    allocate_batch_for_duplicate_items(doc, dupl_entries, warehouse, fields_to_clear)
+	# allocate batches to a duplicated items
+	allocate_batch_for_duplicate_items(doc, dupl_entries, warehouse, fields_to_clear)
 
-    doc.set_warehouse = warehouse
+	doc.set_warehouse = warehouse
 
 
 def get_item_duplicates(source_doc):
-    single_items = []
-    duplicated_items = []
-    for item in source_doc.items:
-        item_count = [d.item_code for d in source_doc.items].count(item.item_code)
-        if cint(item_count) > 1:
-            duplicated_items.append(item)
-        else:
-            single_items.append(item)
+	single_items = []
+	duplicated_items = []
+	for item in source_doc.items:
+		item_count = [d.item_code for d in source_doc.items].count(item.item_code)
+		if cint(item_count) > 1:
+			duplicated_items.append(item)
+		else:
+			single_items.append(item)
 
-    return single_items, duplicated_items
+	return single_items, duplicated_items
 
 
 def get_batch_per_item(item_code, posting_date, warehouse):
-    """ "fetch batch details for item code and warehouse"""
+	""" "fetch batch details for item code and warehouse"""
 
-    sle = DocType("Stock Ledger Entry")
-    ba = DocType("Batch")
+	sle = DocType("Stock Ledger Entry")
+	ba = DocType("Batch")
 
-    batch_query = (
-        frappe.qb.from_(sle)
-        .inner_join(ba)
-        .on(sle.batch_no == ba.batch_id)
-        .select(
-            sle.batch_no,
-            sle.warehouse,
-            Sum(sle.actual_qty).as_("qty"),
-            ba.stock_uom,
-            ba.expiry_date,
-        )
-        .where(
-            (sle.item_code == item_code) &
-            (sle.is_cancelled == 0) &
-            (sle.batch_no != "") &
-            (ba.expiry_date >= posting_date)
-        )
-    )
+	batch_query = (
+		frappe.qb.from_(sle)
+		.inner_join(ba)
+		.on(sle.batch_no == ba.batch_id)
+		.select(
+			sle.batch_no,
+			sle.warehouse,
+			Sum(sle.actual_qty).as_("qty"),
+			ba.stock_uom,
+			ba.expiry_date,
+		)
+		.where(
+			(sle.item_code == item_code)
+			& (sle.is_cancelled == 0)
+			& (sle.batch_no != "")
+			& (ba.expiry_date >= posting_date)
+		)
+	)
 
-    if warehouse:
-        batch_query = batch_query.where(sle.warehouse == warehouse)
-    
-    batch_records = batch_query.run(as_dict=True)
-    
-    return batch_records
+	if warehouse:
+		batch_query = batch_query.where(sle.warehouse == warehouse)
+
+	batch_records = batch_query.run(as_dict=True)
+
+	return batch_records
 
 
 def allocate_batches_for_single_items(doc, items, warehouse, fields_to_clear):
-    """allocate batch quantities of single items before inserting of sales invoice"""
+	"""allocate batch quantities of single items before inserting of sales invoice"""
 
-    if not items:
-        return
+	if not items:
+		return
 
-    for row in items:
-        b_qty = 0
-        batches = get_batch_per_item(row.item_code, doc.posting_date, warehouse)
+	for row in items:
+		b_qty = 0
+		batches = get_batch_per_item(row.item_code, doc.posting_date, warehouse)
 
-        if batches:
-            for batch_obj in batches:
-                if batch_obj.qty == 0:
-                    continue
+		if batches:
+			for batch_obj in batches:
+				if batch_obj.qty == 0:
+					continue
 
-                if b_qty > 0 and b_qty >= row.stock_qty:
-                    continue
+				if b_qty > 0 and b_qty >= row.stock_qty:
+					continue
 
-                if row.conversion_factor > 1:
-                    b_qty = cint(
-                        single_items_allocate_qty_per_conversion_factor(
-                            doc, row, batch_obj, fields_to_clear, b_qty
-                        )
-                    )
+				if row.conversion_factor > 1:
+					b_qty = cint(
+						single_items_allocate_qty_per_conversion_factor(
+							doc, row, batch_obj, fields_to_clear, b_qty
+						)
+					)
 
-                else:
-                    if batch_obj.qty > 0 and b_qty < row.qty:
-                        remainder = row.qty - b_qty
-                        if remainder - batch_obj.qty >= 0:
-                            new_row = update_row_item(
-                                row, batch_obj, batch_obj.qty, fields_to_clear
-                            )
-                            b_qty = b_qty + batch_obj.qty
+				else:
+					if batch_obj.qty > 0 and b_qty < row.qty:
+						remainder = row.qty - b_qty
+						if remainder - batch_obj.qty >= 0:
+							new_row = update_row_item(row, batch_obj, batch_obj.qty, fields_to_clear)
+							b_qty = b_qty + batch_obj.qty
 
-                            doc.append("items", new_row)
+							doc.append("items", new_row)
 
-                        elif remainder - batch_obj.qty < 0:
-                            new_row = update_row_item(
-                                row, batch_obj, remainder, fields_to_clear
-                            )
-                            b_qty = b_qty + remainder
+						elif remainder - batch_obj.qty < 0:
+							new_row = update_row_item(row, batch_obj, remainder, fields_to_clear)
+							b_qty = b_qty + remainder
 
-                            doc.append("items", new_row)
+							doc.append("items", new_row)
 
-            if b_qty < row.qty:
-                frappe.throw(
-                    "Qty: {0} available for item: {1} on warehouse: {2} is not enough to complete requested Qty: {3}<br>\
-                Please update sales order: {4} to match the Qty available on stock".format(
-                        frappe.bold(b_qty),
-                        frappe.bold(row.item_code),
-                        frappe.bold(warehouse),
-                        frappe.bold(row.qty),
-                        frappe.bold(row.parent),
-                    )
-                )
+			if b_qty < row.qty:
+				frappe.throw(
+					f"Qty: {frappe.bold(b_qty)} available for item: {frappe.bold(row.item_code)} on warehouse: {frappe.bold(warehouse)} is not enough to complete requested Qty: {frappe.bold(row.qty)}<br>\
+                Please update sales order: {frappe.bold(row.parent)} to match the Qty available on stock"
+				)
 
-        else:
-            new_row = row.as_dict()
-            for fieldname in fields_to_clear:
-                new_row[fieldname] = None
-            doc.append("items", new_row)
+		else:
+			new_row = row.as_dict()
+			for fieldname in fields_to_clear:
+				new_row[fieldname] = None
+			doc.append("items", new_row)
 
 
-def allocate_batch_for_duplicate_items(
-    doc, duplicated_items, warehouse, fields_to_clear
-):
-    """Allocate batch quantities to duplicated items on before inserting sales invoice"""
+def allocate_batch_for_duplicate_items(doc, duplicated_items, warehouse, fields_to_clear):
+	"""Allocate batch quantities to duplicated items on before inserting sales invoice"""
 
-    if not duplicated_items:
-        return
+	if not duplicated_items:
+		return
 
-    unique_names = unique([d.item_code for d in duplicated_items])
+	unique_names = unique([d.item_code for d in duplicated_items])
 
-    for item_code in unique_names:
-        batches = get_batch_per_item(item_code, doc.posting_date, warehouse)
+	for item_code in unique_names:
+		batches = get_batch_per_item(item_code, doc.posting_date, warehouse)
 
-        if batches:
-            batch_used = []
-            qty_remain_per_batch_obj = {}
+		if batches:
+			batch_used = []
+			qty_remain_per_batch_obj = {}
 
-            for item in duplicated_items:
-                if item_code == item.item_code:
-                    b_qty = 0
-                    for batch_obj in batches:
-                        if batch_obj.qty == 0:
-                            continue
+			for item in duplicated_items:
+				if item_code == item.item_code:
+					b_qty = 0
+					for batch_obj in batches:
+						if batch_obj.qty == 0:
+							continue
 
-                        if b_qty > 0 and b_qty >= item.stock_qty:
-                            continue
+						if b_qty > 0 and b_qty >= item.stock_qty:
+							continue
 
-                        if batch_obj.batch_no not in batch_used:
-                            if item.conversion_factor > 1:
-                                b_qty, batch_used, qty_remain_per_batch_obj = (
-                                    duplicated_items_allocate_qty_per_conversion_factor(
-                                        doc,
-                                        item,
-                                        batch_obj,
-                                        fields_to_clear,
-                                        batch_used,
-                                        qty_remain_per_batch_obj,
-                                        b_qty,
-                                    )
-                                )
+						if batch_obj.batch_no not in batch_used:
+							if item.conversion_factor > 1:
+								b_qty, batch_used, qty_remain_per_batch_obj = (
+									duplicated_items_allocate_qty_per_conversion_factor(
+										doc,
+										item,
+										batch_obj,
+										fields_to_clear,
+										batch_used,
+										qty_remain_per_batch_obj,
+										b_qty,
+									)
+								)
 
-                            else:
-                                b_qty, batch_used, qty_remain_per_batch_obj = (
-                                    duplicated_items_allocate_qty_for_non_conversion_factor(
-                                        doc,
-                                        item,
-                                        batch_obj,
-                                        fields_to_clear,
-                                        batch_used,
-                                        qty_remain_per_batch_obj,
-                                        b_qty,
-                                    )
-                                )
+							else:
+								b_qty, batch_used, qty_remain_per_batch_obj = (
+									duplicated_items_allocate_qty_for_non_conversion_factor(
+										doc,
+										item,
+										batch_obj,
+										fields_to_clear,
+										batch_used,
+										qty_remain_per_batch_obj,
+										b_qty,
+									)
+								)
 
-        else:
-            for elem in duplicated_items:
-                if item_code == elem.item_code:
-                    new_row = elem.as_dict()
-                    for fieldname in fields_to_clear:
-                        new_row[fieldname] = None
-                    doc.append("items", new_row)
+		else:
+			for elem in duplicated_items:
+				if item_code == elem.item_code:
+					new_row = elem.as_dict()
+					for fieldname in fields_to_clear:
+						new_row[fieldname] = None
+					doc.append("items", new_row)
 
 
-def single_items_allocate_qty_per_conversion_factor(
-    doc, row, batch_obj, fields_to_clear, b_qty
-):
-    """ "Allocate batch quantities to single items if conversion factor is greater to one for a particular item(s)"""
+def single_items_allocate_qty_per_conversion_factor(doc, row, batch_obj, fields_to_clear, b_qty):
+	""" "Allocate batch quantities to single items if conversion factor is greater to one for a particular item(s)"""
 
-    if batch_obj.qty > 0 and b_qty < row.stock_qty:
-        remainder = row.stock_qty - b_qty
-        if remainder - batch_obj.qty >= 0:
-            new_qty = batch_obj.qty // row.conversion_factor
-            if new_qty > 0:
-                new_row = update_row_item(
-                    row, batch_obj, new_qty, fields_to_clear, row.conversion_factor
-                )
-                b_qty += new_qty * row.conversion_factor
-                doc.append("items", new_row)
-                return b_qty
-            else:
-                return b_qty
+	if batch_obj.qty > 0 and b_qty < row.stock_qty:
+		remainder = row.stock_qty - b_qty
+		if remainder - batch_obj.qty >= 0:
+			new_qty = batch_obj.qty // row.conversion_factor
+			if new_qty > 0:
+				new_row = update_row_item(row, batch_obj, new_qty, fields_to_clear, row.conversion_factor)
+				b_qty += new_qty * row.conversion_factor
+				doc.append("items", new_row)
+				return b_qty
+			else:
+				return b_qty
 
-        elif remainder - batch_obj.qty < 0:
-            new_qty = remainder // row.conversion_factor
-            if new_qty > 0:
-                new_row = update_row_item(
-                    row, batch_obj, new_qty, fields_to_clear, row.conversion_factor
-                )
-                b_qty += new_qty * row.conversion_factor
-                doc.append("items", new_row)
-                return b_qty
-            else:
-                return b_qty
+		elif remainder - batch_obj.qty < 0:
+			new_qty = remainder // row.conversion_factor
+			if new_qty > 0:
+				new_row = update_row_item(row, batch_obj, new_qty, fields_to_clear, row.conversion_factor)
+				b_qty += new_qty * row.conversion_factor
+				doc.append("items", new_row)
+				return b_qty
+			else:
+				return b_qty
 
 
 def duplicated_items_allocate_qty_per_conversion_factor(
-    doc, item, batch_obj, fields_to_clear, batch_used, qty_remain_per_batch_obj, b_qty
+	doc, item, batch_obj, fields_to_clear, batch_used, qty_remain_per_batch_obj, b_qty
 ):
-    """Allocate quantities to duplicated items if conversion factor is greater to one for a particular item(s)"""
+	"""Allocate quantities to duplicated items if conversion factor is greater to one for a particular item(s)"""
 
-    if batch_obj.qty > 0 and b_qty < item.stock_qty:
-        remainder = item.stock_qty - b_qty
-        if remainder - batch_obj.qty >= 0:
-            if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
-                new_qty = (
-                    qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                    // item.conversion_factor
-                )
-                if new_qty > 0:
-                    new_row = update_row_item(
-                        item,
-                        batch_obj,
-                        new_qty,
-                        fields_to_clear,
-                        item.conversion_factor,
-                    )
-                    b_qty += new_qty * item.conversion_factor
-                    doc.append("items", new_row)
-                    batch_used.append(batch_obj.batch_no)
-                    qty_remain_per_batch_obj.update(
-                        {"batch_no": "", "qty_remain_on_batch": ""}
-                    )
-                    return b_qty, batch_used, qty_remain_per_batch_obj
-                else:
-                    return b_qty, batch_used, qty_remain_per_batch_obj
+	if batch_obj.qty > 0 and b_qty < item.stock_qty:
+		remainder = item.stock_qty - b_qty
+		if remainder - batch_obj.qty >= 0:
+			if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
+				new_qty = qty_remain_per_batch_obj.get("qty_remain_on_batch") // item.conversion_factor
+				if new_qty > 0:
+					new_row = update_row_item(
+						item,
+						batch_obj,
+						new_qty,
+						fields_to_clear,
+						item.conversion_factor,
+					)
+					b_qty += new_qty * item.conversion_factor
+					doc.append("items", new_row)
+					batch_used.append(batch_obj.batch_no)
+					qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+					return b_qty, batch_used, qty_remain_per_batch_obj
+				else:
+					return b_qty, batch_used, qty_remain_per_batch_obj
 
-            else:
-                new_qty = batch_obj.qty // item.conversion_factor
-                if new_qty > 0:
-                    new_row = update_row_item(
-                        item,
-                        batch_obj,
-                        new_qty,
-                        fields_to_clear,
-                        item.conversion_factor,
-                    )
-                    b_qty += new_qty * item.conversion_factor
-                    doc.append("items", new_row)
-                    batch_used.append(batch_obj.batch_no)
-                    qty_remain_per_batch_obj.update(
-                        {"batch_no": "", "qty_remain_on_batch": ""}
-                    )
-                    return b_qty, batch_used, qty_remain_per_batch_obj
-                else:
-                    return b_qty, batch_used, qty_remain_per_batch_obj
+			else:
+				new_qty = batch_obj.qty // item.conversion_factor
+				if new_qty > 0:
+					new_row = update_row_item(
+						item,
+						batch_obj,
+						new_qty,
+						fields_to_clear,
+						item.conversion_factor,
+					)
+					b_qty += new_qty * item.conversion_factor
+					doc.append("items", new_row)
+					batch_used.append(batch_obj.batch_no)
+					qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+					return b_qty, batch_used, qty_remain_per_batch_obj
+				else:
+					return b_qty, batch_used, qty_remain_per_batch_obj
 
-        elif remainder - batch_obj.qty < 0:
-            if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
-                quantity = (
-                    remainder
-                    if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                    else qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                )
-                new_qty = quantity // item.conversion_factor
-                if new_qty > 0:
-                    new_row = update_row_item(
-                        item,
-                        batch_obj,
-                        new_qty,
-                        fields_to_clear,
-                        item.conversion_factor,
-                    )
-                    b_qty += new_qty * item.conversion_factor
-                    doc.append("items", new_row)
-                    if remainder > qty_remain_per_batch_obj.get("qty_remain_on_batch"):
-                        batch_used.append(batch_obj.batch_no)
-                        qty_remain_per_batch_obj.update(
-                            {"batch_no": "", "qty_remain_on_batch": ""}
-                        )
-                    else:
-                        qty_remain_per_batch_obj.update(
-                            {
-                                "batch_no": batch_obj.batch_no,
-                                "qty_remain_on_batch": batch_obj.qty
-                                - (new_qty * item.conversion_factor),
-                            }
-                        )
-                    return b_qty, batch_used, qty_remain_per_batch_obj
-                else:
-                    return b_qty, batch_used, qty_remain_per_batch_obj
+		elif remainder - batch_obj.qty < 0:
+			if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
+				quantity = (
+					remainder
+					if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
+					else qty_remain_per_batch_obj.get("qty_remain_on_batch")
+				)
+				new_qty = quantity // item.conversion_factor
+				if new_qty > 0:
+					new_row = update_row_item(
+						item,
+						batch_obj,
+						new_qty,
+						fields_to_clear,
+						item.conversion_factor,
+					)
+					b_qty += new_qty * item.conversion_factor
+					doc.append("items", new_row)
+					if remainder > qty_remain_per_batch_obj.get("qty_remain_on_batch"):
+						batch_used.append(batch_obj.batch_no)
+						qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+					else:
+						qty_remain_per_batch_obj.update(
+							{
+								"batch_no": batch_obj.batch_no,
+								"qty_remain_on_batch": batch_obj.qty - (new_qty * item.conversion_factor),
+							}
+						)
+					return b_qty, batch_used, qty_remain_per_batch_obj
+				else:
+					return b_qty, batch_used, qty_remain_per_batch_obj
 
-            else:
-                new_qty = remainder // item.conversion_factor
-                if new_qty > 0:
-                    new_row = update_row_item(
-                        item,
-                        batch_obj,
-                        new_qty,
-                        fields_to_clear,
-                        item.conversion_factor,
-                    )
-                    b_qty += new_qty * item.conversion_factor
-                    qty_remain_per_batch_obj.update(
-                        {
-                            "batch_no": batch_obj.batch_no,
-                            "qty_remain_on_batch": batch_obj.qty
-                            - (new_qty * item.conversion_factor),
-                        }
-                    )
-                    doc.append("items", new_row)
-                    return b_qty, batch_used, qty_remain_per_batch_obj
-                else:
-                    return b_qty, batch_used, qty_remain_per_batch_obj
+			else:
+				new_qty = remainder // item.conversion_factor
+				if new_qty > 0:
+					new_row = update_row_item(
+						item,
+						batch_obj,
+						new_qty,
+						fields_to_clear,
+						item.conversion_factor,
+					)
+					b_qty += new_qty * item.conversion_factor
+					qty_remain_per_batch_obj.update(
+						{
+							"batch_no": batch_obj.batch_no,
+							"qty_remain_on_batch": batch_obj.qty - (new_qty * item.conversion_factor),
+						}
+					)
+					doc.append("items", new_row)
+					return b_qty, batch_used, qty_remain_per_batch_obj
+				else:
+					return b_qty, batch_used, qty_remain_per_batch_obj
 
 
 def duplicated_items_allocate_qty_for_non_conversion_factor(
-    doc, item, batch_obj, fields_to_clear, batch_used, qty_remain_per_batch_obj, b_qty
+	doc, item, batch_obj, fields_to_clear, batch_used, qty_remain_per_batch_obj, b_qty
 ):
-    """Allocate batch quantities to duplicated items if conversion factor is equat to 1 for a particular item(s)"""
+	"""Allocate batch quantities to duplicated items if conversion factor is equat to 1 for a particular item(s)"""
 
-    if batch_obj.qty > 0 and b_qty < item.qty:
-        remainder = item.qty - b_qty
-        if remainder - batch_obj.qty >= 0:
-            if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
-                quantity = (
-                    remainder
-                    if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                    else qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                )
-                new_row = update_row_item(item, batch_obj, quantity, fields_to_clear)
-                b_qty += quantity
-                doc.append("items", new_row)
-                batch_used.append(batch_obj.batch_no)
-                qty_remain_per_batch_obj.update(
-                    {"batch_no": "", "qty_remain_on_batch": ""}
-                )
-                return b_qty, batch_used, qty_remain_per_batch_obj
-            else:
-                new_row = update_row_item(
-                    item, batch_obj, batch_obj.qty, fields_to_clear
-                )
-                b_qty += batch_obj.qty
-                doc.append("items", new_row)
-                batch_used.append(batch_obj.batch_no)
-                qty_remain_per_batch_obj.update(
-                    {"batch_no": "", "qty_remain_on_batch": ""}
-                )
-                return b_qty, batch_used, qty_remain_per_batch_obj
+	if batch_obj.qty > 0 and b_qty < item.qty:
+		remainder = item.qty - b_qty
+		if remainder - batch_obj.qty >= 0:
+			if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
+				quantity = (
+					remainder
+					if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
+					else qty_remain_per_batch_obj.get("qty_remain_on_batch")
+				)
+				new_row = update_row_item(item, batch_obj, quantity, fields_to_clear)
+				b_qty += quantity
+				doc.append("items", new_row)
+				batch_used.append(batch_obj.batch_no)
+				qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+				return b_qty, batch_used, qty_remain_per_batch_obj
+			else:
+				new_row = update_row_item(item, batch_obj, batch_obj.qty, fields_to_clear)
+				b_qty += batch_obj.qty
+				doc.append("items", new_row)
+				batch_used.append(batch_obj.batch_no)
+				qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+				return b_qty, batch_used, qty_remain_per_batch_obj
 
-        elif remainder - batch_obj.qty < 0:
-            if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
-                quantity = (
-                    remainder
-                    if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                    else qty_remain_per_batch_obj.get("qty_remain_on_batch")
-                )
-                new_row = update_row_item(item, batch_obj, quantity, fields_to_clear)
-                b_qty += quantity
-                doc.append("items", new_row)
-                if remainder > qty_remain_per_batch_obj.get("qty_remain_on_batch"):
-                    batch_used.append(batch_obj.batch_no)
-                    qty_remain_per_batch_obj.update(
-                        {"batch_no": "", "qty_remain_on_batch": ""}
-                    )
-                else:
-                    qty_remain_per_batch_obj.update(
-                        {
-                            "batch_no": batch_obj.batch_no,
-                            "qty_remain_on_batch": batch_obj.qty - remainder,
-                        }
-                    )
-                return b_qty, batch_used, qty_remain_per_batch_obj
+		elif remainder - batch_obj.qty < 0:
+			if batch_obj.batch_no == qty_remain_per_batch_obj.get("batch_no"):
+				quantity = (
+					remainder
+					if remainder <= qty_remain_per_batch_obj.get("qty_remain_on_batch")
+					else qty_remain_per_batch_obj.get("qty_remain_on_batch")
+				)
+				new_row = update_row_item(item, batch_obj, quantity, fields_to_clear)
+				b_qty += quantity
+				doc.append("items", new_row)
+				if remainder > qty_remain_per_batch_obj.get("qty_remain_on_batch"):
+					batch_used.append(batch_obj.batch_no)
+					qty_remain_per_batch_obj.update({"batch_no": "", "qty_remain_on_batch": ""})
+				else:
+					qty_remain_per_batch_obj.update(
+						{
+							"batch_no": batch_obj.batch_no,
+							"qty_remain_on_batch": batch_obj.qty - remainder,
+						}
+					)
+				return b_qty, batch_used, qty_remain_per_batch_obj
 
-            else:
-                new_row = update_row_item(item, batch_obj, remainder, fields_to_clear)
-                b_qty += remainder
-                qty_remain_per_batch_obj.update(
-                    {
-                        "batch_no": batch_obj.batch_no,
-                        "qty_remain_on_batch": batch_obj.qty - remainder,
-                    }
-                )
-                doc.append("items", new_row)
-                return b_qty, batch_used, qty_remain_per_batch_obj
+			else:
+				new_row = update_row_item(item, batch_obj, remainder, fields_to_clear)
+				b_qty += remainder
+				qty_remain_per_batch_obj.update(
+					{
+						"batch_no": batch_obj.batch_no,
+						"qty_remain_on_batch": batch_obj.qty - remainder,
+					}
+				)
+				doc.append("items", new_row)
+				return b_qty, batch_used, qty_remain_per_batch_obj
 
 
 def update_row_item(row, batch_obj, quantity, fields_to_clear, conversion_factor=None):
-    """Update and clear values to an item before inserting into child table of sales invoice"""
+	"""Update and clear values to an item before inserting into child table of sales invoice"""
 
-    new_row = row.as_dict()
+	new_row = row.as_dict()
 
-    for fieldname in fields_to_clear:
-        new_row[fieldname] = None
+	for fieldname in fields_to_clear:
+		new_row[fieldname] = None
 
-    new_row.update(
-        {
-            "qty": quantity,
-            "stock_qty": quantity * (conversion_factor if conversion_factor else 1),
-            "warehouse": batch_obj.warehouse,
-            "batch_no": batch_obj.batch_no,
-        }
-    )
+	new_row.update(
+		{
+			"qty": quantity,
+			"stock_qty": quantity * (conversion_factor if conversion_factor else 1),
+			"warehouse": batch_obj.warehouse,
+			"batch_no": batch_obj.batch_no,
+		}
+	)
 
-    return new_row
+	return new_row
 
 
 def validate_grand_total(doc, method):
-    """Validate grand total of sales invoice if 'validate_grand_total_vs_payment_amount_on_sales_invoice' is checked in CSF TZ Settings"""
-    if not frappe.db.get_single_value(
-        "CSF TZ Settings", "validate_grand_total_vs_payment_amount_on_sales_invoice"
-    ):
-        return
+	"""Validate grand total of sales invoice if 'validate_grand_total_vs_payment_amount_on_sales_invoice' is checked in CSF TZ Settings"""
+	if not frappe.db.get_single_value(
+		"CSF TZ Settings", "validate_grand_total_vs_payment_amount_on_sales_invoice"
+	):
+		return
 
-    if len(doc.items) > 0:
-        total_amount = doc.rounded_total or doc.grand_total
+	if len(doc.items) > 0:
+		total_amount = doc.rounded_total or doc.grand_total
 
-        payment_amount = sum([payment.amount for payment in doc.payments])
+		payment_amount = sum([payment.amount for payment in doc.payments])
 
-        if payment_amount and total_amount != payment_amount:
-            frappe.throw(
-                _(
-                    f"<h4 class='text-center' style='background-color: #D3D3D3; font-weight: bold; font-size: 14px'>\
+		if payment_amount and total_amount != payment_amount:
+			frappe.throw(
+				_(
+					f"<h4 class='text-center' style='background-color: #D3D3D3; font-weight: bold; font-size: 14px'>\
                 Total Amount for all Items: <strong>{total_amount}</strong> must be equal to Paid Amount: <strong>{payment_amount}</strong>,<br>\
                 Please check before submitting this invoice </h4>"
-                )
-            )
+				)
+			)
 
 
 @frappe.whitelist()
 def account_exists(account_name):
-    return frappe.db.exists("Account", {"account_name": account_name})
+	return frappe.db.exists("Account", {"account_name": account_name})
 
 
 @frappe.whitelist()
 def auto_create_account(abbr):
-    account_data = [
-        {
-            "account_name": "Payroll Liabilities",
-            "is_group": 1,
-            "parent_account": f"Current Liabilities - {abbr}",
-        },
-        {"account_name": "NSSF Payable", "parent_account": f"Payroll Liabilities - {abbr}"},
-        {"account_name": "NHIF Payable", "parent_account": f"Payroll Liabilities - {abbr}"},
-        {"account_name": "PAYE Payable", "parent_account": f"Payroll Liabilities - {abbr}"},
-        {"account_name": "SDL Payable", "parent_account": f"Payroll Liabilities - {abbr}"},
-        {"account_name": "WCF Payable", "parent_account": f"Payroll Liabilities - {abbr}"},
-        {
-            "account_name": "HESLB Payable",
-            "parent_account": f"Payroll Liabilities - {abbr}",
-        },
-        {
-            "account_name": "Salaries and Wages",
-            "is_group": 1,
-            "parent_account": f"Indirect Expenses - {abbr}",
-        },
-        {
-            "account_name": "Salary Expense",
-            "account_type": "Expense Account",
-            "parent_account": f"Salaries and Wages - {abbr}",
-        },
-        {
-            "account_name": "NSSF Expense",
-            "account_type": "Expense Account",
-            "parent_account": f"Salaries and Wages - {abbr}",
-        },
-        {
-            "account_name": "NHIF Expense",
-            "account_type": "Expense Account",
-            "parent_account": f"Salaries and Wages - {abbr}",
-        },
-        {
-            "account_name": "SDL Expense",
-            "account_type": "Expense Account",
-            "parent_account": f"Salaries and Wages - {abbr}",
-        },
-        {
-            "account_name": "WCF Expense",
-            "account_type": "Expense Account",
-            "parent_account": f"Salaries and Wages - {abbr}",
-        },
-        {
-            "account_name": "OUTPUT VAT - 18% ",
-            "account_type": "Tax",
-            "parent_account": f"Duties and Taxes - {abbr}",
-        },
-        {
-            "account_name": "INPUT VAT - 18%  ",
-            "account_type": "Tax",
-            "parent_account": f"Tax Assets - {abbr}",
-        },
-        {
-            "account_name": "VAT Payable Account ",
-            "account_type": "Tax",
-            "parent_account": f"Duties and Taxes - {abbr}",
-        },
-        {
-            "account_name": "Taxes - Expenses",
-            "account_type": "Expense Account",
-            "parent_account": f"Direct Expenses - {abbr}",
-        },
-    ]
+	account_data = [
+		{
+			"account_name": "Payroll Liabilities",
+			"is_group": 1,
+			"parent_account": f"Current Liabilities - {abbr}",
+		},
+		{
+			"account_name": "NSSF Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "NHIF Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "PAYE Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "SDL Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "WCF Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "HESLB Payable",
+			"parent_account": f"Payroll Liabilities - {abbr}",
+		},
+		{
+			"account_name": "Salaries and Wages",
+			"is_group": 1,
+			"parent_account": f"Indirect Expenses - {abbr}",
+		},
+		{
+			"account_name": "Salary Expense",
+			"account_type": "Expense Account",
+			"parent_account": f"Salaries and Wages - {abbr}",
+		},
+		{
+			"account_name": "NSSF Expense",
+			"account_type": "Expense Account",
+			"parent_account": f"Salaries and Wages - {abbr}",
+		},
+		{
+			"account_name": "NHIF Expense",
+			"account_type": "Expense Account",
+			"parent_account": f"Salaries and Wages - {abbr}",
+		},
+		{
+			"account_name": "SDL Expense",
+			"account_type": "Expense Account",
+			"parent_account": f"Salaries and Wages - {abbr}",
+		},
+		{
+			"account_name": "WCF Expense",
+			"account_type": "Expense Account",
+			"parent_account": f"Salaries and Wages - {abbr}",
+		},
+		{
+			"account_name": "OUTPUT VAT - 18% ",
+			"account_type": "Tax",
+			"parent_account": f"Duties and Taxes - {abbr}",
+		},
+		{
+			"account_name": "INPUT VAT - 18%  ",
+			"account_type": "Tax",
+			"parent_account": f"Tax Assets - {abbr}",
+		},
+		{
+			"account_name": "VAT Payable Account ",
+			"account_type": "Tax",
+			"parent_account": f"Duties and Taxes - {abbr}",
+		},
+		{
+			"account_name": "Taxes - Expenses",
+			"account_type": "Expense Account",
+			"parent_account": f"Direct Expenses - {abbr}",
+		},
+	]
 
-    for account_info in account_data:
-        account_name = account_info.get("account_name")
+	for account_info in account_data:
+		account_name = account_info.get("account_name")
 
-        if not account_exists(account_name):
-            account_doc = frappe.new_doc("Account")
-            account_doc.account_name = account_info.get("account_name")
-            account_doc.is_group = account_info.get("is_group")
-            account_doc.account_type = account_info.get("account_type")
-            account_doc.parent_account = account_info.get("parent_account")
-            account_doc.insert(ignore_permissions=True)
-        else:
-            continue
-    return "Account added successfully."
+		if not account_exists(account_name):
+			account_doc = frappe.new_doc("Account")
+			account_doc.account_name = account_info.get("account_name")
+			account_doc.is_group = account_info.get("is_group")
+			account_doc.account_type = account_info.get("account_type")
+			account_doc.parent_account = account_info.get("parent_account")
+			account_doc.insert(ignore_permissions=True)
+		else:
+			continue
+	return "Account added successfully."
 
 
 @frappe.whitelist()
 def create_item_tax_template(abbr):
-    item_tax_template_list = [
-        {"title": f"Tanzania Exempted Sales", "tax_type": f"OUTPUT VAT - 18% - {abbr}"},
-        {
-            "title": f"Tanzania Exempted Purchases",
-            "tax_type": f"INPUT VAT - 18% - {abbr}",
-        },
-        {"title": f"Tanzania VAT 18%", "tax_type": f"OUTPUT VAT - 18% - {abbr}"},
-        {
-            "title": f"Tanzania Purchase VAT 18%",
-            "tax_type": f"INPUT VAT - 18% - {abbr}",
-        },
-        {
-            "title": f"Zanzibar VAT Exempted",
-            "tax_type": f"VAT Payable Account - {abbr}",
-        },
-        {"title": f"Zanzibar VAT Tax 0%", "tax_type": f"VAT Payable Account - {abbr}"},
-    ]
+	item_tax_template_list = [
+		{"title": "Tanzania Exempted Sales", "tax_type": f"OUTPUT VAT - 18% - {abbr}"},
+		{
+			"title": "Tanzania Exempted Purchases",
+			"tax_type": f"INPUT VAT - 18% - {abbr}",
+		},
+		{"title": "Tanzania VAT 18%", "tax_type": f"OUTPUT VAT - 18% - {abbr}"},
+		{
+			"title": "Tanzania Purchase VAT 18%",
+			"tax_type": f"INPUT VAT - 18% - {abbr}",
+		},
+		{
+			"title": "Zanzibar VAT Exempted",
+			"tax_type": f"VAT Payable Account - {abbr}",
+		},
+		{"title": "Zanzibar VAT Tax 0%", "tax_type": f"VAT Payable Account - {abbr}"},
+	]
 
-    for item_tax_template_info in item_tax_template_list:
-        existing_template = frappe.db.exists("Item Tax Template", {"title": item_tax_template_info.get("title")},)
-        
-        if not existing_template:
-            item_tax_template_doc = frappe.new_doc("Item Tax Template")
-            item_tax_template_doc.title = item_tax_template_info.get("title")
-            item_tax_template_doc.append(
-                "taxes",
-                {"tax_type": item_tax_template_info.get("tax_type"), "tax_rate": ""},
-            )
-            item_tax_template_doc.insert()
-        else:
-            continue
+	for item_tax_template_info in item_tax_template_list:
+		existing_template = frappe.db.exists(
+			"Item Tax Template",
+			{"title": item_tax_template_info.get("title")},
+		)
 
-    return "Tax Template added successfully."
+		if not existing_template:
+			item_tax_template_doc = frappe.new_doc("Item Tax Template")
+			item_tax_template_doc.title = item_tax_template_info.get("title")
+			item_tax_template_doc.append(
+				"taxes",
+				{"tax_type": item_tax_template_info.get("tax_type"), "tax_rate": ""},
+			)
+			item_tax_template_doc.insert()
+		else:
+			continue
+
+	return "Tax Template added successfully."
 
 
 @frappe.whitelist()
 def create_tax_category():
-    tax_category_list = ["Sales", "Non Taxable", "Purchase"]
+	tax_category_list = ["Sales", "Non Taxable", "Purchase"]
 
-    for tax_category_name in tax_category_list:
-        existing_tax_category = frappe.db.exists("Tax Category",{"title": tax_category_name},)
-        
-        if not existing_tax_category:
-            tax_category_doc = frappe.new_doc("Tax Category")
-            tax_category_doc.name = tax_category_name
-            tax_category_doc.title = tax_category_name
-            tax_category_doc.insert(ignore_permissions=True)
-            tax_category_doc.save()
-        else:
-            continue
+	for tax_category_name in tax_category_list:
+		existing_tax_category = frappe.db.exists(
+			"Tax Category",
+			{"title": tax_category_name},
+		)
 
-    return "Tax Categories added successfully."
+		if not existing_tax_category:
+			tax_category_doc = frappe.new_doc("Tax Category")
+			tax_category_doc.name = tax_category_name
+			tax_category_doc.title = tax_category_name
+			tax_category_doc.insert(ignore_permissions=True)
+			tax_category_doc.save()
+		else:
+			continue
+
+	return "Tax Categories added successfully."
 
 
 @frappe.whitelist()
 def linking_tax_template(doctype, default_tax_template, abbr):
-    item_list = frappe.db.get_all("Item", filters=default_tax_template)
+	item_list = frappe.db.get_all("Item", filters=default_tax_template)
 
-    for item in item_list:
-        item_doc = frappe.get_doc("Item", item.name, fields=["default_tax_template"])
-        if item_doc.default_tax_template == f"Tanzania VAT 18% - {abbr}":
+	for item in item_list:
+		item_doc = frappe.get_doc("Item", item.name, fields=["default_tax_template"])
+		if item_doc.default_tax_template == f"Tanzania VAT 18% - {abbr}":
+			item_doc.append(
+				"taxes",
+				{
+					"item_tax_template": f"Tanzania VAT 18% - {abbr}",
+					"tax_category": "Sales",
+				},
+			)
+			item_doc.append(
+				"taxes",
+				{
+					"item_tax_template": f"Tanzania Purchase VAT 18% - {abbr}",
+					"tax_category": "Purchase",
+				},
+			)
+		elif item_doc.default_tax_template == f"Tanzania Exempted Sales - {abbr}":
+			item_doc.append(
+				"taxes",
+				{
+					"item_tax_template": f"Tanzania VAT 18% - {abbr}",
+					"tax_category": "Sales",
+				},
+			)
+			item_doc.append(
+				"taxes",
+				{
+					"item_tax_template": f"Tanzania Purchase VAT 18% - {abbr}",
+					"tax_category": "Purchase",
+				},
+			)
+		item_doc.save()
 
-            item_doc.append(
-                "taxes",
-                {
-                    "item_tax_template": f"Tanzania VAT 18% - {abbr}",
-                    "tax_category": "Sales",
-                },
-            )
-            item_doc.append(
-                "taxes",
-                {
-                    "item_tax_template": f"Tanzania Purchase VAT 18% - {abbr}",
-                    "tax_category": "Purchase",
-                },
-            )
-        elif item_doc.default_tax_template == f"Tanzania Exempted Sales - {abbr}":
-
-            item_doc.append(
-                "taxes",
-                {
-                    "item_tax_template": f"Tanzania VAT 18% - {abbr}",
-                    "tax_category": "Sales",
-                },
-            )
-            item_doc.append(
-                "taxes",
-                {
-                    "item_tax_template": f"Tanzania Purchase VAT 18% - {abbr}",
-                    "tax_category": "Purchase",
-                },
-            )
-        item_doc.save()
-
-    return "Item Tax Template Linked successfully."
+	return "Item Tax Template Linked successfully."
 
 
 @frappe.whitelist()
-def make_salary_components_and_structure(abbr ):
+def make_salary_components_and_structure(abbr):
+	salary_components_earnings_list = [
+		{
+			"salary_component": "Basic",
+			"abbr": "Basic",
+			"depends_on_payment_days": 1,
+			"is_tax_applicable": 1,
+			"amount_based_on_formula": 1,
+			"formula": "base",
+		},
+		{
+			"salary_component": "WCF Expenses",
+			"abbr": "WCFExp",
+			"do_not_include_in_total": 1,
+			"is_tax_applicable": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.005",
+		},
+		{
+			"salary_component": "NSSF Expenses",
+			"abbr": "NSSFExp",
+			"do_not_include_in_total": 1,
+			"is_tax_applicable": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.1",
+		},
+		{
+			"salary_component": "SDL Expenses",
+			"abbr": "SDLExp",
+			"do_not_include_in_total": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.035",
+		},
+	]
+	salary_components_deduction_list = [
+		{
+			"salary_component": "NSSF Employee",
+			"abbr": "NSSFEmp",
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.1",
+		},
+		{
+			"salary_component": "NSSF Employer",
+			"abbr": "NSSF",
+			"do_not_include_in_total": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.1",
+		},
+		{
+			"salary_component": "NHIF Employee",
+			"abbr": "NHIF",
+			"amount_based_on_formula": 1,
+			"formula": "base * 0.03",
+		},
+		{
+			"salary_component": "HESLB",
+			"abbr": "HESLB",
+			"condition": "heslb_f4_index_number",
+			"amount_based_on_formula": 1,
+			"formula": "base * 0.15",
+		},
+		{
+			"salary_component": "WCF",
+			"abbr": "WCF",
+			"do_not_include_in_total": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.005",
+		},
+		{
+			"salary_component": "SDL",
+			"abbr": "SDL",
+			"do_not_include_in_total": 1,
+			"amount_based_on_formula": 1,
+			"formula": "gross_pay * 0.035",
+		},
+		{
+			"salary_component": "PAYE Payable",
+			"abbr": "PAYE",
+			"do_not_include_in_total": 1,
+			"condition": "((gross_pay - NSSFEmp) >= 270000) and ((gross_pay - NSSFEmp) < 520000)",
+			"amount_based_on_formula": 1,
+			"formula": "(((gross_pay - NSSFEmp)) - 270000) * 0.08",
+		},
+		{
+			"salary_component": "PAYE Payable",
+			"abbr": "PAYE",
+			"codition": "((gross_pay - NSSFEmp) >= 760000) and ((gross_pay - NSSFEmp) < 1000000)",
+			"amount_based_on_formula": 1,
+			"formula": "(((gross_pay - NSSFEmp) - 760000) * 0.25) + 68000",
+		},
+		{
+			"salary_component": "PAYE Payable",
+			"abbr": "PAYE",
+			"codition": "((gross_pay - NSSFEmp) >= 760000) and ((gross_pay - NSSFEmp) < 1000000)",
+			"amount_based_on_formula": 1,
+			"formula": "(((gross_pay - NSSFEmp) - 760000) * 0.25) + 68000",
+		},
+		{
+			"salary_component": "PAYE Payable",
+			"abbr": "PAYE",
+			"codition": "((gross_pay - NSSFEmp) >= 1000000)",
+			"amount_based_on_formula": 1,
+			"formula": "(((gross_pay - NSSFEmp) - 1000000) * 0.3) + 128000",
+		},
+	]
+	salary_components_list = [
+		{
+			"salary_component": "WCF Expenses",
+			"type": "Earning",
+			"abbr": "WCFExp",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"WCF Expense - {abbr}",
+		},
+		{
+			"salary_component": "NSSF Expenses",
+			"type": "Earning",
+			"abbr": "NSSFExp",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"NSSF Expense - {abbr}",
+		},
+		{
+			"salary_component": "SDL Expenses",
+			"type": "Earning",
+			"abbr": "SDLExp",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"SDL Expense - {abbr}",
+		},
+		{
+			"salary_component": "NSSF Employee",
+			"type": "Deduction",
+			"abbr": "NSSFEmp",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"NSSF Payable - {abbr}",
+		},
+		{
+			"salary_component": "NSSF Employer",
+			"type": "Deduction",
+			"abbr": "NSSF",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"NSSF Payable - {abbr}",
+		},
+		{
+			"salary_component": "NHIF Employee",
+			"abbr": "NHIF",
+			"type": "Deduction",
+			"remove_if_zero_valued": 1,
+			"account": f"NHIF Payable - {abbr}",
+		},
+		{
+			"salary_component": "HESLB",
+			"abbr": "HESLB",
+			"type": "Deduction",
+			"remove_if_zero_valued": 1,
+			"account": f"HESLB Payable - {abbr}",
+		},
+		{
+			"salary_component": "WCF",
+			"abbr": "WCF",
+			"type": "Deduction",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"WCF Payable - {abbr}",
+		},
+		{
+			"salary_component": "SDL",
+			"abbr": "SDL",
+			"type": "Deduction",
+			"do_not_include_in_total": 1,
+			"remove_if_zero_valued": 1,
+			"account": f"SDL Payable - {abbr}",
+		},
+		{
+			"salary_component": "PAYE Payable",
+			"abbr": "PAYE",
+			"type": "Deduction",
+			"remove_if_zero_valued": 1,
+			"account": f"PAYE Payable - {abbr}",
+		},
+	]
+	# frappe.throw(str(salary_components_list))
 
-    salary_components_earnings_list = [
-        {
-            "salary_component": "Basic",
-            "abbr": "Basic",
-            "depends_on_payment_days": 1,
-            "is_tax_applicable": 1,
-            "amount_based_on_formula": 1,
-            "formula": "base",
-        },
-        {
-            "salary_component": "WCF Expenses",
-            "abbr": "WCFExp",
-            "do_not_include_in_total": 1,
-            "is_tax_applicable": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.005",
-        },
-        {
-            "salary_component": "NSSF Expenses",
-            "abbr": "NSSFExp",
-            "do_not_include_in_total": 1,
-            "is_tax_applicable": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.1",
-        },
-        {
-            "salary_component": "SDL Expenses",
-            "abbr": "SDLExp",
-            "do_not_include_in_total": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.035",
-        },
-    ]
-    salary_components_deduction_list = [
-        {
-            "salary_component": "NSSF Employee",
-            "abbr": "NSSFEmp",
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.1",
-        },
-        {
-            "salary_component": "NSSF Employer",
-            "abbr": "NSSF",
-            "do_not_include_in_total": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.1",
-        },
-        {
-            "salary_component": "NHIF Employee",
-            "abbr": "NHIF",
-            "amount_based_on_formula": 1,
-            "formula": "base * 0.03",
-        },
-        {
-            "salary_component": "HESLB",
-            "abbr": "HESLB",
-            "condition": "heslb_f4_index_number",
-            "amount_based_on_formula": 1,
-            "formula": "base * 0.15",
-        },
-        {
-            "salary_component": "WCF",
-            "abbr": "WCF",
-            "do_not_include_in_total": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.005",
-        },
-        {
-            "salary_component": "SDL",
-            "abbr": "SDL",
-            "do_not_include_in_total": 1,
-            "amount_based_on_formula": 1,
-            "formula": "gross_pay * 0.035",
-        },
-        {
-            "salary_component": "PAYE Payable",
-            "abbr": "PAYE",
-            "do_not_include_in_total": 1,
-            "condition": "((gross_pay - NSSFEmp) >= 270000) and ((gross_pay - NSSFEmp) < 520000)",
-            "amount_based_on_formula": 1,
-            "formula": "(((gross_pay - NSSFEmp)) - 270000) * 0.08",
-        },
-        {
-            "salary_component": "PAYE Payable",
-            "abbr": "PAYE",
-            "codition": "((gross_pay - NSSFEmp) >= 760000) and ((gross_pay - NSSFEmp) < 1000000)",
-            "amount_based_on_formula": 1,
-            "formula": "(((gross_pay - NSSFEmp) - 760000) * 0.25) + 68000",
-        },
-        {
-            "salary_component": "PAYE Payable",
-            "abbr": "PAYE",
-            "codition": "((gross_pay - NSSFEmp) >= 760000) and ((gross_pay - NSSFEmp) < 1000000)",
-            "amount_based_on_formula": 1,
-            "formula": "(((gross_pay - NSSFEmp) - 760000) * 0.25) + 68000",
-        },
-        {
-            "salary_component": "PAYE Payable",
-            "abbr": "PAYE",
-            "codition": "((gross_pay - NSSFEmp) >= 1000000)",
-            "amount_based_on_formula": 1,
-            "formula": "(((gross_pay - NSSFEmp) - 1000000) * 0.3) + 128000",
-        },
-    ]
-    salary_components_list = [
-        {
-            "salary_component": "WCF Expenses",
-            "type": "Earning",
-            "abbr": "WCFExp",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"WCF Expense - {abbr}",
-        },
-        {
-            "salary_component": "NSSF Expenses",
-            "type": "Earning",
-            "abbr": "NSSFExp",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"NSSF Expense - {abbr}",
-        },
-        {
-            "salary_component": "SDL Expenses",
-            "type": "Earning",
-            "abbr": "SDLExp",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"SDL Expense - {abbr}",
-        },
-        {
-            "salary_component": "NSSF Employee",
-            "type": "Deduction",
-            "abbr": "NSSFEmp",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"NSSF Payable - {abbr}",
-        },
-        {
-            "salary_component": "NSSF Employer",
-            "type": "Deduction",
-            "abbr": "NSSF",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"NSSF Payable - {abbr}",
-        },
-        {
-            "salary_component": "NHIF Employee",
-            "abbr": "NHIF",
-            "type": "Deduction",
-            "abbr": "NHIF",
-            "remove_if_zero_valued": 1,
-            "account": f"NHIF Payable - {abbr}",
-        },
-        {
-            "salary_component": "HESLB",
-            "abbr": "HESLB",
-            "type": "Deduction",
-            "remove_if_zero_valued": 1,
-            "account": f"HESLB Payable - {abbr}",
-        },
-        {
-            "salary_component": "WCF",
-            "abbr": "WCF",
-            "type": "Deduction",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"WCF Payable - {abbr}",
-        },
-        {
-            "salary_component": "SDL",
-            "abbr": "SDL",
-            "type": "Deduction",
-            "do_not_include_in_total": 1,
-            "remove_if_zero_valued": 1,
-            "account": f"SDL Payable - {abbr}",
-        },
-        {
-            "salary_component": "PAYE Payable",
-            "abbr": "PAYE",
-            "type": "Deduction",
-            "remove_if_zero_valued": 1,
-            "account": f"PAYE Payable - {abbr}",
-        },
-    ]
-    # frappe.throw(str(salary_components_list))
+	for salary_component in salary_components_list:
+		existing_salary_component = frappe.db.exists(
+			"Salary Component",
+			{"salary_component": salary_component.get("salary_component")},
+		)
 
-    for salary_component in salary_components_list:
-        existing_salary_component = frappe.db.exists("Salary Component",{"salary_component": salary_component.get("salary_component")},)
-        
-        if not existing_salary_component:
-            salary_component_doc = frappe.new_doc("Salary Component")
-            salary_component_doc.salary_component = salary_component.get("salary_component")
-            salary_component_doc.type = salary_component.get("type")
-            salary_component_doc.abbr = salary_component.get("abbr")
-            salary_component_doc.remove_if_zero_valued = salary_component.get(
-                "remove_if_zero_valued"
-            )
-            salary_component_doc.do_not_include_in_total = salary_component.get(
-                "do_not_include_in_total"
-            )
-            salary_component_doc.append(
-                "accounts", {"account": salary_component.get("account")}
-            )
-            salary_component_doc.insert()
-        else:
-            continue
+		if not existing_salary_component:
+			salary_component_doc = frappe.new_doc("Salary Component")
+			salary_component_doc.salary_component = salary_component.get("salary_component")
+			salary_component_doc.type = salary_component.get("type")
+			salary_component_doc.abbr = salary_component.get("abbr")
+			salary_component_doc.remove_if_zero_valued = salary_component.get("remove_if_zero_valued")
+			salary_component_doc.do_not_include_in_total = salary_component.get("do_not_include_in_total")
+			salary_component_doc.append("accounts", {"account": salary_component.get("account")})
+			salary_component_doc.insert()
+		else:
+			continue
 
-    salary_structure_doc_name = "Tanzania Mainland"
-    existing_salary_strusture = frappe.db.exists("Salary Structure",{"name": salary_structure_doc_name})
-    
-    if not existing_salary_strusture:
-        salary_structure_doc = frappe.new_doc("Salary Structure")
-        salary_structure_doc.name = salary_structure_doc_name
-        salary_structure_doc.is_active = "Yes"
-        for salary_components in salary_components_earnings_list:
-            salary_structure_doc.append(
-                "earnings",
-                {
-                    "salary_component": salary_components.get("salary_component"),
-                    "depends_on_payment_days": salary_components.get(
-                        "depends_on_payment_days"
-                    ),
-                    "is_tax_applicable": salary_components.get("is_tax_applicable"),
-                    "amount_based_on_formula": salary_components.get(
-                        "amount_based_on_formula"
-                    ),
-                    "do_not_include_in_total": salary_components.get(
-                        "do_not_include_in_total"
-                    ),
-                    "formula": salary_components.get("formula"),
-                },
-            )
-        for salary_components in salary_components_deduction_list:
-            salary_structure_doc.append(
-                "deductions",
-                {
-                    "salary_component": salary_components.get("salary_component"),
-                    "depends_on_payment_days": salary_components.get(
-                        "depends_on_payment_days"
-                    ),
-                    "is_tax_applicable": salary_components.get("is_tax_applicable"),
-                    "amount_based_on_formula": salary_components.get(
-                        "amount_based_on_formula"
-                    ),
-                    "do_not_include_in_total": salary_components.get(
-                        "do_not_include_in_total"
-                    ),
-                    "formula": salary_components.get("formula"),
-                },
-            )
-        salary_structure_doc.insert(ignore_permissions=True)
-        salary_structure_doc.submit()
-        return "Salary Components and Structure are created successfully."
-    else:
-        frappe.msgprint('Salary Components and Structure are already created.')
+	salary_structure_doc_name = "Tanzania Mainland"
+	existing_salary_strusture = frappe.db.exists("Salary Structure", {"name": salary_structure_doc_name})
+
+	if not existing_salary_strusture:
+		salary_structure_doc = frappe.new_doc("Salary Structure")
+		salary_structure_doc.name = salary_structure_doc_name
+		salary_structure_doc.is_active = "Yes"
+		for salary_components in salary_components_earnings_list:
+			salary_structure_doc.append(
+				"earnings",
+				{
+					"salary_component": salary_components.get("salary_component"),
+					"depends_on_payment_days": salary_components.get("depends_on_payment_days"),
+					"is_tax_applicable": salary_components.get("is_tax_applicable"),
+					"amount_based_on_formula": salary_components.get("amount_based_on_formula"),
+					"do_not_include_in_total": salary_components.get("do_not_include_in_total"),
+					"formula": salary_components.get("formula"),
+				},
+			)
+		for salary_components in salary_components_deduction_list:
+			salary_structure_doc.append(
+				"deductions",
+				{
+					"salary_component": salary_components.get("salary_component"),
+					"depends_on_payment_days": salary_components.get("depends_on_payment_days"),
+					"is_tax_applicable": salary_components.get("is_tax_applicable"),
+					"amount_based_on_formula": salary_components.get("amount_based_on_formula"),
+					"do_not_include_in_total": salary_components.get("do_not_include_in_total"),
+					"formula": salary_components.get("formula"),
+				},
+			)
+		salary_structure_doc.insert(ignore_permissions=True)
+		salary_structure_doc.submit()
+		return "Salary Components and Structure are created successfully."
+	else:
+		frappe.msgprint("Salary Components and Structure are already created.")
 
 
 def target_warehouse_based_price_list(doc, method):
-    check = frappe.db.get_single_value(
-        "CSF TZ Settings", "target_warehouse_based_price_list"
-    )
-    if check:
-        for item in doc.items:
-            if item.item_code is None or item.warehouse is None:
-                frappe.throw(
-                    f"Both Item Code {item.item_code} and Warehouse {item.warehouse} are required."
-                )
-            price_list = frappe.db.get_value(
-                "Dynamic Price List Assignment",
-                {"supplier": doc.supplier, "warehouse": item.warehouse},
-                "price_list",
-            )
-            if not price_list:
-                frappe.throw(
-                    f"Price List not found. Please create one in Dynamic Price List Assignment for Supplier {doc.supplier} and Warehouse {item.warehouse}"
-                )
+	check = frappe.db.get_single_value("CSF TZ Settings", "target_warehouse_based_price_list")
+	if check:
+		for item in doc.items:
+			if item.item_code is None or item.warehouse is None:
+				frappe.throw(f"Both Item Code {item.item_code} and Warehouse {item.warehouse} are required.")
+			price_list = frappe.db.get_value(
+				"Dynamic Price List Assignment",
+				{"supplier": doc.supplier, "warehouse": item.warehouse},
+				"price_list",
+			)
+			if not price_list:
+				frappe.throw(
+					f"Price List not found. Please create one in Dynamic Price List Assignment for Supplier {doc.supplier} and Warehouse {item.warehouse}"
+				)
 
-            rate = frappe.db.get_value(
-                "Item Price",
-                {"item_code": item.item_code, "price_list": price_list},
-                "price_list_rate",
-            )
-            if not rate:
-                frappe.throw(
-                    f"Price List not found for Item {item.item_code}. Please create one."
-                )
-            item.price_list_rate = rate
-            item.rate = rate
-            item.amount = item.qty * rate
+			rate = frappe.db.get_value(
+				"Item Price",
+				{"item_code": item.item_code, "price_list": price_list},
+				"price_list_rate",
+			)
+			if not rate:
+				frappe.throw(f"Price List not found for Item {item.item_code}. Please create one.")
+			item.price_list_rate = rate
+			item.rate = rate
+			item.amount = item.qty * rate
+
 
 @frappe.whitelist()
 def get_item_prices_custom_po(filters=None, start=0, limit=20):
-    if isinstance(filters, str):  # If filters is a string, deserialize it
-        import json
-        try:
-            filters = json.loads(filters)
-        except json.JSONDecodeError:
-            frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
+	if isinstance(filters, str):  # If filters is a string, deserialize it
+		import json
 
-    if not filters:  # Default to an empty dictionary if filters is None or invalid
-        filters = {}
+		try:
+			filters = json.loads(filters)
+		except json.JSONDecodeError:
+			frappe.throw("Invalid format for filters. Ensure it's a valid JSON object.")
 
-    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
-    customer = filters.get("customer", "")
-    company = filters.get("company", "")
-    item_code = filters.get("item_code", "")
-    currency = filters.get("currency", "")
-    prices_list = []
-    unique_price_list = []
-    max_records = int(start) + int(limit)
-    items = get_invoice_item_rates_query(
-        "Purchase Invoice",
-        "supplier",
-        item_code,
-        currency,
-        company,
-        party=customer,
-        posting_date_filter=filters.get("posting_date"),
-    ).run(as_dict=True)
-    for item in items:
-        item_dict = {
-            "name": item.item_code,
-            "item_code": item.item_code,
-            "rate": item.rate,
-            "posting_date": item.posting_date,
-            "invoice": item.name,
-            "customer": item.customer,
-            "qty": item.qty,
-        }
-        if (
-            unique_records == 1
-            and item.rate not in unique_price_list
-            and len(prices_list) <= max_records
-        ):
-            unique_price_list.append(item.rate)
-            prices_list.append(item_dict)
-        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
-            prices_list.append(item_dict)
-    return prices_list
+	if not filters:  # Default to an empty dictionary if filters is None or invalid
+		filters = {}
+
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
+	customer = filters.get("customer", "")
+	company = filters.get("company", "")
+	item_code = filters.get("item_code", "")
+	currency = filters.get("currency", "")
+	prices_list = []
+	unique_price_list = []
+	max_records = int(start) + int(limit)
+	items = get_invoice_item_rates_query(
+		"Purchase Invoice",
+		"supplier",
+		item_code,
+		currency,
+		company,
+		party=customer,
+		posting_date_filter=filters.get("posting_date"),
+	).run(as_dict=True)
+	for item in items:
+		item_dict = {
+			"name": item.item_code,
+			"item_code": item.item_code,
+			"rate": item.rate,
+			"posting_date": item.posting_date,
+			"invoice": item.name,
+			"supplier": item.supplier,
+			"qty": item.qty,
+		}
+		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
+			unique_price_list.append(item.rate)
+			prices_list.append(item_dict)
+		elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+			prices_list.append(item_dict)
+	return prices_list
+
 
 @frappe.whitelist()
 def get_item_prices_po(item_code, currency, customer=None, company=None):
-    unique_records = int(frappe.db.get_value("CSF TZ Settings", None, "unique_records"))
-    prices_list = []
-    unique_price_list = []
-    max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
-    items = get_invoice_item_rates_query(
-        "Purchase Invoice", "supplier", item_code, currency, company, party=customer
-    ).run(as_dict=True)
-    for item in items:
-        item_dict = {
-            "name": item.item_code,
-            "item_code": item.item_code,
-            "price": item.rate,
-            "date": item.posting_date,
-            "invoice": item.name,
-            "customer": item.customer,
-            "qty": item.qty,
-        }
-        if (
-            unique_records == 1
-            and item.rate not in unique_price_list
-            and len(prices_list) <= max_records
-        ):
-            unique_price_list.append(item.rate)
-            prices_list.append(item_dict)
-        elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
-            prices_list.append(item_dict)
-    # frappe.throw(str(prices_list))
-    return prices_list
+	unique_records = int(frappe.db.get_single_value("CSF TZ Settings", "unique_records"))
+	prices_list = []
+	unique_price_list = []
+	max_records = frappe.db.get_value("Company", company, "max_records_in_dialog") or 20
+	items = get_invoice_item_rates_query(
+		"Purchase Invoice", "supplier", item_code, currency, company, party=customer
+	).run(as_dict=True)
+	for item in items:
+		item_dict = {
+			"name": item.item_code,
+			"item_code": item.item_code,
+			"price": item.rate,
+			"date": item.posting_date,
+			"invoice": item.name,
+			"supplier": item.supplier,
+			"qty": item.qty,
+		}
+		if unique_records == 1 and item.rate not in unique_price_list and len(prices_list) <= max_records:
+			unique_price_list.append(item.rate)
+			prices_list.append(item_dict)
+		elif unique_records != 1 and item.rate and len(prices_list) <= max_records:
+			prices_list.append(item_dict)
+	# frappe.throw(str(prices_list))
+	return prices_list
 
 
 @frappe.whitelist()
 def create_write_off_jv_si(sales_invoice, account):
-    settings = frappe.get_single("CSF TZ Settings")
+	settings = frappe.get_single("CSF TZ Settings")
 
-    # Feature flag check
-    if not getattr(settings, "enable_write_off_jv_si", False):
-        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
-        return
+	# Feature flag check
+	if not getattr(settings, "enable_write_off_jv_si", False):
+		frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+		return
 
-    si = frappe.get_doc("Sales Invoice", sales_invoice)
+	si = frappe.get_doc("Sales Invoice", sales_invoice)
 
-    if not si.outstanding_amount or si.outstanding_amount <= 0:
-        frappe.throw("No outstanding amount to write off")
+	if not si.outstanding_amount or si.outstanding_amount <= 0:
+		frappe.throw("No outstanding amount to write off")
 
-    jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
-    jv.company = si.company
-    jv.posting_date = si.posting_date
+	jv = frappe.new_doc("Journal Entry")
+	jv.voucher_type = "Journal Entry"
+	jv.company = si.company
+	jv.posting_date = si.posting_date
 
-    # Handle exchange rate
-    exchange_rate = flt(si.conversion_rate or 1)
-    if exchange_rate != 1:
-        jv.multi_currency = 1
+	# Handle exchange rate
+	exchange_rate = flt(si.conversion_rate or 1)
+	if exchange_rate != 1:
+		jv.multi_currency = 1
 
-    # CREDIT - Debtors account
-    jv.append("accounts", {
-        "account": si.debit_to,
-        "credit_in_account_currency": flt(si.outstanding_amount),
-        "party_type": "Customer",
-        "party": si.customer,
-        "reference_type": "Sales Invoice",
-        "reference_name": si.name,
-        "exchange_rate": exchange_rate if exchange_rate != 1 else None
-    })
+	# CREDIT - Debtors account
+	jv.append(
+		"accounts",
+		{
+			"account": si.debit_to,
+			"credit_in_account_currency": flt(si.outstanding_amount),
+			"party_type": "Customer",
+			"party": si.customer,
+			"reference_type": "Sales Invoice",
+			"reference_name": si.name,
+			"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+		},
+	)
 
-    # DEBIT - Write Off account (no reference!)
-    jv.append("accounts", {
-        "account": account,
-        "debit_in_account_currency": flt(si.outstanding_amount),
-        "exchange_rate": exchange_rate if exchange_rate != 1 else None
-    })
+	# DEBIT - Write Off account (no reference!)
+	jv.append(
+		"accounts",
+		{
+			"account": account,
+			"debit_in_account_currency": flt(si.outstanding_amount),
+			"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+		},
+	)
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
+	jv.save(ignore_permissions=True)
+	# jv.submit()
 
-    frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
+	frappe.db.set_value("Sales Invoice", si.name, "outstanding_amount", 0)
 
-    return jv.name
+	return jv.name
 
 
 @frappe.whitelist()
 def create_write_off_jv_pi(purchase_invoice, account):
-    settings = frappe.get_single("CSF TZ Settings")
+	settings = frappe.get_single("CSF TZ Settings")
 
-    # Feature flag check
-    if not getattr(settings, "enable_write_off_jv_pi", False):
-        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
-        return
+	# Feature flag check
+	if not getattr(settings, "enable_write_off_jv_pi", False):
+		frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+		return
 
-    pi = frappe.get_doc("Purchase Invoice", purchase_invoice)
+	pi = frappe.get_doc("Purchase Invoice", purchase_invoice)
 
-    if not pi.outstanding_amount or pi.outstanding_amount <= 0:
-        frappe.throw("No outstanding amount to write off")
+	if not pi.outstanding_amount or pi.outstanding_amount <= 0:
+		frappe.throw("No outstanding amount to write off")
 
-    jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
-    jv.company = pi.company
-    jv.posting_date = pi.posting_date
+	jv = frappe.new_doc("Journal Entry")
+	jv.voucher_type = "Journal Entry"
+	jv.company = pi.company
+	jv.posting_date = pi.posting_date
 
-    # Handle exchange rate
-    exchange_rate = flt(pi.conversion_rate or 1)
-    if exchange_rate != 1:
-        jv.multi_currency = 1
+	# Handle exchange rate
+	exchange_rate = flt(pi.conversion_rate or 1)
+	if exchange_rate != 1:
+		jv.multi_currency = 1
 
-    # DEBIT - Creditors account
-    jv.append("accounts", {
-        "account": pi.credit_to,
-        "debit_in_account_currency": flt(pi.outstanding_amount),
-        "party_type": "Supplier",
-        "party": pi.supplier,
-        "reference_type": "Purchase Invoice",
-        "reference_name": pi.name,
-        "exchange_rate": exchange_rate if exchange_rate != 1 else None
-    })
+	# DEBIT - Creditors account
+	jv.append(
+		"accounts",
+		{
+			"account": pi.credit_to,
+			"debit_in_account_currency": flt(pi.outstanding_amount),
+			"party_type": "Supplier",
+			"party": pi.supplier,
+			"reference_type": "Purchase Invoice",
+			"reference_name": pi.name,
+			"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+		},
+	)
 
-    # CREDIT - Write Off account (no reference!)
-    jv.append("accounts", {
-        "account": account,
-        "credit_in_account_currency": flt(pi.outstanding_amount),
-        "exchange_rate": exchange_rate if exchange_rate != 1 else None
-    })
+	# CREDIT - Write Off account (no reference!)
+	jv.append(
+		"accounts",
+		{
+			"account": account,
+			"credit_in_account_currency": flt(pi.outstanding_amount),
+			"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+		},
+	)
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
+	jv.save(ignore_permissions=True)
+	# jv.submit()
 
-    frappe.db.set_value("Purchase Invoice", pi.name, "outstanding_amount", 0)
+	frappe.db.set_value("Purchase Invoice", pi.name, "outstanding_amount", 0)
 
-    return jv.name
+	return jv.name
 
 
 @frappe.whitelist()
 def create_write_off_jv_pe(payment_entry, account):
-    settings = frappe.get_single("CSF TZ Settings")
+	settings = frappe.get_single("CSF TZ Settings")
 
-    # Feature flag check
-    if not getattr(settings, "enable_write_off_jv_pe", False):
-        frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
-        return
+	# Feature flag check
+	if not getattr(settings, "enable_write_off_jv_pe", False):
+		frappe.msgprint("Write-off Journal Entry feature is disabled in CSF TZ Settings.")
+		return
 
-    pe = frappe.get_doc("Payment Entry", payment_entry)
+	pe = frappe.get_doc("Payment Entry", payment_entry)
 
-    if not pe.unallocated_amount or pe.unallocated_amount <= 0:
-        frappe.throw("No unallocated amount to write off")
+	if not pe.unallocated_amount or pe.unallocated_amount <= 0:
+		frappe.throw("No unallocated amount to write off")
 
-    jv = frappe.new_doc("Journal Entry")
-    jv.voucher_type = "Journal Entry"
-    jv.company = pe.company
-    jv.posting_date = pe.posting_date
+	jv = frappe.new_doc("Journal Entry")
+	jv.voucher_type = "Journal Entry"
+	jv.company = pe.company
+	jv.posting_date = pe.posting_date
 
-    # Handle exchange rate - Payment Entry uses paid_from_account_currency or paid_to_account_currency
-    exchange_rate = 1
-    if pe.payment_type == "Receive":
-        exchange_rate = flt(pe.source_exchange_rate or 1)
-    else:
-        exchange_rate = flt(pe.target_exchange_rate or 1)
+	# Handle exchange rate - Payment Entry uses paid_from_account_currency or paid_to_account_currency
+	exchange_rate = 1
+	if pe.payment_type == "Receive":
+		exchange_rate = flt(pe.source_exchange_rate or 1)
+	else:
+		exchange_rate = flt(pe.target_exchange_rate or 1)
 
-    if exchange_rate != 1:
-        jv.multi_currency = 1
+	if exchange_rate != 1:
+		jv.multi_currency = 1
 
-    # Determine the party account based on payment type
-    if pe.payment_type == "Receive":
-        party_account = pe.paid_from
-        party_type = "Customer"
-        party = pe.party if pe.party_type == "Customer" else None
-    else:  # Pay
-        party_account = pe.paid_to
-        party_type = "Supplier"
-        party = pe.party if pe.party_type == "Supplier" else None
+	# Determine the party account based on payment type
+	if pe.payment_type == "Receive":
+		party_account = pe.paid_from
+		party_type = "Customer"
+		party = pe.party if pe.party_type == "Customer" else None
+	else:  # Pay
+		party_account = pe.paid_to
+		party_type = "Supplier"
+		party = pe.party if pe.party_type == "Supplier" else None
 
-    # DEBIT - Party account (if Receive) or CREDIT - Party account (if Pay)
-    if pe.payment_type == "Receive":
-        jv.append("accounts", {
-            "account": party_account,
-            "debit_in_account_currency": flt(pe.unallocated_amount),
-            "party_type": party_type,
-            "party": party,
-            "reference_type": "Payment Entry",
-            "reference_name": pe.name,
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
-        })
-    else:
-        jv.append("accounts", {
-            "account": party_account,
-            "credit_in_account_currency": flt(pe.unallocated_amount),
-            "party_type": party_type,
-            "party": party,
-            "reference_type": "Payment Entry",
-            "reference_name": pe.name,
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
-        })
+	# DEBIT - Party account (if Receive) or CREDIT - Party account (if Pay)
+	if pe.payment_type == "Receive":
+		jv.append(
+			"accounts",
+			{
+				"account": party_account,
+				"debit_in_account_currency": flt(pe.unallocated_amount),
+				"party_type": party_type,
+				"party": party,
+				"reference_type": "Payment Entry",
+				"reference_name": pe.name,
+				"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+			},
+		)
+	else:
+		jv.append(
+			"accounts",
+			{
+				"account": party_account,
+				"credit_in_account_currency": flt(pe.unallocated_amount),
+				"party_type": party_type,
+				"party": party,
+				"reference_type": "Payment Entry",
+				"reference_name": pe.name,
+				"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+			},
+		)
 
-    # CREDIT - Write Off account (if Receive) or DEBIT - Write Off account (if Pay)
-    if pe.payment_type == "Receive":
-        jv.append("accounts", {
-            "account": account,
-            "credit_in_account_currency": flt(pe.unallocated_amount),
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
-        })
-    else:
-        jv.append("accounts", {
-            "account": account,
-            "debit_in_account_currency": flt(pe.unallocated_amount),
-            "exchange_rate": exchange_rate if exchange_rate != 1 else None
-        })
+	# CREDIT - Write Off account (if Receive) or DEBIT - Write Off account (if Pay)
+	if pe.payment_type == "Receive":
+		jv.append(
+			"accounts",
+			{
+				"account": account,
+				"credit_in_account_currency": flt(pe.unallocated_amount),
+				"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+			},
+		)
+	else:
+		jv.append(
+			"accounts",
+			{
+				"account": account,
+				"debit_in_account_currency": flt(pe.unallocated_amount),
+				"exchange_rate": exchange_rate if exchange_rate != 1 else None,
+			},
+		)
 
-    jv.save(ignore_permissions=True)
-    # jv.submit()
+	jv.save(ignore_permissions=True)
+	# jv.submit()
 
-    frappe.db.set_value("Payment Entry", pe.name, "unallocated_amount", 0)
+	frappe.db.set_value("Payment Entry", pe.name, "unallocated_amount", 0)
 
-    return jv.name
+	return jv.name

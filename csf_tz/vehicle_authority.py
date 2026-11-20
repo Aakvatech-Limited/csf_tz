@@ -1,6 +1,5 @@
 import frappe
 
-
 AUTHORITY_REFERENCE_TYPES = (
 	"LATRA License",
 	"LATRA Offence",
@@ -46,11 +45,7 @@ def get_vehicle_plate(doc_or_values, meta=None):
 
 
 def has_vehicle_plate_field(meta):
-	return any(
-		meta.has_field(fieldname)
-		for fieldname in PLATE_FIELD_CANDIDATES
-		if fieldname != "name"
-	)
+	return any(meta.has_field(fieldname) for fieldname in PLATE_FIELD_CANDIDATES if fieldname != "name")
 
 
 def get_vehicle_like_doctypes():

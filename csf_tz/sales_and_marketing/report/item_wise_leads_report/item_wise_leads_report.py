@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count, Sum
@@ -10,42 +10,21 @@ from frappe.query_builder.functions import Count, Sum
 def execute(filters=None):
 	columns, data = [], []
 	columns = [
-		{
-			"fieldname": "item_code",
-			"label": _("Item"),
-			"fieldtype": "Link",
-			"options": "Item",
-			"width": 200
-		},
+		{"fieldname": "item_code", "label": _("Item"), "fieldtype": "Link", "options": "Item", "width": 200},
 		{
 			"fieldname": "total_qty",
 			"label": _("Quantity"),
 			"fieldtype": "Float",
 		},
-		{
-			"fieldname": "quotations",
-			"label" : _("Quotations"),
-			"fieldtype": "int",
-			"width": 150
-		},
-		{
-			"fieldname": "customers",
-			"label": _("Customers"),
-			"fieldtype": "Int",
-			"width": 150
-		},
-		{
-			"fieldname": "leads",
-			"label": _("Leads"),
-			"fieldtype": "Int",
-			"width": 150
-		},
+		{"fieldname": "quotations", "label": _("Quotations"), "fieldtype": "int", "width": 150},
+		{"fieldname": "customers", "label": _("Customers"), "fieldtype": "Int", "width": 150},
+		{"fieldname": "leads", "label": _("Leads"), "fieldtype": "Int", "width": 150},
 		{
 			"fieldname": "warehouse",
 			"label": _("Warehouse"),
 			"fieldtype": "Link",
 			"options": "Warehouse",
-			"width": 200
+			"width": 200,
 		},
 	]
 	if filters.from_date > filters.to_date:
@@ -56,9 +35,12 @@ def execute(filters=None):
 	customer_quotation = frappe.qb.DocType("Quotation").as_("customer_quot")
 	data = (
 		frappe.qb.from_(quotation_item)
-		.left_join(quotation).on(quotation_item.parent == quotation.name)
-		.left_join(customer_quotation).on(
-			(quotation_item.parent == customer_quotation.name) & (customer_quotation.quotation_to == 'Customer')
+		.left_join(quotation)
+		.on(quotation_item.parent == quotation.name)
+		.left_join(customer_quotation)
+		.on(
+			(quotation_item.parent == customer_quotation.name)
+			& (customer_quotation.quotation_to == "Customer")
 		)
 		.select(
 			quotation_item.item_code,
@@ -70,7 +52,7 @@ def execute(filters=None):
 			quotation_item.warehouse,
 		)
 		.where(quotation.docstatus == 1)
-		.where(quotation.transaction_date[filters.from_date:filters.to_date])
+		.where(quotation.transaction_date[filters.from_date : filters.to_date])
 		.groupby(quotation_item.item_code, quotation_item.warehouse)
 		.run(as_dict=True)
 	)

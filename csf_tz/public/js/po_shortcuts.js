@@ -40,7 +40,7 @@ function ctrlI(TableName) {
                             <th>Qty</th>
                             <th>Date</th>
                             <th>Invoice</th>
-                            <th>Customer</th>
+                            <th>Supplier</th>
                         </tr>`).appendTo(thead);
 
                 response.message.forEach(element => {
@@ -52,7 +52,7 @@ function ctrlI(TableName) {
                                 <td>${element.qty}</td>
                                 <td>${element.posting_date}</td>
                                 <td>${element.invoice}</td>
-                                <td>${element.customer}</td>
+                                <td>${element.supplier}</td>
                             </tr>
                             `).appendTo(tbody);
 
@@ -124,7 +124,7 @@ function ctrlU (TableName) {
                             <th>Qty</th>
                             <th>Date</th>
                             <th>Invoice</th>
-                            <th>Customer</th>
+                            <th>Supplier</th>
                         </tr>`).appendTo(thead);
                 r.message.forEach(element => {
                     const tbody = $(e.body).find('tbody');
@@ -135,7 +135,7 @@ function ctrlU (TableName) {
                                 <td>${element.qty}</td>
                                 <td>${element.date}</td>
                                 <td>${element.invoice}</td>
-                                <td>${element.customer}</td>
+                                <td>${element.supplier}</td>
                             </tr>
                             `).appendTo(tbody);
 

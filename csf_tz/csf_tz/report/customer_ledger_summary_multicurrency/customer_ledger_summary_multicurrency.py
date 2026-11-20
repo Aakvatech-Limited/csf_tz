@@ -7,24 +7,25 @@ from frappe import _, scrub
 from frappe.query_builder import Criterion, Tuple
 from frappe.query_builder.functions import IfNull
 from frappe.utils import getdate, nowdate
+
 from csf_tz.csf_tz.report.customer_conditions import get_customer_conditions
 
 
-class PartyLedgerSummaryReport(object):
+class PartyLedgerSummaryReport:
 	def __init__(self, filters=None):
 		self.filters = frappe._dict(filters or {})
 		self.filters.from_date = getdate(self.filters.from_date or nowdate())
 		self.filters.to_date = getdate(self.filters.to_date or nowdate())
 
 		if not self.filters.get("company"):
-			self.filters["company"] = frappe.db.get_single_value('Global Defaults', 'default_company')
+			self.filters["company"] = frappe.db.get_single_value("Global Defaults", "default_company")
 
 	def run(self, args):
 		if self.filters.from_date > self.filters.to_date:
 			frappe.throw(_("From Date must be before To Date"))
 
 		self.filters.party_type = args.get("party_type")
-		self.party_naming_by = frappe.db.get_value(args.get("naming_by")[0], None, args.get("naming_by")[1])
+		self.party_naming_by = frappe.db.get_single_value(args.get("naming_by")[0], args.get("naming_by")[1])
 
 		self.get_gl_entries()
 		self.get_return_invoices()
@@ -35,21 +36,25 @@ class PartyLedgerSummaryReport(object):
 		return columns, data
 
 	def get_columns(self):
-		columns = [{
-			"label": _(self.filters.party_type),
-			"fieldtype": "Link",
-			"fieldname": "party",
-			"options": self.filters.party_type,
-			"width": 200
-		}]
+		columns = [
+			{
+				"label": _(self.filters.party_type),
+				"fieldtype": "Link",
+				"fieldname": "party",
+				"options": self.filters.party_type,
+				"width": 200,
+			}
+		]
 
 		if self.party_naming_by == "Naming Series":
-			columns.append({
-				"label": _(self.filters.party_type + "Name"),
-				"fieldtype": "Data",
-				"fieldname": "party_name",
-				"width": 110
-			})
+			columns.append(
+				{
+					"label": _(self.filters.party_type + "Name"),
+					"fieldtype": "Data",
+					"fieldname": "party_name",
+					"width": 110,
+				}
+			)
 
 		credit_or_debit_note = "Credit Note" if self.filters.party_type == "Customer" else "Debit Note"
 
@@ -59,40 +64,42 @@ class PartyLedgerSummaryReport(object):
 				"fieldname": "opening_balance",
 				"fieldtype": "Currency",
 				"options": "currency",
-				"width": 120
+				"width": 120,
 			},
 			{
 				"label": _("Invoiced Amount"),
 				"fieldname": "invoiced_amount",
 				"fieldtype": "Currency",
 				"options": "currency",
-				"width": 120
+				"width": 120,
 			},
 			{
 				"label": _("Paid Amount"),
 				"fieldname": "paid_amount",
 				"fieldtype": "Currency",
 				"options": "currency",
-				"width": 120
+				"width": 120,
 			},
 			{
 				"label": _(credit_or_debit_note),
 				"fieldname": "return_amount",
 				"fieldtype": "Currency",
 				"options": "currency",
-				"width": 120
+				"width": 120,
 			},
 		]
 
 		for account in self.party_adjustment_accounts:
-			columns.append({
-				"label": account,
-				"fieldname": "adj_" + scrub(account),
-				"fieldtype": "Currency",
-				"options": "currency",
-				"width": 120,
-				"is_adjustment": 1
-			})
+			columns.append(
+				{
+					"label": account,
+					"fieldname": "adj_" + scrub(account),
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 120,
+					"is_adjustment": 1,
+				}
+			)
 
 		columns += [
 			{
@@ -100,35 +107,48 @@ class PartyLedgerSummaryReport(object):
 				"fieldname": "closing_balance",
 				"fieldtype": "Currency",
 				"options": "currency",
-				"width": 120
+				"width": 120,
 			},
 			{
 				"label": _("Currency"),
 				"fieldname": "currency",
 				"fieldtype": "Link",
 				"options": "Currency",
-				"width": 50
-			}
+				"width": 50,
+			},
 		]
 
 		return columns
 
 	def get_data(self):
-		invoice_dr_or_cr = "debit_in_account_currency" if self.filters.party_type == "Customer" else "credit_in_account_currency"
-		reverse_dr_or_cr = "credit_in_account_currency" if self.filters.party_type == "Customer" else "debit_in_account_currency"
+		invoice_dr_or_cr = (
+			"debit_in_account_currency"
+			if self.filters.party_type == "Customer"
+			else "credit_in_account_currency"
+		)
+		reverse_dr_or_cr = (
+			"credit_in_account_currency"
+			if self.filters.party_type == "Customer"
+			else "debit_in_account_currency"
+		)
 
 		self.party_data = frappe._dict({})
 		for gle in self.gl_entries:
-			self.party_data.setdefault(gle.party, frappe._dict({
-				"party": gle.party,
-				"party_name": gle.party_name,
-				"opening_balance": 0,
-				"invoiced_amount": 0,
-				"paid_amount": 0,
-				"return_amount": 0,
-				"closing_balance": 0,
-				"currency": gle.account_currency
-			}))
+			self.party_data.setdefault(
+				gle.party,
+				frappe._dict(
+					{
+						"party": gle.party,
+						"party_name": gle.party_name,
+						"opening_balance": 0,
+						"invoiced_amount": 0,
+						"paid_amount": 0,
+						"return_amount": 0,
+						"closing_balance": 0,
+						"currency": gle.account_currency,
+					}
+				),
+			)
 
 			amount = gle.get(invoice_dr_or_cr) - gle.get(reverse_dr_or_cr)
 			self.party_data[gle.party].closing_balance += amount
@@ -145,8 +165,16 @@ class PartyLedgerSummaryReport(object):
 
 		out = []
 		for party, row in self.party_data.items():
-			if row.opening_balance or row.invoiced_amount or row.paid_amount or row.return_amount or row.closing_amount:
-				total_party_adjustment = sum(amount for amount in self.party_adjustment_details.get(party, {}).values())
+			if (
+				row.opening_balance
+				or row.invoiced_amount
+				or row.paid_amount
+				or row.return_amount
+				or row.closing_amount
+			):
+				total_party_adjustment = sum(
+					amount for amount in self.party_adjustment_details.get(party, {}).values()
+				)
 				row.paid_amount -= total_party_adjustment
 
 				adjustments = self.party_adjustment_details.get(party, {})
@@ -222,14 +250,31 @@ class PartyLedgerSummaryReport(object):
 
 	def get_return_invoices(self):
 		doctype = "Sales Invoice" if self.filters.party_type == "Customer" else "Purchase Invoice"
-		self.return_invoices = [d.name for d in frappe.get_all(doctype, filters={"is_return": 1, "docstatus": 1,
-			"posting_date": ["between", [self.filters.from_date, self.filters.to_date]]})]
+		self.return_invoices = [
+			d.name
+			for d in frappe.get_all(
+				doctype,
+				filters={
+					"is_return": 1,
+					"docstatus": 1,
+					"posting_date": ["between", [self.filters.from_date, self.filters.to_date]],
+				},
+			)
+		]
 
 	def get_party_adjustment_amounts(self):
 		income_or_expense = "Expense Account" if self.filters.party_type == "Customer" else "Income Account"
-		invoice_dr_or_cr = "debit_in_account_currency" if self.filters.party_type == "Customer" else "credit_in_account_currency"
-		reverse_dr_or_cr = "credit_in_account_currency" if self.filters.party_type == "Customer" else "debit_in_account_currency"
-		round_off_account = frappe.get_cached_value('Company', self.filters.company, "round_off_account")
+		invoice_dr_or_cr = (
+			"debit_in_account_currency"
+			if self.filters.party_type == "Customer"
+			else "credit_in_account_currency"
+		)
+		reverse_dr_or_cr = (
+			"credit_in_account_currency"
+			if self.filters.party_type == "Customer"
+			else "debit_in_account_currency"
+		)
+		round_off_account = frappe.get_cached_value("Company", self.filters.company, "round_off_account")
 
 		gl_entry = frappe.qb.DocType("GL Entry")
 		adjustment_gl_entry = frappe.qb.DocType("GL Entry", alias="adjustment_gle")
@@ -317,6 +362,7 @@ class PartyLedgerSummaryReport(object):
 						self.party_adjustment_details.setdefault(party, {})
 						self.party_adjustment_details[party].setdefault(account, 0)
 						self.party_adjustment_details[party][account] += amount
+
 
 def execute(filters=None):
 	args = {

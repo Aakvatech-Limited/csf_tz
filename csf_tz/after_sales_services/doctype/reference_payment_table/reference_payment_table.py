@@ -1,18 +1,18 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe.model.document import Document
 
+
 class ReferencePaymentTable(Document):
 	pass
-	
+
 
 def update_child_table(self, fieldname, df=None):
-	'''Updated function to prevent saving of approved or rejected funds request'''
-	'''sync child table for given fieldname'''
+	"""Updated function to prevent saving of approved or rejected funds request"""
+	"""sync child table for given fieldname"""
 	rows = []
 	if not df:
 		df = self.meta.get_field(fieldname)
