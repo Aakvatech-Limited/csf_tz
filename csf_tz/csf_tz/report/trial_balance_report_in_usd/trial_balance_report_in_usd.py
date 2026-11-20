@@ -224,11 +224,15 @@ def get_opening_balance_conditions(filters, report_type, gl_entry):
 
 
 def get_dimension_conditions(filters, gl_entry):
-    return [
-        gl_entry[dimension] == filters.get(dimension)
-        for dimension in get_accounting_dimensions()
-        if filters.get(dimension)
-    ]
+    conditions = []
+    for dimension in get_accounting_dimensions():
+        value = filters.get(dimension)
+        if not value:
+            continue
+        if isinstance(value, str):
+            value = [value]
+        conditions.append(gl_entry[dimension].isin(value))
+    return conditions
 
 
 def calculate_values(
