@@ -1,6 +1,4 @@
-from __future__ import unicode_literals
 import frappe
-from frappe.utils import flt
 from frappe import _
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Concat
@@ -9,38 +7,24 @@ from frappe.query_builder.functions import Concat
 def execute(filters=None):
 	columns, data = [], []
 	columns = [
-         {
+		{
 			"fieldname": "description",
 			"label": _("Document"),
 			"fieldtype": "Link",
 			"options": "Vehicle Documents Type",
-            "width":250
+			"width": 250,
 		},
-        
-        {
-			"fieldname":"expiration_date",
+		{
+			"fieldname": "expiration_date",
 			"label": _("Expire Date"),
 			"fieldtype": "Date",
 		},
-        {
-			"fieldname": "type",
-			"label": _("Vehicle/Trailer"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-     
-       
-        {
-			"fieldname": "reference_no",
-			"label": _("Reference  Number"),
-			"fieldtype": "Data",
-			"width": 150
-		}
+		{"fieldname": "type", "label": _("Vehicle/Trailer"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "reference_no", "label": _("Reference  Number"), "fieldtype": "Data", "width": 150},
 	]
 
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
-   
 
 	vehicle_documents = frappe.qb.DocType("Vehicle Documents")
 	vehicle = frappe.qb.DocType("Vehicle")
@@ -73,4 +57,3 @@ def execute(filters=None):
 	).run(as_dict=True)
 
 	return columns, data
-

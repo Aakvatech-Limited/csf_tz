@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-import os
 import importlib
+import os
 
 import frappe
 
@@ -12,41 +10,41 @@ app_name = "csf_tz"
 
 
 def load_monkey_patches():
-    """
-    Loads all modules present in monkey_patches to override some logic
-    in Frappe / ERPNext. Returns if patches have already been loaded earlier.
-    """
-    global patches_loaded
+	"""
+	Loads all modules present in monkey_patches to override some logic
+	in Frappe / ERPNext. Returns if patches have already been loaded earlier.
+	"""
+	global patches_loaded
 
-    if patches_loaded:
-        return
+	if patches_loaded:
+		return
 
-    # Asset builds may run without an initialized Frappe site or database.
-    if not getattr(frappe.local, "site", None):
-        return
+	# Asset builds may run without an initialized Frappe site or database.
+	if not getattr(frappe.local, "site", None):
+		return
 
-    conf = getattr(frappe.local, "conf", None)
-    if not conf or not conf.get("db_name"):
-        return
+	conf = getattr(frappe.local, "conf", None)
+	if not conf or not conf.get("db_name"):
+		return
 
-    if app_name not in frappe.get_installed_apps():
-        return
+	if app_name not in frappe.get_installed_apps():
+		return
 
-    patches_loaded = True
+	patches_loaded = True
 
-    for module_name in os.listdir(frappe.get_app_path(app_name, "monkey_patches")):
-        if not module_name.endswith(".py") or module_name == "__init__.py":
-            continue
+	for module_name in os.listdir(frappe.get_app_path(app_name, "monkey_patches")):
+		if not module_name.endswith(".py") or module_name == "__init__.py":
+			continue
 
-        importlib.import_module(app_name + ".monkey_patches." + module_name[:-3])
+		importlib.import_module(app_name + ".monkey_patches." + module_name[:-3])
 
 
 old_get_hooks = frappe.get_hooks
 
 
 def get_hooks(*args, **kwargs):
-    load_monkey_patches()
-    return old_get_hooks(*args, **kwargs)
+	load_monkey_patches()
+	return old_get_hooks(*args, **kwargs)
 
 
 frappe.get_hooks = get_hooks
@@ -55,17 +53,17 @@ old_connect = frappe.connect
 
 
 def connect(*args, **kwargs):
-    """
-    Patches frappe.connect to load monkey patches once a connection is
-    established with the database.
-    """
+	"""
+	Patches frappe.connect to load monkey patches once a connection is
+	established with the database.
+	"""
 
-    old_connect(*args, **kwargs)
-    load_monkey_patches()
+	old_connect(*args, **kwargs)
+	load_monkey_patches()
 
 
 frappe.connect = connect
 
 
 def console(*data):
-    frappe.publish_realtime("out_to_console", data, user=frappe.session.user)
+	frappe.publish_realtime("out_to_console", data, user=frappe.session.user)

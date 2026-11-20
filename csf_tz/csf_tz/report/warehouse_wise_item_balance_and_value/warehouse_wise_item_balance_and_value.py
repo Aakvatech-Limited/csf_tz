@@ -12,9 +12,9 @@ from frappe import _
 
 
 def execute(filters=None):
-    frappe.throw(
-        _(
-            "Warehouse Wise Item Balance and Value has not been ported to ERPNext v15. "
-            "Please contact your system administrator."
-        )
-    )
+	frappe.throw(
+		_(
+			"Warehouse Wise Item Balance and Value has not been ported to ERPNext v15. "
+			"Please contact your system administrator."
+		)
+	)

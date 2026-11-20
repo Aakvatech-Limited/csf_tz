@@ -8,7 +8,9 @@ def get_customer_conditions(filters, gl_entry):
 	conditions = []
 
 	if filters.get("customer_group"):
-		conditions.append(gl_entry.party.isin(get_customers_in_tree(filters, "Customer Group", "customer_group")))
+		conditions.append(
+			gl_entry.party.isin(get_customers_in_tree(filters, "Customer Group", "customer_group"))
+		)
 
 	if filters.get("territory"):
 		conditions.append(gl_entry.party.isin(get_customers_in_tree(filters, "Territory", "territory")))
@@ -71,7 +73,10 @@ def get_sales_person_condition(filters, gl_entry):
 		.where(
 			sales_team.sales_person.isin(sales_people_in_tree)
 			& (
-				((sales_team.parent == gl_entry.voucher_no) & (sales_team.parenttype == gl_entry.voucher_type))
+				(
+					(sales_team.parent == gl_entry.voucher_no)
+					& (sales_team.parenttype == gl_entry.voucher_type)
+				)
 				| (
 					(sales_team.parent == gl_entry.against_voucher)
 					& (sales_team.parenttype == gl_entry.against_voucher_type)

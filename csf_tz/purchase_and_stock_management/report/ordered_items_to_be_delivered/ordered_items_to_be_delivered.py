@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.query_builder import CustomFunction
@@ -11,35 +11,20 @@ from frappe.query_builder.functions import CurDate, IfNull
 def execute(filters=None):
 	columns, data = [], []
 	columns = [
-		{
-			"fieldname": "name",
-			"label" : _("Sales Order"),
-			"fieldtype": "Link",
-			"options": "Sales Order"
-		},
+		{"fieldname": "name", "label": _("Sales Order"), "fieldtype": "Link", "options": "Sales Order"},
 		{
 			"fieldname": "customer",
 			"label": _("Customer"),
 			"fieldtype": "Link",
 			"options": "Customer",
 		},
-		{
-			"fieldname": "customer_name",
-			"label": _("Customer Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "customer_name", "label": _("Customer Name"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "transaction_date",
 			"label": _("Date "),
 			"fieldtype": "Date",
 		},
-		{
-			"fieldname": "project",
-			"label": _("Project"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "project", "label": _("Project"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "item_code",
 			"label": _("Item Code"),
@@ -51,91 +36,30 @@ def execute(filters=None):
 			"label": _("Req By Date "),
 			"fieldtype": "Date",
 		},
-		
-		{
-			"fieldname": "qty",
-			"label": _("Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "delivered_qty",
-			"label": _("Delivered Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "qty_to_deliver",
-			"label": _("Qty to Deliver"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "base_rate",
-			"label": _("Rate"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "base_amount",
-			"label": _("Amount"),
-			"fieldtype": "Float",
-			"width": 150
-		},
+		{"fieldname": "qty", "label": _("Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "delivered_qty", "label": _("Delivered Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "qty_to_deliver", "label": _("Qty to Deliver"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "base_rate", "label": _("Rate"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "base_amount", "label": _("Amount"), "fieldtype": "Float", "width": 150},
 		{
 			"fieldname": "amount_to_deliver",
 			"label": _("Amount To Deliver"),
 			"fieldtype": "Float",
-			"width": 150
+			"width": 150,
 		},
-		{
-			"fieldname": "actual_qty",
-			"label": _("Available Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "projected_qty",
-			"label": _("Projected Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "delivery_date",
-			"label": _("Item Delivery Date"),
-			"fieldtype": "Date",
-			"width": 150
-		},
-		{
-			"fieldname": "delay_days",
-			"label": _("Delay Days"),
-			"fieldtype": "Int",
-			"width": 150
-		},
-		{
-			"fieldname": "item_name",
-			"label": _("Item Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "description",
-			"label": _("Description"),
-			"fieldtype": "Data",
-			"width": 200
-		},
-		{
-			"fieldname": "item_group",
-			"label": _("Item Group"),
-			"fieldtype": "Data",
-			"width": 200
-		},
+		{"fieldname": "actual_qty", "label": _("Available Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "projected_qty", "label": _("Projected Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "delivery_date", "label": _("Item Delivery Date"), "fieldtype": "Date", "width": 150},
+		{"fieldname": "delay_days", "label": _("Delay Days"), "fieldtype": "Int", "width": 150},
+		{"fieldname": "item_name", "label": _("Item Name"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "description", "label": _("Description"), "fieldtype": "Data", "width": 200},
+		{"fieldname": "item_group", "label": _("Item Group"), "fieldtype": "Data", "width": 200},
 		{
 			"fieldname": "warehouse",
 			"label": _("Warehouse"),
 			"fieldtype": "Link",
 			"options": "Warehouse",
-			"width": 150
+			"width": 150,
 		},
 	]
 	if filters.from_date > filters.to_date:
@@ -151,7 +75,10 @@ def execute(filters=None):
 		.join(sales_order_item)
 		.on(sales_order_item.parent == sales_order.name)
 		.left_join(stock_bin)
-		.on((stock_bin.item_code == sales_order_item.item_code) & (stock_bin.warehouse == sales_order_item.warehouse))
+		.on(
+			(stock_bin.item_code == sales_order_item.item_code)
+			& (stock_bin.warehouse == sales_order_item.warehouse)
+		)
 		.select(
 			sales_order.name,
 			sales_order.customer,

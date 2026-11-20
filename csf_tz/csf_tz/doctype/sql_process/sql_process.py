@@ -7,28 +7,26 @@ from pypika import Table
 
 
 class SQLProcess(Document):
-    def validate(self):
-        self.process = []
+	def validate(self):
+		self.process = []
 
-    @frappe.whitelist()
-    def get_process(self):
-        processlist = Table("processlist", schema="information_schema")
-        return (
-            frappe.qb.from_(processlist)
-            .select(processlist.id, processlist.time, processlist.info)
-            .where(processlist.info.isnotnull())
-            .run(as_dict=True)
-        )
+	@frappe.whitelist()
+	def get_process(self):
+		processlist = Table("processlist", schema="information_schema")
+		return (
+			frappe.qb.from_(processlist)
+			.select(processlist.id, processlist.time, processlist.info)
+			.where(processlist.info.isnotnull())
+			.run(as_dict=True)
+		)
 
-    @frappe.whitelist(methods=["POST"])
-    def kill_process(self, pid):
-        frappe.msgprint(
-            "Killing process {}".format(pid), alert=True, indicator="orange"
-        )
-        try:
-            frappe.db.sql_ddl("KILL {0}".format(int(pid)))
-        except Exception:
-            frappe.msgprint("Process not found", alert=True, indicator="red")
-            return False
-        frappe.msgprint("Process killed", alert=True, indicator="green")
-        return True
+	@frappe.whitelist(methods=["POST"])
+	def kill_process(self, pid):
+		frappe.msgprint(f"Killing process {pid}", alert=True, indicator="orange")
+		try:
+			frappe.db.sql_ddl(f"KILL {int(pid)}")
+		except Exception:
+			frappe.msgprint("Process not found", alert=True, indicator="red")
+			return False
+		frappe.msgprint("Process killed", alert=True, indicator="green")
+		return True

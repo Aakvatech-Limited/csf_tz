@@ -6,15 +6,15 @@ from frappe.utils import flt
 
 
 def get_xml(doc):
-    xml = get_first_xml_part(doc)
-    xml += get_payments_xml_part(doc)
-    xml += get_last_xml_part(doc)
-    return xml
+	xml = get_first_xml_part(doc)
+	xml += get_payments_xml_part(doc)
+	xml += get_last_xml_part(doc)
+	return xml
 
 
 def get_first_xml_part(doc):
-    settings_doc = frappe.get_cached_doc("Stanbic Setting", doc.stanbic_setting)
-    part = f"""<?xml version="1.0" encoding="UTF-8"?>
+	settings_doc = frappe.get_cached_doc("Stanbic Setting", doc.stanbic_setting)
+	part = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
 	<CstmrCdtTrfInitn>
 		<GrpHdr>
@@ -75,11 +75,11 @@ def get_first_xml_part(doc):
 				</FinInstnId>
 			</DbtrAgt>
 			<ChrgBr>{settings_doc.charges_bearer}</ChrgBr>"""
-    return part
+	return part
 
 
 def get_payment_part(payment):
-    part = f"""<CdtTrfTxInf>
+	part = f"""<CdtTrfTxInf>
 				<PmtId>
 					<EndToEndId>{payment.salary_slip}</EndToEndId>
 				</PmtId>
@@ -137,20 +137,20 @@ def get_payment_part(payment):
 				</RmtInf>
 			</CdtTrfTxInf>"""
 
-    return part
+	return part
 
 
 def get_payments_xml_part(doc):
-    parts = ""
+	parts = ""
 
-    for payment in doc.stanbic_payments_info:
-        parts += get_payment_part(payment)
+	for payment in doc.stanbic_payments_info:
+		parts += get_payment_part(payment)
 
-    return parts
+	return parts
 
 
 def get_last_xml_part(doc):
-    part = """</PmtInf>
+	part = """</PmtInf>
 	</CstmrCdtTrfInitn>
 </Document>"""
-    return part
+	return part
