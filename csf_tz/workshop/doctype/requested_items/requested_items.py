@@ -251,7 +251,7 @@ class RequestedItems(Document):
             self.__setup__()
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def request_items(**args):
     args = frappe._dict(args)
 
@@ -285,7 +285,7 @@ def request_items(**args):
         return "Request Inserted"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def recommend_request(**args):
     args = frappe._dict(args)
 
@@ -300,7 +300,7 @@ def recommend_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def recommend_against_request(**args):
     args = frappe._dict(args)
 
@@ -315,7 +315,7 @@ def recommend_against_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def approve_request(**args):
     args = frappe._dict(args)
 
@@ -330,7 +330,7 @@ def approve_request(**args):
     return "Request Updated"
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def reject_request(**args):
     args = frappe._dict(args)
 
