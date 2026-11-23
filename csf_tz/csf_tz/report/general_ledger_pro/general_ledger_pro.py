@@ -5,17 +5,25 @@ from collections import OrderedDict
 
 import frappe
 from erpnext import get_company_currency, get_default_company
-from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
-	get_accounting_dimensions,
-	get_dimension_with_children,
-)
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 from erpnext.accounts.report.financial_statements import get_cost_centers_with_children
 from erpnext.accounts.report.general_ledger.general_ledger import get_accounts_with_children
 from erpnext.accounts.report.utils import convert_to_presentation_currency, get_currency
 from erpnext.accounts.utils import get_account_currency
 from frappe import _, _dict
+from frappe.query_builder import Criterion, Field
+from frappe.query_builder.functions import Concat, IfNull, Sum
 from frappe.utils import cstr, flt, getdate
+from pypika.terms import Bracket
 from six import iteritems
+
+from csf_tz.csf_tz.report.gl_entry_conditions import (
+	get_dimension_conditions,
+	get_finance_book_condition,
+	get_party_conditions,
+	get_posting_date_conditions,
+)
+from csf_tz.utils.query_builder import get_match_criterion
 
 
 def execute(filters=None):
@@ -27,7 +35,7 @@ def execute(filters=None):
 	if filters and filters.get("print_in_account_currency") and not filters.get("account"):
 		frappe.throw(_("Select an account to print in account currency"))
 
-	for acc in frappe.db.sql("""select name, is_group from tabAccount""", as_dict=1):
+	for acc in frappe.get_all("Account", fields=["name", "is_group"]):
 		account_details.setdefault(acc.name, acc)
 
 	if filters.get("party"):
@@ -148,80 +156,31 @@ def get_result(filters, account_details):
 
 def get_gl_entries(filters, accounting_dimensions):
 	currency_map = get_currency(filters)
-	select_fields = """, debit, credit, debit_in_account_currency,
-        credit_in_account_currency """
-
-	order_by_statement = "order by posting_date, account, creation"
-
-	if filters.get("group_by") == _("Group by Voucher"):
-		order_by_statement = "order by posting_date, voucher_type, voucher_no"
 
 	if filters.get("include_default_book_entries"):
 		filters["company_fb"] = frappe.db.get_value("Company", filters.get("company"), "default_finance_book")
 
-	dimension_fields = ""
-	if accounting_dimensions:
-		dimension_fields = ", ".join(accounting_dimensions) + ","
-
-	distributed_cost_center_query = ""
+	distributed_cost_center_query = None
 	if filters and filters.get("cost_center"):
-		select_fields_with_percentage = """, debit*(DCC_allocation.percentage_allocation/100) as debit, credit*(DCC_allocation.percentage_allocation/100) as credit, debit_in_account_currency*(DCC_allocation.percentage_allocation/100) as debit_in_account_currency,
-        credit_in_account_currency*(DCC_allocation.percentage_allocation/100) as credit_in_account_currency """
+		distributed_cost_center_query = get_distributed_cost_center_query(filters, accounting_dimensions)
 
-		distributed_cost_center_query = """
-        UNION ALL
-        SELECT name as gl_entry,
-            posting_date,
-            account,
-            party_type,
-            party,
-            voucher_type,
-            voucher_no, {dimension_fields}
-            cost_center, project,
-            against_voucher_type,
-            against_voucher,
-            account_currency,
-            remarks, against,
-            is_opening, `tabGL Entry`.creation {select_fields_with_percentage}
-        FROM `tabGL Entry`,
-        (
-            SELECT parent, sum(percentage_allocation) as percentage_allocation
-            FROM `tabDistributed Cost Center`
-            WHERE cost_center IN %(cost_center)s
-            AND parent NOT IN %(cost_center)s
-            GROUP BY parent
-        ) as DCC_allocation
-        WHERE company=%(company)s
-        {conditions}
-        AND posting_date <= %(to_date)s
-        AND cost_center = DCC_allocation.parent
-        """.format(
-			dimension_fields=dimension_fields,
-			select_fields_with_percentage=select_fields_with_percentage,
-			conditions=get_conditions(filters).replace("and cost_center in %(cost_center)s ", ""),
-		)
-
-	gl_entries_all_except_students = frappe.db.sql(
-		f"""
-        select
-            `tabGL Entry`.name as gl_entry, posting_date, account, party_type, party,
-            voucher_type, voucher_no, {dimension_fields}
-            cost_center, project,
-            against_voucher_type, against_voucher, account_currency,
-            remarks, against, is_opening, `tabGL Entry`.creation {select_fields}
-        from `tabGL Entry`
-        where ifnull(party, '') != 'Student' and company=%(company)s {get_conditions(filters)}
-        {distributed_cost_center_query}
-        {order_by_statement}
-        """,
-		filters,
-		as_dict=1,
+	gl_entry = frappe.qb.DocType("GL Entry")
+	all_except_students_query = (
+		frappe.qb.from_(gl_entry)
+		.select(*get_gl_entry_fields(gl_entry, accounting_dimensions, gl_entry.party))
+		.select(*get_amount_fields(gl_entry))
+		.where(IfNull(gl_entry.party, "") != "Student")
+		.where(gl_entry.company == filters.company)
+		.where(Criterion.all(get_conditions(filters, gl_entry)))
+	)
+	gl_entries_all_except_students = run_gl_entry_query(
+		all_except_students_query, distributed_cost_center_query, filters
 	)
 
 	gl_entries_students = []
 	if frappe.db.exists("DocType", "Student"):
 		gl_entries_students = get_student_gl_entries(
-			filters, dimension_fields, select_fields, distributed_cost_center_query, order_by_statement
+			filters, accounting_dimensions, distributed_cost_center_query
 		)
 
 	gl_entries = (gl_entries_all_except_students or []) + (gl_entries_students or [])
@@ -232,95 +191,134 @@ def get_gl_entries(filters, accounting_dimensions):
 		return gl_entries
 
 
-def get_student_gl_entries(
-	filters, dimension_fields, select_fields, distributed_cost_center_query, order_by_statement
-):
+def get_student_gl_entries(filters, accounting_dimensions, distributed_cost_center_query):
 	"""Student party names come from the education app, so this only runs when it is installed."""
-	return frappe.db.sql(
-		f"""
-        select
-            `tabGL Entry`.name as gl_entry, posting_date, account, party_type, CONCAT(std.first_name, " ", IFNULL(std.middle_name, ''), " ", IFNULL(std.last_name, '')) as party,
-            voucher_type, voucher_no, {dimension_fields}
-            cost_center, project,
-            against_voucher_type, against_voucher, account_currency,
-            remarks, against, is_opening, `tabGL Entry`.creation {select_fields}
-        from `tabGL Entry` AS gle
-        INNER JOIN `tabStudent` AS std ON gle.party = std.name
-        where gle.party_type = 'Student' and company=%(company)s {get_conditions(filters)}
-        {distributed_cost_center_query}
-        {order_by_statement}
-        """,
-		filters,
-		as_dict=1,
+	gl_entry = frappe.qb.DocType("GL Entry")
+	aliased_gl_entry = gl_entry.as_("gle")
+	student = frappe.qb.DocType("Student").as_("std")
+	student_name = Concat(
+		student.first_name, " ", IfNull(student.middle_name, ""), " ", IfNull(student.last_name, "")
+	).as_("party")
+
+	# Fields name `tabGL Entry` while the table is aliased `gle`, as in the original SQL.
+	query = (
+		frappe.qb.from_(aliased_gl_entry)
+		.inner_join(student)
+		.on(aliased_gl_entry.party == student.name)
+		.select(*get_gl_entry_fields(gl_entry, accounting_dimensions, student_name))
+		.select(*get_amount_fields(gl_entry))
+		.where(aliased_gl_entry.party_type == "Student")
+		.where(gl_entry.company == filters.company)
+		.where(Criterion.all(get_conditions(filters, gl_entry)))
+	)
+	return run_gl_entry_query(query, distributed_cost_center_query, filters)
+
+
+def get_gl_entry_fields(gl_entry, accounting_dimensions, party):
+	return [
+		gl_entry.name.as_("gl_entry"),
+		gl_entry.posting_date,
+		gl_entry.account,
+		gl_entry.party_type,
+		party,
+		gl_entry.voucher_type,
+		gl_entry.voucher_no,
+		*[gl_entry[dimension] for dimension in accounting_dimensions],
+		gl_entry.cost_center,
+		gl_entry.project,
+		gl_entry.against_voucher_type,
+		gl_entry.against_voucher,
+		gl_entry.account_currency,
+		gl_entry.remarks,
+		gl_entry.against,
+		gl_entry.is_opening,
+		gl_entry.creation,
+	]
+
+
+def get_amount_fields(gl_entry, percentage_allocation=None):
+	fieldnames = ["debit", "credit", "debit_in_account_currency", "credit_in_account_currency"]
+	if percentage_allocation is None:
+		return [gl_entry[fieldname] for fieldname in fieldnames]
+
+	return [
+		(gl_entry[fieldname] * Bracket(percentage_allocation / 100)).as_(fieldname)
+		for fieldname in fieldnames
+	]
+
+
+def get_distributed_cost_center_query(filters, accounting_dimensions):
+	gl_entry = frappe.qb.DocType("GL Entry")
+	distributed_cost_center = frappe.qb.DocType("Distributed Cost Center")
+
+	conditions = get_conditions(filters, gl_entry, include_cost_center=False)
+	allocation = (
+		frappe.qb.from_(distributed_cost_center)
+		.select(
+			distributed_cost_center.parent,
+			Sum(distributed_cost_center.percentage_allocation).as_("percentage_allocation"),
+		)
+		.where(distributed_cost_center.cost_center.isin(filters.cost_center))
+		.where(distributed_cost_center.parent.notin(filters.cost_center))
+		.groupby(distributed_cost_center.parent)
+	).as_("DCC_allocation")
+
+	return (
+		frappe.qb.from_(gl_entry)
+		.from_(allocation)
+		.select(*get_gl_entry_fields(gl_entry, accounting_dimensions, gl_entry.party))
+		.select(*get_amount_fields(gl_entry, allocation.percentage_allocation))
+		.where(gl_entry.company == filters.company)
+		.where(Criterion.all(conditions))
+		.where(gl_entry.posting_date <= filters.to_date)
+		.where(gl_entry.cost_center == allocation.parent)
 	)
 
 
-def get_conditions(filters):
+def run_gl_entry_query(query, distributed_cost_center_query, filters):
+	if distributed_cost_center_query:
+		query = query.union_all(distributed_cost_center_query)
+
+	if filters.get("group_by") == _("Group by Voucher"):
+		query = query.orderby(Field("posting_date"), Field("voucher_type"), Field("voucher_no"))
+	else:
+		query = query.orderby(Field("posting_date"), Field("account"), Field("creation"))
+
+	return query.run(as_dict=True)
+
+
+def get_conditions(filters, gl_entry, include_cost_center=True):
 	conditions = []
 	if filters.get("account"):
 		filters.account = get_accounts_with_children(filters.account)
-		conditions.append("account in %(account)s")
+		conditions.append(gl_entry.account.isin(filters.account))
 
 	if filters.get("cost_center"):
 		filters.cost_center = get_cost_centers_with_children(filters.cost_center)
-		conditions.append("cost_center in %(cost_center)s")
+		if include_cost_center:
+			conditions.append(gl_entry.cost_center.isin(filters.cost_center))
 
 	if filters.get("voucher_no"):
-		conditions.append("voucher_no=%(voucher_no)s")
+		conditions.append(gl_entry.voucher_no == filters.voucher_no)
 
-	if filters.get("group_by") == "Group by Party" and not filters.get("party_type"):
-		conditions.append("party_type in ('Customer', 'Supplier')")
-
-	if filters.get("party_type"):
-		conditions.append("party_type=%(party_type)s")
-
-	if filters.get("party"):
-		conditions.append("party in %(party)s")
-
-	if not (
-		filters.get("account")
-		or filters.get("party")
-		or filters.get("group_by") in ["Group by Account", "Group by Party"]
-	):
-		conditions.append("posting_date >=%(from_date)s")
-
-	conditions.append("(posting_date <=%(to_date)s or is_opening = 'Yes')")
+	conditions += get_party_conditions(filters, gl_entry)
+	conditions += get_posting_date_conditions(filters, gl_entry)
 
 	if filters.get("project"):
-		conditions.append("project in %(project)s")
+		conditions.append(gl_entry.project.isin(filters.project))
 
 	if filters.get("finance_book"):
-		if filters.get("include_default_book_entries"):
-			conditions.append(
-				"(finance_book in (%(finance_book)s, %(company_fb)s, '') OR finance_book IS NULL)"
-			)
-		else:
-			conditions.append("finance_book in (%(finance_book)s)")
+		conditions.append(get_finance_book_condition(filters, gl_entry))
 
 	if not filters.get("show_cancelled_entries"):
-		conditions.append("is_cancelled = 0")
+		conditions.append(gl_entry.is_cancelled == 0)
 
-	from frappe.desk.reportview import build_match_conditions
+	if match_criterion := get_match_criterion("GL Entry"):
+		conditions.append(match_criterion)
 
-	match_conditions = build_match_conditions("GL Entry")
+	conditions += get_dimension_conditions(filters, gl_entry)
 
-	if match_conditions:
-		conditions.append(match_conditions)
-
-	accounting_dimensions = get_accounting_dimensions(as_list=False)
-
-	if accounting_dimensions:
-		for dimension in accounting_dimensions:
-			if filters.get(dimension.fieldname):
-				if frappe.get_cached_value("DocType", dimension.document_type, "is_tree"):
-					filters[dimension.fieldname] = get_dimension_with_children(
-						dimension.document_type, filters.get(dimension.fieldname)
-					)
-					conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
-				else:
-					conditions.append(f"{dimension.fieldname} in (%({dimension.fieldname})s)")
-
-	return "and {}".format(" and ".join(conditions)) if conditions else ""
+	return conditions
 
 
 def get_data_with_opening_closing(filters, account_details, accounting_dimensions, gl_entries):
@@ -469,10 +467,8 @@ def get_result_as_list(data, filters):
 
 def get_supplier_invoice_details():
 	inv_details = {}
-	for d in frappe.db.sql(
-		""" select name, bill_no from `tabPurchase Invoice`
-        where docstatus = 1 and bill_no is not null and bill_no != '' """,
-		as_dict=1,
+	for d in frappe.get_all(
+		"Purchase Invoice", filters={"docstatus": 1, "bill_no": ["is", "set"]}, fields=["name", "bill_no"]
 	):
 		inv_details[d.name] = d.bill_no
 
