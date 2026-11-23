@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.query_builder.functions import IfNull
@@ -10,12 +10,7 @@ from frappe.query_builder.functions import IfNull
 def execute(filters=None):
 	columns, data = [], []
 	columns = [
-		{
-			"fieldname": "name",
-			"label" : _("Purchase Order"),
-			"fieldtype": "Link",
-			"options": "Purchase Order"
-		},
+		{"fieldname": "name", "label": _("Purchase Order"), "fieldtype": "Link", "options": "Purchase Order"},
 		{
 			"fieldname": "transaction_date",
 			"label": _("Date "),
@@ -32,75 +27,34 @@ def execute(filters=None):
 			"fieldtype": "Link",
 			"options": "Supplier",
 		},
-		{
-			"fieldname": "supplier_name",
-			"label": _("Supplier Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "project",
-			"label": _("Project"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "supplier_name", "label": _("Supplier Name"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "project", "label": _("Project"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "item_code",
 			"label": _("Item Code"),
 			"fieldtype": "Link",
 			"options": "Item",
 		},
-		{
-			"fieldname": "qty",
-			"label": _("Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "received_qty",
-			"label": _("Received Qty"),
-			"fieldtype": "Float",
-			"width": 150
-		},
-		{
-			"fieldname": "qty_to_receive",
-			"label": _("Qty To Receive"),
-			"fieldtype": "Float",
-			"width": 150
-		},
+		{"fieldname": "qty", "label": _("Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "received_qty", "label": _("Received Qty"), "fieldtype": "Float", "width": 150},
+		{"fieldname": "qty_to_receive", "label": _("Qty To Receive"), "fieldtype": "Float", "width": 150},
 		{
 			"fieldname": "warehouse",
 			"label": _("Warehouse"),
 			"fieldtype": "Link",
 			"options": "Warehouse",
-			"width": 150
+			"width": 150,
 		},
-		{
-			"fieldname": "item_name",
-			"label": _("Item Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "description",
-			"label": _("Description"),
-			"fieldtype": "Data",
-			"width": 200
-		},
-		{
-			"fieldname": "brand",
-			"label": _("Brand"),
-			"fieldtype": "Data",
-			"width": 100
-		},
+		{"fieldname": "item_name", "label": _("Item Name"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "description", "label": _("Description"), "fieldtype": "Data", "width": 200},
+		{"fieldname": "brand", "label": _("Brand"), "fieldtype": "Data", "width": 100},
 		{
 			"fieldname": "company",
 			"label": _("Company"),
 			"fieldtype": "Link",
 			"options": "Company",
-			"width": 150
+			"width": 150,
 		},
-		
 	]
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
@@ -131,7 +85,7 @@ def execute(filters=None):
 		.where(purchase_order.docstatus == 1)
 		.where(purchase_order.status.notin(["Stopped", "Closed"]))
 		.where(IfNull(purchase_order_item.received_qty, 0) < IfNull(purchase_order_item.qty, 0))
-		.where(purchase_order.transaction_date[filters.from_date:filters.to_date])
+		.where(purchase_order.transaction_date[filters.from_date : filters.to_date])
 	)
 
 	if filters.purchase_order:

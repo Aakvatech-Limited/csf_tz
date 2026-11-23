@@ -52,6 +52,8 @@ yarn-error.log*
 .stylelintcache
 dist/
 build/
+# Cloned by the frappe-semgrep-rules pre-commit hook
+frappe-semgrep-rules/
 *.tsbuildinfo
 .nuxt
 .next

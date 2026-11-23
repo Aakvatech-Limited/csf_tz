@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Concat
@@ -15,81 +15,46 @@ def execute(filters=None):
 			"label": _("Delivery Note"),
 			"fieldtype": "Link",
 			"options": "Delivery Note",
-			"width": 150		
+			"width": 150,
 		},
-		{
-			"fieldname": "customer_name",
-			"label": _("Customer"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "customer_name", "label": _("Customer"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "customer_address",
 			"label": _("Customer Address"),
 			"fieldtype": "Small Text",
-			"width": 200
+			"width": 200,
 		},
-		{
-			"fieldname": "phone_number",
-			"label": _("Phone Number"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "phone_number", "label": _("Phone Number"), "fieldtype": "Data", "width": 150},
 		# {
 		# 	"fieldname": "item_name",
 		# 	"label": _("Item"),
 		# 	"fieldtype": "Data",
-		# 	"width": 150		
+		# 	"width": 150
 		# },
-		{
-			"fieldname": "item_code",
-			"label": _("Item Code"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "quantity",
-			"label": _("Quantity"),
-			"fieldtype": "Float",
-			"width": 150
-		},
+		{"fieldname": "item_code", "label": _("Item Code"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "quantity", "label": _("Quantity"), "fieldtype": "Float", "width": 150},
 		# {
 		# 	"fieldname": "uom",
 		# 	"label": _("UOM"),
 		# 	"fieldtype": "Data",
 		# 	"width": 150
 		# },
-		{
-			"fieldname": "serial_no",
-			"label": _("Serial Numbers"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "actual_quantity",
-			"label": _("Actual Quantity"),
-			"fieldtype": "Float",
-			"width": 100
-		},
+		{"fieldname": "serial_no", "label": _("Serial Numbers"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "actual_quantity", "label": _("Actual Quantity"), "fieldtype": "Float", "width": 100},
 		# {
 		# 	"fieldname": "projected_quantity",
 		# 	"label": _("Projected Quantity"),
 		# 	"fieldtype": "Float",
 		# 	"width": 100
 		# },
-		{
-			"fieldname": "warehouse",
-			"label": _("Warehouse"),
-			"fieldtype": "Data",
-			"width": 150
-		},
+		{"fieldname": "warehouse", "label": _("Warehouse"), "fieldtype": "Data", "width": 150},
 		{
 			"fieldname": "sales_invoice",
 			"label": _("Sales Invoice"),
 			"fieldtype": "Link",
 			"options": "Sales Invoice",
-			"width": 150		
-		}
+			"width": 150,
+		},
 	]
 	if filters.from_date > filters.to_date:
 		frappe.throw(_("From Date must be before To Date {}").format(filters.to_date))
@@ -106,8 +71,8 @@ def execute(filters=None):
 	customer_address_name = (
 		frappe.qb.from_(dynamic_link)
 		.select(dynamic_link.parent)
-		.where(dynamic_link.parenttype == 'Address')
-		.where(dynamic_link.link_doctype == 'Customer')
+		.where(dynamic_link.parenttype == "Address")
+		.where(dynamic_link.link_doctype == "Customer")
 		.where(dynamic_link.link_name == delivery_note.customer)
 		.orderby(address.creation)
 		.limit(1)
@@ -125,7 +90,10 @@ def execute(filters=None):
 		.left_join(delivery_note)
 		.on(delivery_note_item.parent == delivery_note.name)
 		.left_join(stock_bin)
-		.on((stock_bin.item_code == delivery_note_item.item_code) & (stock_bin.warehouse == delivery_note_item.warehouse))
+		.on(
+			(stock_bin.item_code == delivery_note_item.item_code)
+			& (stock_bin.warehouse == delivery_note_item.warehouse)
+		)
 		.left_join(item)
 		.on(item.item_code == delivery_note_item.item_code)
 		.left_join(address)
@@ -147,8 +115,8 @@ def execute(filters=None):
 			stock_bin.projected_qty.as_("projected_quantity"),
 		)
 		.where(delivery_note.docstatus == 1)
-		.where(delivery_note.status.isin(['Completed', 'To Bill', 'Closed']))
-		.where(delivery_note.posting_date[filters.from_date:filters.to_date])
+		.where(delivery_note.status.isin(["Completed", "To Bill", "Closed"]))
+		.where(delivery_note.posting_date[filters.from_date : filters.to_date])
 		.where(return_against_note.isnull())
 	)
 

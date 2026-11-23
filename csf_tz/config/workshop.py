@@ -1,28 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from frappe import _
+
 
 def get_data():
 	return [
 		{
 			"label": _("Documents"),
 			"items": [
-				{
-					"type": "doctype",
-					"name": "Job Card",
-					"description": _("Job Card.")
-				},
-				{
-					"type": "doctype",
-					"name": "Requested Items",
-					"description": _("Requested Items.")
-				},
-				{
-					"type": "doctype",
-					"name": "Workshop Request",
-					"description": _("Workshop Request.")
-				}
-			]
+				{"type": "doctype", "name": "Job Card", "description": _("Job Card.")},
+				{"type": "doctype", "name": "Requested Items", "description": _("Requested Items.")},
+				{"type": "doctype", "name": "Workshop Request", "description": _("Workshop Request.")},
+			],
 		},
 		{
 			"label": _("Setup"),
@@ -30,14 +17,10 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Workshop Service Type",
-					"description": _("Workshop Service Type")
+					"description": _("Workshop Service Type"),
 				},
-				{
-					"type": "doctype",
-					"name": "Workshop Service",
-					"description": _("Workshop Service")
-				}
-			]
+				{"type": "doctype", "name": "Workshop Service", "description": _("Workshop Service")},
+			],
 		},
 		{
 			"label": _("Reports"),
@@ -65,7 +48,7 @@ def get_data():
 					"name": "Used Items Report",
 					"doctype": "Job Card",
 					"is_query_report": True,
-				}
-			]
-		}
+				},
+			],
+		},
 	]

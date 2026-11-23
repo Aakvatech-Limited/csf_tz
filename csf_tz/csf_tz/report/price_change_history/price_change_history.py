@@ -4,16 +4,17 @@
 import frappe
 from frappe import _
 
-def execute(filters=None):
-	columns = get_columns(filters)
 
+def execute(filters=None):
+	if not filters:
+		filters = frappe._dict()
+	if not filters.get("company"):
+		frappe.throw(_("Company is required."))
+
+	columns = get_columns(filters)
 	data = get_data(filters)
-	
-	if len(data) == 0:
-		frappe.msgprint("<strong>No record found, Please check you filters</strong>")
-		return
-	
 	return columns, data
+
 
 def get_data(filters):
 	price_change_request = frappe.qb.DocType("Price Change Request")
@@ -48,12 +49,45 @@ def get_data(filters):
 
 	return query.run(as_dict=True)
 
+
 def get_columns(filters):
 	return [
-		{"fieldname": "date", "fieldtype": "Date", "label": _("Date"), "width": "110px"},
-		{"fieldname": "item_code", "fieldtype": "Link", "options": "Item", "label": _("Item Code"), "width": "170px"},
-		{"fieldname": "item_name", "fieldtype": "Data", "label": _("Item Name"), "width": "200px"},
-		{"fieldname": "price_list", "fieldtype": "Link", "options": "Price List", "label": _("Price List"), "width": "170px"},
-		{"fieldname": "old_price", "fieldtype": "Currency", "label": _("Old Price"), "width": "100px"},
-		{"fieldname": "new_price", "fieldtype": "Currency", "label": _("New Price"), "width": "100px"}
+		{
+			"fieldname": "date",
+			"fieldtype": "Date",
+			"label": _("Date"),
+			"width": "110px",
+		},
+		{
+			"fieldname": "item_code",
+			"fieldtype": "Link",
+			"options": "Item",
+			"label": _("Item Code"),
+			"width": "170px",
+		},
+		{
+			"fieldname": "item_name",
+			"fieldtype": "Data",
+			"label": _("Item Name"),
+			"width": "200px",
+		},
+		{
+			"fieldname": "price_list",
+			"fieldtype": "Link",
+			"options": "Price List",
+			"label": _("Price List"),
+			"width": "170px",
+		},
+		{
+			"fieldname": "old_price",
+			"fieldtype": "Currency",
+			"label": _("Old Price"),
+			"width": "100px",
+		},
+		{
+			"fieldname": "new_price",
+			"fieldtype": "Currency",
+			"label": _("New Price"),
+			"width": "100px",
+		},
 	]

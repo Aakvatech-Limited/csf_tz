@@ -1,25 +1,23 @@
 # Copyright (c) 2026, Aakvatech and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 
 import time
 from time import sleep
 
 import frappe
 import requests
-from frappe.utils import cint
-from frappe.utils import getdate, now_datetime, nowdate
 from frappe.model.document import Document
+from frappe.utils import cint, getdate, now_datetime, nowdate
 
+from csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record import (
+	is_valid_number_plate,
+	normalize_number_plate,
+)
 from csf_tz.vehicle_authority import (
 	get_unique_vehicle_plates,
 	is_authority_notification_event_enabled,
 	send_authority_notification,
-)
-from csf_tz.csf_tz.doctype.vehicle_fine_record.vehicle_fine_record import (
-	is_valid_number_plate,
-	normalize_number_plate,
 )
 
 LATRA_GQL_URL = "https://rrims.latra.go.tz:8086/graphql"
@@ -248,6 +246,8 @@ def send_pending_latra_offence_notifications():
 			_notify_latra_offence(row.name, values, is_new=False, old_status=last_status)
 
 	frappe.db.commit()
+
+
 def sync_all_latra_licenses(token):
 	plates = get_unique_vehicle_plates(
 		normalize_number_plate=normalize_number_plate,
@@ -261,9 +261,7 @@ def sync_all_latra_licenses(token):
 
 	licenses_by_plate = {}
 	for lic in all_licenses:
-		vehicle_reg = normalize_number_plate(
-			(lic.get("vehicle") or {}).get("vehicleRegistrationNumber")
-		)
+		vehicle_reg = normalize_number_plate((lic.get("vehicle") or {}).get("vehicleRegistrationNumber"))
 		if not vehicle_reg:
 			continue
 		licenses_by_plate.setdefault(vehicle_reg, []).append(lic)
@@ -342,7 +340,14 @@ def notify_latra_license_expiry():
 
 	for row in frappe.get_all(
 		"Latra Licenses",
-		fields=["name", "vehicle", "license_number", "license_status", "expire_date", "authority_last_expiry_notification_key"],
+		fields=[
+			"name",
+			"vehicle",
+			"license_number",
+			"license_status",
+			"expire_date",
+			"authority_last_expiry_notification_key",
+		],
 		limit_page_length=0,
 	):
 		if not row.expire_date:
@@ -433,14 +438,10 @@ def _notify_latra_offence(docname, values, is_new=False, old_status=None):
 def _log_sync_summary(license_result, offence_result):
 	try:
 		license_message = (
-			license_result.get("message")
-			if isinstance(license_result, dict)
-			else str(license_result)
+			license_result.get("message") if isinstance(license_result, dict) else str(license_result)
 		)
 		offence_message = (
-			offence_result.get("message")
-			if isinstance(offence_result, dict)
-			else str(offence_result)
+			offence_result.get("message") if isinstance(offence_result, dict) else str(offence_result)
 		)
 		frappe.log_error(
 			title="LATRA Sync Summary",
@@ -565,6 +566,7 @@ def _refresh_token_locked():
 def _token_cache_key():
 	return f"{frappe.local.site}:latra_access_token"
 
+
 def _fetch_all_offences(token):
 	page_size = 500
 	page_index = 0
@@ -575,7 +577,7 @@ def _fetch_all_offences(token):
 		if result in (TOKEN_EXPIRED, "RATE_LIMITED", None):
 			return result
 
-		page = (result.get("allMyClientOffencesPageable") or {})
+		page = result.get("allMyClientOffencesPageable") or {}
 		content = page.get("content") or []
 		total_elements = cint(page.get("totalElements") or 0)
 
@@ -685,6 +687,8 @@ def _call_offences_graphql_page(token, first=0, size=500):
 			message=f"Non-JSON response on page {first}: {response.text[:500] if response else 'No response'}",
 		)
 		return None
+
+
 def _fetch_all_licenses(token):
 	page_size = 200
 	page_index = 0
@@ -695,7 +699,7 @@ def _fetch_all_licenses(token):
 		if result in (TOKEN_EXPIRED, "RATE_LIMITED", None):
 			return result
 
-		content = ((result.get("findMyCurrentLicensesPageable") or {}).get("content") or [])
+		content = (result.get("findMyCurrentLicensesPageable") or {}).get("content") or []
 		if not content:
 			break
 
@@ -737,9 +741,7 @@ def _call_license_page(token, first=0, size=200):
 			if attempt > 0:
 				sleep(5 * attempt)
 
-			response = requests.post(
-				LATRA_GQL_URL, json=payload, headers=headers, timeout=timeout
-			)
+			response = requests.post(LATRA_GQL_URL, json=payload, headers=headers, timeout=timeout)
 
 			if response.status_code == 401:
 				return TOKEN_EXPIRED
@@ -801,11 +803,9 @@ def _parse_date(value):
 
 
 def _get_place_issued(license_row):
-	branch = (
-		((license_row.get("licenseInfoDetail") or {}).get("currentLicenseApplication") or {})
-		.get("branch")
-		or {}
-	)
+	branch = ((license_row.get("licenseInfoDetail") or {}).get("currentLicenseApplication") or {}).get(
+		"branch"
+	) or {}
 	district = branch.get("district") or {}
 	branch_name = branch.get("name") or ""
 	district_name = district.get("districtName") or ""

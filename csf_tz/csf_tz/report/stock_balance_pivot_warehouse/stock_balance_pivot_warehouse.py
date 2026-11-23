@@ -1,21 +1,23 @@
 # Copyright (c) 2013, Aakvatech and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
-from frappe.utils import flt
 from frappe import _
-from frappe.query_builder import Criterion, Field
+from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Sum
+from frappe.utils import flt
+
 
 def execute(filters=None):
-	if not filters: filters = {}
+	if not filters:
+		filters = {}
 	stock_ledger_entry = get_stock_ledger_entries(filters)
-	if not stock_ledger_entry: return [], []
+	if not stock_ledger_entry:
+		return [], []
 
 	columns, warehouses = get_columns(stock_ledger_entry)
 	sle_warehouse_map = get_sle_warehouse_map(stock_ledger_entry)
-
 
 	data = []
 	for sle in stock_ledger_entry:
@@ -23,15 +25,19 @@ def execute(filters=None):
 
 		for e in warehouses:
 			row.append(sle_warehouse_map.get(sle.item_code, {}).get(e))
-		#row += [total_qty]
+		# row += [total_qty]
 
 		data.append(row)
 
 	return columns, data
 
+
 def get_columns(stock_ledger_entry):
 	columns = [
-		_("Item Code") + ":Link/Item:150", _("Item") + ":Data/Item Name:150", _("Brand") + ":Link/Brand:150", _("Item Group") + ":Link/Item Group:150"
+		_("Item Code") + ":Link/Item:150",
+		_("Item") + ":Data/Item Name:150",
+		_("Brand") + ":Link/Brand:150",
+		_("Item Group") + ":Link/Item Group:150",
 	]
 
 	warehouses = {_("Warehouse"): []}
@@ -46,15 +52,17 @@ def get_columns(stock_ledger_entry):
 	):
 		warehouses[_("Warehouse")].append(warehouse.warehouse)
 
-	columns = columns + [(e + ":Float:120") for e in warehouses[_("Warehouse")]] + \
-		[_("Total Stock") + ":Float:120"]
-	
-	#frappe.msgprint(warehouses[_("Warehouse")])
+	columns = (
+		columns + [(e + ":Float:120") for e in warehouses[_("Warehouse")]] + [_("Total Stock") + ":Float:120"]
+	)
+
+	# frappe.msgprint(warehouses[_("Warehouse")])
 
 	return columns, warehouses[_("Warehouse")]
 
+
 def get_stock_ledger_entries(filters):
-	filters.update({"from_date": filters.get("from_date"), "to_date":filters.get("to_date")})
+	filters.update({"from_date": filters.get("from_date"), "to_date": filters.get("to_date")})
 	sle = frappe.qb.DocType("Stock Ledger Entry")
 	item = frappe.qb.DocType("Item")
 	stock_ledger_entry = (
@@ -77,18 +85,25 @@ def get_stock_ledger_entries(filters):
 
 	return stock_ledger_entry or []
 
+
 def get_conditions(filters):
 	sle = frappe.qb.DocType("Stock Ledger Entry")
 	item = frappe.qb.DocType("Item")
 	conditions = []
 
-	if filters.get("from_date"): conditions.append(sle.posting_date >= filters.get("from_date"))
-	if filters.get("to_date"): conditions.append(sle.posting_date <= filters.get("to_date"))
-	if filters.get("item_group"): conditions.append(item.item_group == filters.get("item_group"))
-	if filters.get("brand"): conditions.append(item.brand == filters.get("brand"))
-	if filters.get("warehouse"): conditions.append(sle.warehouse == filters.get("warehouse"))
+	if filters.get("from_date"):
+		conditions.append(sle.posting_date >= filters.get("from_date"))
+	if filters.get("to_date"):
+		conditions.append(sle.posting_date <= filters.get("to_date"))
+	if filters.get("item_group"):
+		conditions.append(item.item_group == filters.get("item_group"))
+	if filters.get("brand"):
+		conditions.append(item.brand == filters.get("brand"))
+	if filters.get("warehouse"):
+		conditions.append(sle.warehouse == filters.get("warehouse"))
 
 	return conditions
+
 
 def get_sle_warehouse_map(stock_ledger_entry):
 	sle = frappe.qb.DocType("Stock Ledger Entry")
@@ -98,7 +113,7 @@ def get_sle_warehouse_map(stock_ledger_entry):
 		.inner_join(item)
 		.on(sle.item_code == item.item_code)
 		.select(sle.item_code, sle.warehouse, Sum(sle.actual_qty).as_("sum(actual_qty)"))
-		.where(Field("item_code").isin([d.item_code for d in stock_ledger_entry]))
+		.where(sle.item_code.isin([d.item_code for d in stock_ledger_entry]))
 		.groupby(item.item_name, item.brand, item.item_group, sle.warehouse)
 		.run(as_dict=True)
 	)
@@ -106,7 +121,7 @@ def get_sle_warehouse_map(stock_ledger_entry):
 	sle_warehouse_map = {}
 	for d in sle_warehouses:
 		sle_warehouse_map.setdefault(d.item_code, frappe._dict()).setdefault(d.warehouse, [])
-		#frappe.msgprint(d)
+		# frappe.msgprint(d)
 		sle_warehouse_map[d.item_code][d.warehouse] = flt(d.actual_qty)
 
 	return sle_warehouse_map

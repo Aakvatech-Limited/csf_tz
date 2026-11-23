@@ -1,89 +1,66 @@
 # Copyright (c) 2013, Bravo Logistics and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
+import datetime
+
 import frappe
 from frappe import _
 from frappe.query_builder import Field, Order
 from frappe.query_builder.functions import Concat, DateFormat, Upper
+
 from csf_tz.fleet_management.trip_queries import get_case_by_joined_table
-import ast
-import datetime
-import time
+
 
 def execute(filters=None):
 	columns, data = [], []
-	
+
 	columns = [
 		{
 			"fieldname": "trip_no",
 			"label": _("Trip No"),
 			"fieldtype": "Link",
 			"options": "Vehicle Trip",
-			"width": 100
+			"width": 100,
 		},
 		{
 			"fieldname": "customer",
 			"label": _("Customer"),
 			"fieldtype": "Link",
 			"options": "Customer",
-			"width": 150
+			"width": 150,
 		},
-		{
-			"fieldname": "vehicle",
-			"label": _("Vehicle/Trailer"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "cargo",
-			"label": _("Cargo"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "border_name",
-			"label": _("Border Name"),
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"fieldname": "eta_at_border",
-			"label": _("ETA at Border"),
-			"fieldtype": "Date",
-			"width": 100
-		},
-		{
-			"fieldname": "dispatch_date",
-			"label": _("Dispatch Date"),
-			"fieldtype": "Date",
-			"width": 100
-		},
+		{"fieldname": "vehicle", "label": _("Vehicle/Trailer"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "cargo", "label": _("Cargo"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "border_name", "label": _("Border Name"), "fieldtype": "Data", "width": 150},
+		{"fieldname": "eta_at_border", "label": _("ETA at Border"), "fieldtype": "Date", "width": 100},
+		{"fieldname": "dispatch_date", "label": _("Dispatch Date"), "fieldtype": "Date", "width": 100},
 		{
 			"fieldname": "last_reported_position",
 			"label": _("Last Reported Position"),
 			"fieldtype": "Data",
-			"width": 450
-		}
+			"width": 450,
+		},
 	]
-	
-	
+
 	query = get_vehicles_at_border_query()
 	if filters.border:
 		query = query.having(Field("border_name") == filters.border)
 
 	data = query.orderby(Field("dispatch_date"), order=Order.asc).run(as_dict=True)
-							
+
 	for row in data:
 		if row.route:
-			route = frappe.get_doc('Trip Route', row.route)
+			route = frappe.get_doc("Trip Route", row.route)
 			for location in route.trip_steps:
 				if location.location == row.border_name:
 					if location.distance and location.distance != 0:
-						days_to_add = location.distance/340
+						days_to_add = location.distance / 340
 						if row.dispatch_date:
-							row.update({"eta_at_border": row.dispatch_date + datetime.timedelta(days=days_to_add)})
-	
+							row.update(
+								{"eta_at_border": row.dispatch_date + datetime.timedelta(days=days_to_add)}
+							)
+
 	return columns, data
 
 
@@ -101,31 +78,47 @@ def get_vehicles_at_border_query():
 		.left_join(return_trip)
 		.on(get_trip_join_condition(return_trip, route_steps, "return_route_steps"))
 		.left_join(main_loading_point)
-		.on(main_loading_point.name == get_loading_point_query(main_trip, main_loading_point, "main_route_steps"))
+		.on(
+			main_loading_point.name
+			== get_loading_point_query(main_trip, main_loading_point, "main_route_steps")
+		)
 		.left_join(return_loading_point)
-		.on(return_loading_point.name == get_loading_point_query(return_trip, return_loading_point, "return_route_steps"))
+		.on(
+			return_loading_point.name
+			== get_loading_point_query(return_trip, return_loading_point, "return_route_steps")
+		)
 		.select(
-			get_case_by_joined_table([(main_trip, main_trip.name), (return_trip, return_trip.name)]).as_("trip_no"),
+			get_case_by_joined_table([(main_trip, main_trip.name), (return_trip, return_trip.name)]).as_(
+				"trip_no"
+			),
 			get_case_by_joined_table(
 				[(main_trip, main_trip.main_customer), (return_trip, return_trip.return_customer)]
 			).as_("customer"),
 			get_case_by_joined_table(
-				[(trip, Concat(trip.vehicle_plate_number, "/", trip.trailer_plate_number)) for trip, leg in trips]
+				[
+					(trip, Concat(trip.vehicle_plate_number, "/", trip.trailer_plate_number))
+					for trip, leg in trips
+				]
 			).as_("vehicle"),
 			get_case_by_joined_table(
-				[(main_trip, main_trip.main_goods_description), (return_trip, return_trip.return_goods_description)]
+				[
+					(main_trip, main_trip.main_goods_description),
+					(return_trip, return_trip.return_goods_description),
+				]
 			).as_("cargo"),
 			route_steps.location.as_("border_name"),
-			get_case_by_joined_table([(main_trip, main_trip.main_route), (return_trip, return_trip.return_route)]).as_("route"),
+			get_case_by_joined_table(
+				[(main_trip, main_trip.main_route), (return_trip, return_trip.return_route)]
+			).as_("route"),
 			get_case_by_joined_table(
 				[
 					(main_loading_point, main_loading_point.departure_date),
 					(return_loading_point, return_loading_point.departure_date),
 				]
 			).as_("dispatch_date"),
-			get_case_by_joined_table(
-				[(trip, get_last_position_query(trip, leg)) for trip, leg in trips]
-			).as_("last_reported_position"),
+			get_case_by_joined_table([(trip, get_last_position_query(trip, leg)) for trip, leg in trips]).as_(
+				"last_reported_position"
+			),
 		)
 		.where(
 			(Upper(route_steps.location_type) == "BORDER")

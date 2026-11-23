@@ -4,5 +4,6 @@
 # import frappe
 import unittest
 
+
 class TestReportingCurrencySettings(unittest.TestCase):
 	pass

@@ -1,11 +1,11 @@
 # Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe import _
-from frappe.desk.query_report import add_total_row
 from frappe.query_builder.functions import Count, Sum
+
 
 def execute(filters=None):
 	columns, data = [], []
@@ -15,51 +15,51 @@ def execute(filters=None):
 			"label": _("Technician"),
 			"fieldtype": "Link",
 			"options": "Employee",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "employee_name",
 			"label": _("Technician Name"),
 			"fieldtype": "Data",
 			"width": 150,
-			"hidden": True
+			"hidden": True,
 		},
 		{
 			"fieldname": "workshop",
 			"label": _("Workshop"),
 			"fieldtype": "link",
 			"options": "Warehouse",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "no_of_jobs_completed",
 			"label": _("No of Jobs Completed"),
 			"fieldtype": "Float",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "total_billable_hours",
 			"label": _("Total Billable Hours"),
 			"fieldtype": "Float",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "total_standard_hours",
 			"label": _("Standard Hours"),
 			"fieldtype": "Float",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "total_work_value",
 			"label": _("Total Work Value"),
 			"fieldtype": "Currency",
-			"width": 150
+			"width": 150,
 		},
 		{
 			"fieldname": "job_efficiency",
 			"label": _("Technician Efficiency (%)"),
 			"fieldtype": "Float",
-			"width": 150
+			"width": 150,
 		},
 	]
 
@@ -82,20 +82,26 @@ def execute(filters=None):
 			Count(maintenance_services_table.name).as_("no_of_jobs_completed"),
 			Sum(maintenance_services_table.billable_hours).as_("total_billable_hours"),
 			Sum(maintenance_services_table.standard_hours).as_("total_standard_hours"),
-			Sum(maintenance_services_table.standard_cost * maintenance_services_table.billable_hours).as_("total_work_value"),
+			Sum(maintenance_services_table.standard_cost * maintenance_services_table.billable_hours).as_(
+				"total_work_value"
+			),
 			(
-				(Sum(maintenance_services_table.billable_hours) / Sum(maintenance_services_table.standard_hours)) * 100
+				(
+					Sum(maintenance_services_table.billable_hours)
+					/ Sum(maintenance_services_table.standard_hours)
+				)
+				* 100
 			).as_("job_efficiency"),
 		)
-		.where(maintenance_services_table.start_date[filters.from_date:filters.to_date])
+		.where(maintenance_services_table.start_date[filters.from_date : filters.to_date])
 		.where(job_card.docstatus == 1)
-		.where(maintenance_services_table.service_status == 'Fully Completed')
+		.where(maintenance_services_table.service_status == "Fully Completed")
 		.groupby(maintenance_services_table.technician, job_card.warehouse)
 	)
 
 	if filters.workshop:
 		query = query.where(job_card.warehouse == filters.workshop)
-		
+
 	if filters.technician:
 		query = query.where(maintenance_services_table.technician == filters.technician)
 
