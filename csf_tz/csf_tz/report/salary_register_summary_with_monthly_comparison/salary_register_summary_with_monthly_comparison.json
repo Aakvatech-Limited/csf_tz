@@ -21,9 +21,6 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Employee"
-  },
-  {
    "role": "HR Manager"
   },
   {
@@ -34,15 +31,6 @@
   },
   {
    "role": "Directorate"
-  },
-  {
-   "role": "Leave Approver"
-  },
-  {
-   "role": "All"
-  },
-  {
-   "role": "Employee Self Service"
   }
  ]
 }

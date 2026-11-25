@@ -2,12 +2,25 @@
 # For license information, please see license.txt
 
 import frappe
+from urllib.parse import urlsplit
 from frappe import _
 from frappe.model.document import Document
 
 # URLs and endpoints of the providers this app talks to, keyed by settings
 # doctype because the provider record can be renamed by the user.
 PROVIDER_DEFAULTS = {
+	"Pergamon VFD Settings": {
+		"live_url": None,
+		"test_url": "https://5.161.57.127:9040/api/v1",
+		"endpoints": {
+			"post_receipt": "/invoices",
+			"get_invoices": "/invoices",
+			"get_invoice": "/invoices/{id}",
+			"zreports": "/zreports",
+			"periodic_reports": "/periodic-reports",
+			"generate_invoices": "/generate-invoices",
+		},
+	},
 	"DIRM VFD Settings": {
 		"test_url": "https://dirmvfd.co.tz/api_demo",
 		"live_url": "https://dirmvfd.co.tz/api_live",
@@ -33,6 +46,25 @@ class VFDProvider(Document):
 		"""
 		defaults = PROVIDER_DEFAULTS.get(self.vfd_provider_settings)
 		if not defaults:
+			return
+
+		if self.vfd_provider_settings == "Pergamon VFD Settings":
+			test_url = str(frappe.conf.get("pergamon_sandbox_url") or defaults["test_url"]).rstrip("/")
+			production_url = str(frappe.conf.get("pergamon_production_url") or "").rstrip("/")
+			test_host = urlsplit(test_url)
+			live_host = urlsplit(production_url)
+			if self.sandbox:
+				if test_host.scheme != "https" or not test_host.hostname:
+					frappe.throw(_("Pergamon sandbox URL must be HTTPS"))
+				if production_url and test_host.hostname == live_host.hostname:
+					frappe.throw(_("Pergamon sandbox and production must have different hostnames"))
+				self.base_url = test_url
+			else:
+				if live_host.scheme != "https" or not live_host.hostname:
+					frappe.throw(_("Configure pergamon_production_url before disabling Pergamon Sandbox"))
+				if test_host.hostname == live_host.hostname:
+					frappe.throw(_("Pergamon production endpoint must differ from the test endpoint"))
+				self.base_url = production_url
 			return
 
 		self.base_url = defaults["test_url"] if self.sandbox else defaults["live_url"]

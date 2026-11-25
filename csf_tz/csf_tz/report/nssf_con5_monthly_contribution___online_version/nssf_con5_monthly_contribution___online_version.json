@@ -40,18 +40,6 @@
   },
   {
    "role": "HR User"
-  },
-  {
-   "role": "Employee"
-  },
-  {
-   "role": "Leave Approver"
-  },
-  {
-   "role": "All"
-  },
-  {
-   "role": "Employee Self Service"
   }
  ]
 }

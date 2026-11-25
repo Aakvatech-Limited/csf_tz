@@ -3,7 +3,7 @@ import os
 
 import frappe
 
-__version__ = "16.0.0"
+__version__ = "16.60.1"
 
 patches_loaded = False
 app_name = "csf_tz"

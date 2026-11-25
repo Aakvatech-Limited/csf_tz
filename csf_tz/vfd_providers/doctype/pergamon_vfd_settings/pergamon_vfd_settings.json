@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "autoname": "field:company",
+ "doctype": "DocType",
+ "module": "VFD Providers",
+ "name": "Pergamon VFD Settings",
+ "field_order": [
+  "company",
+  "username",
+  "password",
+  "column_break_settings",
+  "vfd_start_date",
+  "enable_vfd_preview"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "label": "Company",
+   "reqd": 1,
+   "unique": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_settings",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "vfd_start_date",
+   "fieldtype": "Date",
+   "label": "VFD Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "enable_vfd_preview",
+   "fieldtype": "Check",
+   "label": "Enable VFD Preview",
+   "default": "1"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC"
+}

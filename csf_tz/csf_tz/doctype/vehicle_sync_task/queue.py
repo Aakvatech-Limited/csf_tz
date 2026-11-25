@@ -6,7 +6,11 @@ import frappe
 BATCH_SIZE = 1
 SUCCESS_INTERVAL_SECONDS = 60 * 60 * 24
 MAX_CALLS_PER_MINUTE = 1
-WORKER_ID = f"{socket.gethostname()}:{os.getpid()}"
+
+
+def get_worker_id():
+	"""Resolve process identity at claim time, not as mutable module-level state."""
+	return f"{socket.gethostname()}:{os.getpid()}"
 
 
 def _now():
@@ -55,7 +59,7 @@ def claim_batch(doctype, limit=BATCH_SIZE):
 				row["name"],
 				{
 					"status": "Processing",
-					"claimed_by": WORKER_ID,
+					"claimed_by": get_worker_id(),
 					"claimed_at": now,
 					"last_run_at": now,
 				},

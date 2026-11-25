@@ -1,32 +1,31 @@
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 
 
 @frappe.whitelist()
 def get_customer_total_unpaid_amount(customer, company=None):
 	if not customer:
 		return 0
-	company_condition = ""
-	if company:
-		company_condition = f" and company = '{company}'"
-	company_wise_total_unpaid = frappe._dict(
-		frappe.db.sql(
-			f"""
-        select company, sum(debit_in_account_currency) - sum(credit_in_account_currency)
-        from `tabGL Entry`
-        where party_type = %s and party=%s
-        and is_cancelled = 0 {company_condition}
-        group by company""",
-			("Customer", customer),
+
+	frappe.has_permission("GL Entry", throw=True)
+	gle = frappe.qb.DocType("GL Entry")
+	query = (
+		frappe.qb.from_(gle)
+		.select(
+			gle.company,
+			(Sum(gle.debit_in_account_currency) - Sum(gle.credit_in_account_currency)).as_("balance"),
 		)
+		.where(gle.party_type == "Customer")
+		.where(gle.party == customer)
+		.where(gle.is_cancelled == 0)
+		.groupby(gle.company)
 	)
-	total_unpaid = 0
 	if company:
-		total_unpaid = company_wise_total_unpaid.get(company, 0)
-	else:
-		total_unpaid = sum(company_wise_total_unpaid.values())
+		query = query.where(gle.company == company)
 
-	total_unpaid = frappe.format_value(total_unpaid, "Float")
-
-	frappe.msgprint(_("Total Unpaid Amount is {0}").format(total_unpaid))
-	return total_unpaid
+	balances = query.run(as_dict=True)
+	total_unpaid = sum(row.balance or 0 for row in balances)
+	formatted_total = frappe.format_value(total_unpaid, "Float")
+	frappe.msgprint(_("Total Unpaid Amount is {0}").format(formatted_total))
+	return formatted_total

@@ -600,8 +600,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "All",
-   "share": 1
+   "role": "Desk User"
   }
  ],
  "quick_entry": 1,

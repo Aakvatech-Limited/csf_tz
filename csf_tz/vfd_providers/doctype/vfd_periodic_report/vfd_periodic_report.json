@@ -1,0 +1,144 @@
+{
+ "doctype": "DocType",
+ "name": "VFD Periodic Report",
+ "module": "VFD Providers",
+ "autoname": "hash",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "company",
+  "vfd_provider",
+  "from_date",
+  "to_date",
+  "fetched_at",
+  "comparison_status",
+  "section_break_totals",
+  "provider_total",
+  "erpnext_total",
+  "difference",
+  "column_break_totals",
+  "provider_receipt_count",
+  "erpnext_receipt_count",
+  "section_break_raw",
+  "raw_response"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "vfd_provider",
+   "label": "VFD Provider",
+   "fieldtype": "Link",
+   "options": "VFD Provider",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "from_date",
+   "label": "From Date",
+   "fieldtype": "Date",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "to_date",
+   "label": "To Date",
+   "fieldtype": "Date",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "fetched_at",
+   "label": "Retrieved At",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "comparison_status",
+   "label": "Comparison Status",
+   "fieldtype": "Select",
+   "read_only": 1,
+   "options": "Pending Schema Confirmation\nIndicative Match\nIndicative Difference"
+  },
+  {
+   "fieldname": "section_break_totals",
+   "label": "Period Totals (TZS)",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "provider_total",
+   "label": "Pergamon Total",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erpnext_total",
+   "label": "ERPNext Total",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "difference",
+   "label": "Difference",
+   "fieldtype": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_totals",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider_receipt_count",
+   "label": "Pergamon Receipt Count",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erpnext_receipt_count",
+   "label": "ERPNext Receipt Count",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_raw",
+   "label": "Original Provider Response",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "raw_response",
+   "label": "Original Pergamon JSON",
+   "fieldtype": "Code",
+   "read_only": 1,
+   "options": "JSON"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}
