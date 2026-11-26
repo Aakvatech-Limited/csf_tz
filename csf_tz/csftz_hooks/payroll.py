@@ -11,6 +11,36 @@ from PyPDF3 import PdfFileReader, PdfFileWriter
 from csf_tz import console
 
 
+@frappe.whitelist(methods=["POST"])
+def upload_filed_return():
+	"""Attach a filed return using the content received by Frappe's file uploader."""
+	payroll_entry_name = frappe.form_dict.get("docname")
+	if frappe.form_dict.get("doctype") != "Payroll Entry" or not payroll_entry_name:
+		frappe.throw(_("Select a Payroll Entry to attach the filed return."))
+
+	payroll_entry = frappe.get_doc("Payroll Entry", payroll_entry_name, for_update=True)
+	payroll_entry.check_permission("write")
+	if payroll_entry.docstatus != 1 or not payroll_entry.salary_slips_submitted:
+		frappe.throw(_("Submit the salary slips before uploading filed returns."))
+
+	content = getattr(frappe.local, "uploaded_file", None)
+	filename = getattr(frappe.local, "uploaded_filename", None)
+	if not content or not filename:
+		frappe.throw(_("Choose a file to upload as a filed return."))
+
+	return frappe.get_doc(
+		{
+			"doctype": "File",
+			"attached_to_doctype": payroll_entry.doctype,
+			"attached_to_name": payroll_entry.name,
+			"folder": "Home/Attachments",
+			"file_name": filename,
+			"is_private": 1,
+			"content": content,
+		}
+	).insert()
+
+
 def before_insert_payroll_entry(doc, method):
 	enable_payroll_approval = frappe.db.get_single_value("CSF TZ Settings", "enable_payroll_approval")
 	if enable_payroll_approval:

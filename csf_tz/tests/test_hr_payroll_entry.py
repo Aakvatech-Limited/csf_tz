@@ -99,6 +99,28 @@ class TestPayrollEntryHooks(HRPayrollTestCase):
 		self.assertEqual(payroll_entry.salary_slips_submitted, 1)
 		self.assertIsNone(payroll.create_journal_entry(payroll_entry.name))
 
+	def test_upload_filed_return_is_private_and_linked_to_processed_payroll(self):
+		payroll_entry = make_test_payroll_entry(self.department)
+		form = frappe._dict(doctype="Payroll Entry", docname=payroll_entry.name, is_private=0)
+		content = blank_pdf()
+
+		with (
+			patch.object(frappe.local, "form_dict", form, create=True),
+			patch.object(frappe.local, "uploaded_file", content, create=True),
+			patch.object(frappe.local, "uploaded_filename", "filed-paye-return.pdf", create=True),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				payroll.upload_filed_return()
+
+			payroll_entry.submit_salary_slips()
+			attachment = payroll.upload_filed_return()
+
+		self.assertEqual(attachment.attached_to_doctype, "Payroll Entry")
+		self.assertEqual(attachment.attached_to_name, payroll_entry.name)
+		self.assertEqual(attachment.is_private, 1)
+		self.assertTrue(attachment.file_url.startswith("/private/files/"))
+		self.assertEqual(attachment.get_content(), content)
+
 	def test_get_amounts_summary(self):
 		payroll_entry = make_test_payroll_entry(self.department)
 		frappe.db.set_value("Salary Component", "Basic Salary", "include_in_payroll_summary", 1)
