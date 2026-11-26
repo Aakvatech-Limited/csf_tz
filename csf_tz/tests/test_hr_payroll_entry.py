@@ -101,7 +101,7 @@ class TestPayrollEntryHooks(HRPayrollTestCase):
 
 	def test_upload_filed_return_is_private_and_linked_to_processed_payroll(self):
 		payroll_entry = make_test_payroll_entry(self.department)
-		form = frappe._dict(doctype="Payroll Entry", docname=payroll_entry.name, is_private=0)
+		form = frappe._dict(doctype="Payroll Entry", docname=payroll_entry.name, is_private=0, fieldname="PAYE")
 		content = blank_pdf()
 
 		with (
@@ -113,10 +113,16 @@ class TestPayrollEntryHooks(HRPayrollTestCase):
 				payroll.upload_filed_return()
 
 			payroll_entry.submit_salary_slips()
+			form.fieldname = "Unknown"
+			with self.assertRaises(frappe.ValidationError):
+				payroll.upload_filed_return()
+
+			form.fieldname = "PAYE"
 			attachment = payroll.upload_filed_return()
 
 		self.assertEqual(attachment.attached_to_doctype, "Payroll Entry")
 		self.assertEqual(attachment.attached_to_name, payroll_entry.name)
+		self.assertEqual(attachment.file_name, "PAYE - filed-paye-return.pdf")
 		self.assertEqual(attachment.is_private, 1)
 		self.assertTrue(attachment.file_url.startswith("/private/files/"))
 		self.assertEqual(attachment.get_content(), content)

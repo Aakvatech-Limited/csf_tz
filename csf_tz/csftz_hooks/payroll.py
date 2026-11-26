@@ -23,6 +23,11 @@ def upload_filed_return():
 	if payroll_entry.docstatus != 1 or not payroll_entry.salary_slips_submitted:
 		frappe.throw(_("Submit the salary slips before uploading filed returns."))
 
+	# FileUploader passes the selected return type through its fieldname parameter.
+	return_type = frappe.form_dict.get("fieldname")
+	if return_type not in ("PAYE", "SDL", "WCF", "NSSF", "NHIF", "HESLB"):
+		frappe.throw(_("Select a valid payroll return type."))
+
 	content = getattr(frappe.local, "uploaded_file", None)
 	filename = getattr(frappe.local, "uploaded_filename", None)
 	if not content or not filename:
@@ -34,7 +39,7 @@ def upload_filed_return():
 			"attached_to_doctype": payroll_entry.doctype,
 			"attached_to_name": payroll_entry.name,
 			"folder": "Home/Attachments",
-			"file_name": filename,
+			"file_name": f"{return_type} - {filename}",
 			"is_private": 1,
 			"content": content,
 		}
