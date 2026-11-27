@@ -31,7 +31,16 @@ jobs:
               return;
             }
 
-            const issue_number = context.payload.pull_request.number;
+            // A full same-repository hotfix promotion is not a direct contribution.
+            // Keep the normal review and required-check rules in force.
+            const pr = context.payload.pull_request;
+            if (pr.head.repo?.full_name === context.payload.repository.full_name &&
+                pr.head.ref === base + '-hotfix') {
+              core.info(`Allowing reviewed hotfix promotion '${pr.head.ref}' to '${base}'.`);
+              return;
+            }
+
+            const issue_number = pr.number;
             const { owner, repo } = context.repo;
             const disallowedText = disallowed.map((b) => `\`${b}\``).join(', ');
 
