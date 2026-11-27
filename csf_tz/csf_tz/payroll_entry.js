@@ -6,6 +6,8 @@ frappe.ui.form.on("Payroll Entry", {
   refresh:function(frm) {
       frm.trigger("control_action_buttons");
 
+      frm.trigger("add_filed_returns_button");
+
       if (frm.doc.docstatus === 1) {
             frm.add_custom_button(__('Opening Salary Register'), function () {
                 // Redirect with filter
@@ -62,6 +64,42 @@ frappe.ui.form.on("Payroll Entry", {
             }
         }
     });
+  },
+  add_filed_returns_button(frm) {
+      if (frm.doc.docstatus !== 1 || !frm.doc.salary_slips_submitted || !frm.has_perm("write")) {
+          return;
+      }
+
+      frm.add_custom_button(__("Upload Filed Returns"), () => {
+          if (frm.attachments.max_reached(true)) return;
+
+          frappe.prompt(
+              [{
+                  fieldname: "return_type",
+                  label: __("Return Type"),
+                  fieldtype: "Select",
+                  options: ["", "PAYE", "SDL", "WCF", "NSSF", "NHIF", "HESLB"],
+                  reqd: 1,
+              }],
+              ({ return_type }) => {
+                  new frappe.ui.FileUploader({
+                      doctype: frm.doctype,
+                      docname: frm.docname,
+                      frm,
+                      fieldname: return_type,
+                      method: "csf_tz.csftz_hooks.payroll.upload_filed_return",
+                      allow_multiple: true,
+                      allow_toggle_private: false,
+                      disable_file_browser: true,
+                      allow_web_link: false,
+                      allow_google_drive: false,
+                      on_success: (file) => frm.attachments.attachment_uploaded(file),
+                  });
+              },
+              __("Upload Filed Returns"),
+              __("Choose Files")
+          );
+      });
   },
   onload: (frm) => {
       frm.trigger("control_action_buttons");
