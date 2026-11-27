@@ -26,3 +26,4 @@ csf_tz.patches.remove_ot_component_custom_fields
 csf_tz.patches.remove_deleted_modules_metadata
 csf_tz.patches.remove_education_doctypes
 csf_tz.patches.restore_import_file
+csf_tz.patches.fix_lcv_import_tracker_custom_field
