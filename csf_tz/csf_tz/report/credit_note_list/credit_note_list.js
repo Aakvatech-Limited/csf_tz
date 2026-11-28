@@ -1,28 +1,47 @@
-// Copyright (c) 2016, Aakvatech and contributors
-// For license information, please see license.txt
-/* eslint-disable */
-
 frappe.query_reports["Credit Note List"] = {
-	"filters": [
-		{
-			"fieldname":"from_date",
-			"label": __("From Date"),
-			"fieldtype": "Date",
-			"default": frappe.datetime.add_months(frappe.datetime.get_today(), -1),
-			"reqd": 1
-		},
-		{
-			"fieldname":"to_date",
-			"label": __("To Date"),
-			"fieldtype": "Date",
-			"default": frappe.datetime.get_today(),
-			"reqd": 1
-		},
-	]
-}
-
-// $(function() {
-// 	$(wrapper).bind("show", function() {
-// 		frappe.query_report.load();
-// 	});
-// });
+    filters: [
+        {
+            fieldname: "company",
+            label: "Company",
+            fieldtype: "Link",
+            options: "Company",
+            default: frappe.defaults.get_user_default("Company"),
+            reqd: 1
+        },
+        {
+            fieldname: "time_span",
+            label: "Time Span",
+            fieldtype: "Select",
+            options: ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Last Month", "Period"],
+            default: "This Month",
+            reqd: 1
+        },
+        {
+            fieldname: "from_date",
+            label: "From Date",
+            fieldtype: "Date",
+            depends_on: "eval:doc.time_span == 'Period'",
+            mandatory_depends_on: "eval:doc.time_span == 'Period'"
+        },
+        {
+            fieldname: "to_date",
+            label: "To Date",
+            fieldtype: "Date",
+            depends_on: "eval:doc.time_span == 'Period'",
+            mandatory_depends_on: "eval:doc.time_span == 'Period'"
+        },
+        {
+            fieldname: "customer",
+            label: "Customer",
+            fieldtype: "Link",
+            options: "Customer"
+        },
+        {
+            fieldname: "credit_note",
+            label: "Credit Note",
+            fieldtype: "Link",
+            options: "Sales Invoice",
+            get_query: () => ({filters: {is_return: 1, docstatus: 1}})
+        }
+    ]
+};
