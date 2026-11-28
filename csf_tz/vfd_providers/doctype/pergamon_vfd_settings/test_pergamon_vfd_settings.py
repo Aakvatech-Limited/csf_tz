@@ -381,6 +381,24 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(pergamon.get_zreport_totals({"data": {"unknown": 55}}), (None, None))
 		self.assertEqual(pergamon.get_zreport_totals([{"totalAmount": 590}]), (None, None))
 
+	def test_periodic_report_rejects_reverse_date_range(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			pergamon.fetch_pergamon_periodic_report,
+			"_Test Company",
+			"2026-10-30",
+			"2026-10-01",
+		)
+
+	def test_periodic_report_rejects_invalid_date(self):
+		self.assertRaises(
+			frappe.ValidationError,
+			pergamon.fetch_pergamon_periodic_report,
+			"_Test Company",
+			"invalid",
+			"2026-10-30",
+		)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
