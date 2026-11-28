@@ -284,6 +284,22 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			pergamon.receipt_field(response, "verificationUrl", "traReceiptVerificationUrl")
 		)
 
+	def test_failed_invoice_can_use_normal_vfd_retry(self):
+		doc = self.make_invoice()
+		doc.docstatus = 1
+		doc.is_return = 0
+		doc.is_not_vfd_invoice = 0
+		doc.vfd_status = "Failed"
+		pergamon.validate_postable(doc)
+
+	def test_successful_invoice_cannot_be_resent(self):
+		doc = self.make_invoice()
+		doc.docstatus = 1
+		doc.is_return = 0
+		doc.is_not_vfd_invoice = 0
+		doc.vfd_status = "Success"
+		self.assertRaises(frappe.ValidationError, pergamon.validate_postable, doc)
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
