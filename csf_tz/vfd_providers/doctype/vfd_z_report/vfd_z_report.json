@@ -1,0 +1,141 @@
+{
+ "doctype": "DocType",
+ "name": "VFD Z Report",
+ "module": "VFD Providers",
+ "autoname": "hash",
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "company",
+  "vfd_provider",
+  "report_date",
+  "column_break_1",
+  "fetched_at",
+  "reconciliation_status",
+  "section_break_totals",
+  "provider_total",
+  "erpnext_total",
+  "difference",
+  "column_break_2",
+  "provider_receipt_count",
+  "erpnext_receipt_count",
+  "section_break_raw",
+  "raw_response"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "vfd_provider",
+   "label": "VFD Provider",
+   "fieldtype": "Link",
+   "options": "VFD Provider",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "report_date",
+   "label": "Report Date",
+   "fieldtype": "Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fetched_at",
+   "label": "Retrieved At",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reconciliation_status",
+   "label": "Comparison Status",
+   "fieldtype": "Select",
+   "options": "Pending Schema Confirmation\nIndicative Match\nIndicative Difference",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_break_totals",
+   "fieldtype": "Section Break",
+   "label": "Daily Totals (TZS)"
+  },
+  {
+   "fieldname": "provider_total",
+   "fieldtype": "Currency",
+   "label": "Pergamon Report Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erpnext_total",
+   "fieldtype": "Currency",
+   "label": "ERPNext Fiscalized Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Currency",
+   "label": "Difference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider_receipt_count",
+   "fieldtype": "Int",
+   "label": "Pergamon Receipt Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erpnext_receipt_count",
+   "fieldtype": "Int",
+   "label": "ERPNext Fiscalized Invoices",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_raw",
+   "fieldtype": "Section Break",
+   "label": "Original Provider Response"
+  },
+  {
+   "fieldname": "raw_response",
+   "label": "Raw Z Report JSON",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

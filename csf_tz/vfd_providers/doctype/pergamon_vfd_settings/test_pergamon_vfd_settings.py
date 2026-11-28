@@ -371,6 +371,16 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		)
 		self.assertRaises(frappe.ValidationError, pergamon.extract_invoice_list, {"data": {}})
 
+	def test_z_report_totals_from_supported_envelope(self):
+		self.assertEqual(
+			pergamon.get_zreport_totals({"data": {"totalAmount": 590, "receiptCount": 2}}),
+			(590, 2),
+		)
+
+	def test_z_report_totals_from_unknown_schema(self):
+		self.assertEqual(pergamon.get_zreport_totals({"data": {"unknown": 55}}), (None, None))
+		self.assertEqual(pergamon.get_zreport_totals([{"totalAmount": 590}]), (None, None))
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
