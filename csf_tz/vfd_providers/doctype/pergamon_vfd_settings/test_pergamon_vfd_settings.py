@@ -1,5 +1,6 @@
 """Offline contract tests: never contact the live Pergamon endpoint."""
 
+from datetime import datetime
 from unittest.mock import patch
 
 import frappe
@@ -42,11 +43,31 @@ class TestPergamonVFDSettings(FrappeTestCase):
 			}
 		)
 
+	def test_current_timestamp_is_not_sales_invoice_posting_date(self):
+		doc = self.make_invoice()
+		doc.posting_date = "2025-01-01"
+		doc.posting_time = "01:02:03"
+		with (
+			patch.object(pergamon, "get_item_taxcode", return_value=1),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+			patch.object(pergamon, "now_datetime", return_value=datetime(2026, 10, 30, 20, 51, 9)),
+		):
+			payload = pergamon.get_payload(doc)
+		self.assertEqual(payload["dateTime"], "2026-10-30 20:51:09")
+		self.assertEqual(doc.posting_date, "2025-01-01")
+
+	def test_explicit_fiscal_timestamp_for_submission(self):
+		self.assertEqual(
+			pergamon.get_fiscal_datetime(datetime(2026, 10, 30, 20, 51, 9)),
+			"2026-10-30 20:51:09",
+		)
+
 	def test_payload_contract(self):
 		doc = self.make_invoice()
 		with (
 			patch.object(pergamon, "get_item_taxcode", return_value=1),
 			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+			patch.object(pergamon, "now_datetime", return_value=datetime(2026, 10, 30, 20, 51, 9)),
 		):
 			result = pergamon.get_payload(doc)
 		self.assertEqual(result["traderInvoiceNo"], doc.name)
@@ -102,7 +123,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(payload["currency"], "TZS")
 		self.assertEqual(payload["exchangeRate"], 1)
 		self.assertEqual(payload["custId"], "999999999")
-		self.assertEqual(payload["dateTime"], "2026-10-29 12:53:17")
+		self.assertEqual(payload["dateTime"], "2026-10-30 20:51:09")
 		self.assertEqual(len(payload["salesItems"]), 6)
 		self.assertTrue(all(line["amount"] == 423360 and line["taxCode"] == "C" for line in payload["salesItems"]))
 
@@ -140,7 +161,7 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertEqual(payload["totalAmount"], 2700000)
 		self.assertEqual(payload["currency"], "TZS")
 		self.assertEqual(payload["custId"], "125082890")
-		self.assertEqual(payload["dateTime"], "2026-10-29 11:42:03")
+		self.assertEqual(payload["dateTime"], "2026-10-30 20:51:09")
 		self.assertEqual(len(payload["salesItems"]), 6)
 		self.assertTrue(all(row["taxCode"] == "A" and row["amount"] == 450000 for row in payload["salesItems"]))
 
@@ -204,6 +225,64 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		self.assertFalse(pergamon.parse_receipt({"message": "OK"})[0])
 		self.assertFalse(pergamon.parse_receipt({"success": True})[0])
 		self.assertTrue(pergamon.parse_receipt({"success": True, "verificationCode": "VERIFY-123"})[0])
+
+	def test_customer_vfd_identifiers_are_used(self):
+		doc = self.make_invoice()
+		doc.vfd_cust_id_type = "1- TIN"
+		doc.vfd_cust_id = "125082890.0"
+		with (
+			patch.object(pergamon, "get_item_taxcode", return_value=1),
+			patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"),
+		):
+			payload = pergamon.get_payload(doc)
+		self.assertEqual(payload["custIdType"], "1")
+		self.assertEqual(payload["custId"], "125082890")
+
+	def test_missing_customer_vfd_identifiers_are_rejected(self):
+		doc = self.make_invoice()
+		with patch.object(pergamon.frappe, "get_cached_value", return_value="TZS"):
+			doc.vfd_cust_id_type = ""
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
+			doc.vfd_cust_id_type = "1- TIN"
+			doc.vfd_cust_id = ""
+			self.assertRaises(frappe.ValidationError, pergamon.get_payload, doc)
+
+	def test_verification_url_in_nested_success_response(self):
+		response = {
+			"success": True,
+			"data": {
+				"verificationCode": "VFD-2026-42",
+				"verificationUrl": "https://verify.tra.go.tz/example",
+			},
+		}
+		accepted, receipt = pergamon.parse_receipt(response)
+		self.assertTrue(accepted)
+		self.assertEqual(
+			pergamon.receipt_field(receipt, "verificationUrl", "traReceiptVerificationUrl"),
+			"https://verify.tra.go.tz/example",
+		)
+
+	def test_verification_url_in_result_envelope(self):
+		response = {
+			"status": "SUCCESS",
+			"result": {
+				"traReceiptVerificationCode": "VFD-2026-42",
+				"traReceiptVerificationUrl": "https://verify.tra.go.tz/another",
+			},
+		}
+		accepted, receipt = pergamon.parse_receipt(response)
+		self.assertTrue(accepted)
+		self.assertEqual(
+			pergamon.receipt_field(receipt, "verificationUrl", "traReceiptVerificationUrl"),
+			"https://verify.tra.go.tz/another",
+		)
+
+	def test_missing_verification_url_does_not_invent_one(self):
+		response = {"success": True, "verificationCode": "VFD-2026-42"}
+		self.assertTrue(pergamon.parse_receipt(response)[0])
+		self.assertIsNone(
+			pergamon.receipt_field(response, "verificationUrl", "traReceiptVerificationUrl")
+		)
 
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
