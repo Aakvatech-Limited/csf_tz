@@ -438,6 +438,33 @@ class TestPergamonVFDSettings(FrappeTestCase):
 		with patch.object(pergamon.frappe.conf, "get", return_value="/nonexistent/pergamon-ca.pem"):
 			self.assertRaises(frappe.ValidationError, pergamon.get_tls_verify)
 
+	def test_pergamon_diagnostics_disabled_by_default(self):
+		with (
+			patch.object(pergamon.frappe.conf, "get", return_value=None),
+			patch.object(pergamon.frappe, "logger") as logger,
+		):
+			pergamon.log_pergamon_diagnostic(
+				"get_invoice", exc=pergamon.requests.exceptions.SSLError("secret"),
+			)
+			logger.assert_not_called()
+
+	def test_pergamon_diagnostics_redact_raw_exception(self):
+		with (
+			patch.object(pergamon.frappe.conf, "get", side_effect=lambda key: key == "pergamon_debug_logging"),
+			patch.object(pergamon.frappe, "logger") as logger,
+		):
+			pergamon.log_pergamon_diagnostic(
+				"list_invoices",
+				exc=pergamon.requests.exceptions.SSLError(
+					"certificate verify failed: self-signed certificate url=https://secret.example/token"
+				),
+			)
+			message = logger.return_value.warning.call_args.args[0]
+			args = logger.return_value.warning.call_args.args[1:]
+			self.assertIn("reason=%s", message)
+			self.assertIn("self_signed_certificate", args)
+			self.assertNotIn("secret.example", str(args))
+
 	def test_amount_mismatch_is_rejected(self):
 		doc = self.make_invoice()
 		doc.base_grand_total = 100
