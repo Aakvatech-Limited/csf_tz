@@ -106,7 +106,7 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider, method) {
     let customerObj = p.customer || {};
     if (provider === "VFDPlus") {
       customerObj = p.customer_info || {};
-    } else if (provider === "DIRMVFD") {
+    } else if (provider === "DIRMVFD" || provider === "Pergamon") {
       customerObj = {
         name: p.custName,
         idType: p.custIdType,
@@ -122,7 +122,7 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider, method) {
 
     // Invoice / reference id key differences
     const partnerInvoiceId =
-      p.partnerInvoiceId || p.trans_no || p.referenceNumber || p.unique_id || frm.doc.name;
+      p.partnerInvoiceId || p.traderInvoiceNo || p.trans_no || p.referenceNumber || p.unique_id || frm.doc.name;
     const invoiceAmountType = p.invoiceAmountType || p.amountType || '';
 
     // Date / time differences
@@ -138,7 +138,17 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider, method) {
 
     // Items arrays differences
     let items = [];
-    if (Array.isArray(p.items)) {
+    if (Array.isArray(p.salesItems)) {
+      items = p.salesItems.map(it => ({
+        description: it.name || "",
+        quantity: it.qty || 0,
+        unitAmount: it.unitPrice || 0,
+        taxType: (it.taxCode || "").toString(),
+        _raw: it,
+      }));
+    } else if (Array.isArray(p.salesItems)) {
+      items = p.salesItems.map(it => ({description: it.name || "", quantity: it.qty || 0, unitAmount: it.unitPrice || 0, taxType: (it.taxCode || "").toString(), _raw: it}));
+    } else if (Array.isArray(p.items)) {
       items = p.items.map(it => {
         const quantity = it.quantity || it.qty || it.item_qty || 0;
         // DIRM VFD sends the whole line in amt, the preview shows a unit amount.
@@ -166,7 +176,9 @@ function show_vfd_preview_dialog(frm, payload, vfd_provider, method) {
 
     // Payments arrays differences
     let payments = [];
-    if (Array.isArray(p.payments)) {
+    if (provider === "Pergamon") {
+      payments = [{type: p.paymentType || "", amount: p.totalAmount || 0}];
+    } else if (Array.isArray(p.payments)) {
       payments = p.payments.map(pm => ({
         type: pm.type || pm.pmt_type || '',
         amount: pm.amount || pm.pmt_amount || 0,
